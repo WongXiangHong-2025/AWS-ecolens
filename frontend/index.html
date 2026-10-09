@@ -600,6 +600,12 @@ const STREAM_URLS = {
 };
 const DIAGRAM_API = '__DIAGRAM_API_URL__';
 
+/* True when a URL is still an unreplaced deploy placeholder (e.g. running
+   locally via Live Preview before GitHub Actions injects the real URLs). */
+function isConfiguredUrl(url) {
+  return typeof url === 'string' && /^https?:\/\//i.test(url) && !/^__.*__$/.test(url);
+}
+
 /* ============================================================
    i18n dictionary (EN + Bahasa Malaysia)
    ============================================================ */
@@ -893,6 +899,15 @@ async function streamInto(widget, url, bodyObj, outputEl) {
   const errorEl = document.querySelector(`[data-error="${widget}"]`);
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
+
+  if (!isConfiguredUrl(url)) {
+    if (errorEl) {
+      errorEl.textContent = '⚠️ API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.classList.add('show');
+    }
+    return;
+  }
+
   if (spinner) spinner.style.display = 'block';
 
   const cursorLine = document.createElement('span');
@@ -979,6 +994,16 @@ async function runImage(option) {
   const outputEl = document.querySelector(`[data-output="${key}"]`);
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
+
+  if (!isConfiguredUrl(DIAGRAM_API)) {
+    outputEl.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>';
+    if (errorEl) {
+      errorEl.textContent = '⚠️ Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.classList.add('show');
+    }
+    return;
+  }
+
   if (spinner) spinner.style.display = 'block';
   try {
     const resp = await fetch(DIAGRAM_API, {
@@ -1044,6 +1069,11 @@ async function sendChat() {
   const botBubble = addBubble('bot', '');
   const errorEl = document.querySelector('[data-error="ecolens_chatai"]');
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+
+  if (!isConfiguredUrl(STREAM_URLS.ecolens_chatai)) {
+    botBubble.textContent = '⚠️ Chat API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+    return;
+  }
 
   const body = {
     message: msg, history: state.chatHistory.slice(),
