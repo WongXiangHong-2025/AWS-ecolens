@@ -39,11 +39,27 @@ jobs:
       - name: SAM build
         run: sam build --template infra/template.yaml
 
+      - name: Ensure deploy bucket exists (in ap-southeast-5)
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          DEPLOY_BUCKET="ecolens-sam-deploy-${AWS_REGION}-${ACCOUNT_ID}"
+          echo "DEPLOY_BUCKET=$DEPLOY_BUCKET" >> "$GITHUB_ENV"
+          if aws s3api head-bucket --bucket "$DEPLOY_BUCKET" 2>/dev/null; then
+            echo "Bucket $DEPLOY_BUCKET already exists."
+          else
+            echo "Creating bucket $DEPLOY_BUCKET in $AWS_REGION ..."
+            aws s3api create-bucket \
+              --bucket "$DEPLOY_BUCKET" \
+              --region "$AWS_REGION" \
+              --create-bucket-configuration LocationConstraint="$AWS_REGION"
+            aws s3api wait bucket-exists --bucket "$DEPLOY_BUCKET"
+          fi
+
       - name: SAM deploy
         run: |
           sam deploy \
             --stack-name "$STACK_NAME" \
-            --resolve-s3 \
+            --s3-bucket "$DEPLOY_BUCKET" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region "$AWS_REGION" \
             --no-confirm-changeset \
