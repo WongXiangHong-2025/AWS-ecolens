@@ -132,6 +132,23 @@
   .dropzone input { display: none; }
   #fileInput, #cameraInput { display: none; }
   .upload-actions { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }
+
+  /* live camera modal */
+  .cam-modal {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(0,0,0,.72); align-items: center; justify-content: center; padding: 1rem;
+  }
+  .cam-modal.show { display: flex; }
+  .cam-box {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 1rem; max-width: 560px; width: 100%; box-shadow: var(--shadow);
+  }
+  .cam-box video {
+    width: 100%; border-radius: 10px; background: #000; max-height: 60vh; object-fit: contain;
+  }
+  .cam-controls { display: flex; gap: .5rem; margin-top: .8rem; justify-content: center; flex-wrap: wrap; }
+  .cam-error { color: var(--danger); font-size: .9rem; margin-top: .5rem; text-align: center; display: none; }
+  .cam-error.show { display: block; }
   .file-preview { margin-top: .8rem; display: none; }
   .file-preview img { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid var(--border); }
   .file-preview .meta { font-size: .82rem; color: var(--muted); margin-top: .35rem; }
@@ -264,6 +281,20 @@
       <div class="file-preview" id="filePreview">
         <img id="filePreviewImg" alt="preview" />
         <div class="meta" id="filePreviewMeta"></div>
+      </div>
+    </div>
+
+    <!-- Live camera modal -->
+    <div class="cam-modal" id="camModal" aria-hidden="true">
+      <div class="cam-box">
+        <video id="camVideo" autoplay playsinline muted></video>
+        <canvas id="camCanvas" style="display:none;"></canvas>
+        <div class="cam-error" id="camError"></div>
+        <div class="cam-controls">
+          <button class="btn" id="camSwitch" data-i18n="camSwitch">🔄 Switch</button>
+          <button class="btn primary" id="camCapture" data-i18n="camCapture">📸 Capture</button>
+          <button class="btn" id="camCancel" data-i18n="camCancel">✖ Cancel</button>
+        </div>
       </div>
     </div>
 
@@ -531,6 +562,7 @@ const I18N = {
     inputHelp: 'Only the first few fields are needed to get started. Open "More details" for a sharper result, or click "Fill example" to try it instantly.',
     w_upload: 'Upload Your Packaging', dropHint: 'Drag & drop an image (JPG, PNG, WEBP) or PDF, or click to browse.',
     browse: '📁 Browse', camera: '📷 Take photo',
+    camSwitch: '🔄 Switch', camCapture: '📸 Capture', camCancel: '✖ Cancel',
     w_product: 'Product Name and Type', w_category: 'Product Category', w_objective: 'Main Sustainability Objective',
     moreDetails: 'More details (optional — improves accuracy)',
     w_shelf: 'Required Shelf Life', w_contains: 'What the Product Contains',
@@ -573,6 +605,7 @@ const I18N = {
     inputHelp: 'Hanya beberapa medan pertama diperlukan untuk bermula. Buka "Maklumat lanjut" untuk hasil lebih tepat, atau klik "Isi contoh" untuk cuba segera.',
     w_upload: 'Muat Naik Pembungkusan', dropHint: 'Seret & lepas imej (JPG, PNG, WEBP) atau PDF, atau klik untuk pilih.',
     browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
+    camSwitch: '🔄 Tukar', camCapture: '📸 Tangkap', camCancel: '✖ Batal',
     w_product: 'Nama dan Jenis Produk', w_category: 'Kategori Produk', w_objective: 'Objektif Kelestarian Utama',
     moreDetails: 'Maklumat lanjut (pilihan — meningkatkan ketepatan)',
     w_shelf: 'Jangka Hayat Diperlukan', w_contains: 'Kandungan Produk',
@@ -666,7 +699,7 @@ const filePreviewMeta = document.getElementById('filePreviewMeta');
 
 dropzone.addEventListener('click', () => fileInput.click());
 document.getElementById('browseBtn').addEventListener('click', e => { e.preventDefault(); fileInput.click(); });
-document.getElementById('cameraBtn').addEventListener('click', e => { e.preventDefault(); cameraInput.click(); });
+document.getElementById('cameraBtn').addEventListener('click', e => { e.preventDefault(); openCamera(); });
 ['dragover','dragenter'].forEach(ev =>
   dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
 ['dragleave','drop'].forEach(ev =>
@@ -680,16 +713,96 @@ function handleFile(file) {
   reader.onload = () => {
     const result = reader.result;
     const comma = result.indexOf(',');
-    state.fileData = result.slice(comma + 1);
-    state.fileMime = file.type || 'application/octet-stream';
-    filePreview.style.display = 'block';
-    if (state.fileMime.startsWith('image/')) {
-      filePreviewImg.src = result; filePreviewImg.style.display = 'block';
-    } else { filePreviewImg.style.display = 'none'; }
-    filePreviewMeta.textContent = `${file.name} · ${state.fileMime} · ${(file.size/1024).toFixed(0)} KB`;
+    setImage(result.slice(comma + 1), file.type || 'application/octet-stream', file.name, file.size);
   };
   reader.readAsDataURL(file);
 }
+
+// Store an image (from file or camera) into state and show the preview.
+function setImage(base64, mime, name, bytes) {
+  state.fileData = base64;
+  state.fileMime = mime || 'image/jpeg';
+  filePreview.style.display = 'block';
+  if (state.fileMime.startsWith('image/')) {
+    filePreviewImg.src = 'data:' + state.fileMime + ';base64,' + base64;
+    filePreviewImg.style.display = 'block';
+  } else { filePreviewImg.style.display = 'none'; }
+  const kb = bytes ? (bytes / 1024).toFixed(0) + ' KB' : '';
+  filePreviewMeta.textContent = `${name} · ${state.fileMime}${kb ? ' · ' + kb : ''}`;
+}
+
+/* ============================================================
+   Live device camera (getUserMedia) — opens the real webcam /
+   phone camera with a preview and a capture button. Falls back
+   to the capture file input if the browser blocks camera access.
+   ============================================================ */
+const camModal = document.getElementById('camModal');
+const camVideo = document.getElementById('camVideo');
+const camCanvas = document.getElementById('camCanvas');
+const camError = document.getElementById('camError');
+let camStream = null;
+let camFacing = 'environment';
+
+async function startStream() {
+  stopStream();
+  camError.classList.remove('show'); camError.textContent = '';
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: camFacing } }, audio: false,
+    });
+    camVideo.srcObject = camStream;
+  } catch (err) {
+    // Permission denied, no camera, or insecure context → fall back.
+    throw err;
+  }
+}
+
+function stopStream() {
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  camVideo.srcObject = null;
+}
+
+async function openCamera() {
+  const supported = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  if (!supported) { cameraInput.click(); return; } // very old browser → file input
+  camModal.classList.add('show');
+  camModal.setAttribute('aria-hidden', 'false');
+  try {
+    await startStream();
+  } catch (err) {
+    // Graceful fallback: close modal, use the OS camera via file input.
+    closeCamera();
+    cameraInput.click();
+  }
+}
+
+function closeCamera() {
+  stopStream();
+  camModal.classList.remove('show');
+  camModal.setAttribute('aria-hidden', 'true');
+}
+
+document.getElementById('camCapture').addEventListener('click', () => {
+  const w = camVideo.videoWidth, h = camVideo.videoHeight;
+  if (!w || !h) return;
+  camCanvas.width = w; camCanvas.height = h;
+  camCanvas.getContext('2d').drawImage(camVideo, 0, 0, w, h);
+  const dataUrl = camCanvas.toDataURL('image/jpeg', 0.9);
+  const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  const approxBytes = Math.round(base64.length * 3 / 4);
+  setImage(base64, 'image/jpeg', 'camera-photo.jpg', approxBytes);
+  closeCamera();
+});
+
+document.getElementById('camSwitch').addEventListener('click', async () => {
+  camFacing = camFacing === 'environment' ? 'user' : 'environment';
+  try { await startStream(); }
+  catch (err) { camError.textContent = (lang === 'bm' ? 'Tidak dapat tukar kamera.' : 'Could not switch camera.'); camError.classList.add('show'); }
+});
+
+document.getElementById('camCancel').addEventListener('click', closeCamera);
+camModal.addEventListener('click', e => { if (e.target === camModal) closeCamera(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && camModal.classList.contains('show')) closeCamera(); });
 
 /* ============================================================
    Minimal per-line markdown renderer
