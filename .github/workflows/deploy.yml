@@ -68,10 +68,10 @@ jobs:
           URL=$(get_output PackagingAuditandEvidenceClassificationUrl)
           sed -i "s|__URL_PACKAGING_AUDIT_AND_EVIDENCE_CLASSIFICATION__|$URL|g" frontend/index.html
 
-          URL=$(get_output Best-FitRecommendationandSupplierBriefUrl)
+          URL=$(get_output BestFitRecommendationandSupplierBriefUrl)
           sed -i "s|__URL_BEST_FIT_RECOMMENDATION_AND_SUPPLIER_BRIEF__|$URL|g" frontend/index.html
 
-          URL=$(get_output Trade-offComparisonUrl)
+          URL=$(get_output TradeoffComparisonUrl)
           sed -i "s|__URL_TRADE_OFF_COMPARISON__|$URL|g" frontend/index.html
 
           URL=$(get_output EcoLensChatAIUrl)

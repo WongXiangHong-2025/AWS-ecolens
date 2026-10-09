@@ -258,9 +258,9 @@ Outputs:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/sustainability-problems-identified"
   PackagingAuditandEvidenceClassificationUrl:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/packaging-audit-and-evidence-classification"
-  Best-FitRecommendationandSupplierBriefUrl:
+  BestFitRecommendationandSupplierBriefUrl:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/best-fit-recommendation-and-supplier-brief"
-  Trade-offComparisonUrl:
+  TradeoffComparisonUrl:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/trade-off-comparison"
   EcoLensChatAIUrl:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ecolens-chatai"
