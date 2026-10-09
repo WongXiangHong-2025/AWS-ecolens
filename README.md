@@ -67,23 +67,20 @@ In the AWS Console → **Bedrock → Model access**, request/enable:
 
 First-time accounts must submit the Anthropic use-case form before access is granted.
 
-### 2. Create an S3 bucket for SAM deployment artifacts
-
-```bash
-aws s3 mb s3://your-sam-deploy-bucket --region ap-southeast-5
-```
-
-### 3. Add GitHub repository secrets
+### 2. Add GitHub repository secrets
 
 | Secret                   | Value                                         |
 |--------------------------|-----------------------------------------------|
 | `AWS_ACCESS_KEY_ID`      | IAM user/role access key                      |
 | `AWS_SECRET_ACCESS_KEY`  | matching secret key                           |
-| `SAM_DEPLOY_BUCKET`      | the bucket name from step 2                   |
+
+> No deploy bucket secret is needed. The workflow uses `sam deploy --resolve-s3`,
+> which creates and reuses a SAM-managed artifacts bucket in `ap-southeast-5`
+> automatically. This also avoids S3 region-mismatch errors.
 
 The deploying principal needs permissions for CloudFormation, Lambda, IAM
 (role creation — the role is named, hence `CAPABILITY_NAMED_IAM`), API Gateway,
-and S3.
+and S3 (including creating the SAM managed bucket).
 
 ---
 

@@ -43,7 +43,7 @@ jobs:
         run: |
           sam deploy \
             --stack-name "$STACK_NAME" \
-            --s3-bucket "${{ secrets.SAM_DEPLOY_BUCKET }}" \
+            --resolve-s3 \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region "$AWS_REGION" \
             --no-confirm-changeset \
