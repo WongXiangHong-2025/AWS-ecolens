@@ -206,6 +206,11 @@ Resources:
       Role: !GetAtt AppBedrockRole.Arn
       Timeout: 30
       MemorySize: 512
+      Environment:
+        Variables:
+          # Nova Canvas is NOT available in ap-southeast-5. Call it in a region
+          # that offers it (us-east-1 / eu-west-1 / ap-northeast-2).
+          BEDROCK_REGION: us-east-1
       Events:
         Post:
           Type: Api
