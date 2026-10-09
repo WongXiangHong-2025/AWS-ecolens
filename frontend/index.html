@@ -47,12 +47,12 @@
   header.topbar {
     position: sticky; top: 0; z-index: 50;
     display: flex; align-items: center; justify-content: space-between;
-    gap: 1rem; padding: .75rem 1.25rem;
+    gap: .6rem; padding: .75rem 1.25rem; flex-wrap: wrap;
     background: var(--panel); border-bottom: 1px solid var(--border);
     box-shadow: var(--shadow);
   }
   .topbar h1 { font-size: 1.1rem; margin: 0; font-weight: 650; }
-  .topbar .actions { display: flex; gap: .5rem; align-items: center; }
+  .topbar .actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
 
   .btn {
     font: inherit; cursor: pointer; border: 1px solid var(--border);
@@ -63,6 +63,7 @@
   .btn:hover { border-color: var(--accent); }
   .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   .btn.primary:hover { background: var(--accent-2); }
+  .btn.small { padding: .35rem .6rem; font-size: .82rem; }
   .btn:disabled { opacity: .55; cursor: not-allowed; }
 
   main { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
@@ -80,6 +81,7 @@
 
   label.field-label { display: block; font-weight: 600; margin-bottom: .35rem; font-size: .92rem; }
   .optional-tag { color: var(--muted); font-weight: 400; font-size: .8rem; }
+  .req { color: var(--danger); font-weight: 700; }
 
   input[type="text"], textarea, select {
     width: 100%; font: inherit; color: var(--text);
@@ -89,6 +91,12 @@
   input[type="text"]:focus, textarea:focus, select:focus {
     outline: none; border-color: var(--accent);
   }
+  .cost-wrap { position: relative; }
+  .cost-wrap .prefix {
+    position: absolute; left: .6rem; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: .9rem; pointer-events: none;
+  }
+  .cost-wrap input { padding-left: 2.4rem; }
   textarea { resize: vertical; min-height: 60px; }
   ::placeholder { color: var(--muted); opacity: .8; }
 
@@ -104,6 +112,15 @@
   .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
 
+  details.advanced { margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: .8rem; }
+  details.advanced > summary {
+    cursor: pointer; font-weight: 600; color: var(--accent-2); list-style: none;
+    display: flex; align-items: center; gap: .4rem; user-select: none;
+  }
+  details.advanced > summary::before { content: "▸"; transition: transform .15s ease; }
+  details.advanced[open] > summary::before { transform: rotate(90deg); }
+  details.advanced > .grid-2 { margin-top: .9rem; }
+
   /* file dropzone */
   .dropzone {
     border: 2px dashed var(--border); border-radius: 12px;
@@ -113,6 +130,8 @@
   .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-2); }
   .dropzone .arrow { font-size: 1.8rem; display: block; margin-bottom: .3rem; }
   .dropzone input { display: none; }
+  #fileInput, #cameraInput { display: none; }
+  .upload-actions { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }
   .file-preview { margin-top: .8rem; display: none; }
   .file-preview img { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid var(--border); }
   .file-preview .meta { font-size: .82rem; color: var(--muted); margin-top: .35rem; }
@@ -123,10 +142,10 @@
     border-radius: 11px; padding: .9rem 1rem; margin-top: .6rem;
   }
   .output-text {
-    height: 340px; overflow-y: auto; font-size: .92rem;
+    height: 340px; overflow-y: auto; overflow-x: auto; font-size: .92rem;
     scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
   }
-  .output-text::-webkit-scrollbar { width: 7px; }
+  .output-text::-webkit-scrollbar { width: 7px; height: 7px; }
   .output-text::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
   .output-text::-webkit-scrollbar-track { background: transparent; }
   .output-image, .output-chat { height: auto; }
@@ -154,8 +173,13 @@
   .panel-error { color: var(--danger); font-size: .9rem; margin-top: .4rem; display: none; }
   .panel-error.show { display: block; }
 
+  .panel-tools { display: flex; gap: .5rem; margin-top: .5rem; }
+
   .output-image img { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); }
   .img-placeholder { color: var(--muted); font-size: .9rem; text-align: center; padding: 2rem 0; }
+
+  .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  @media (max-width: 760px) { .img-grid { grid-template-columns: 1fr; } }
 
   /* chat */
   .chat-log {
@@ -176,76 +200,81 @@
   .run-all-wrap .btn { box-shadow: var(--shadow); }
 
   .section-divider { border: none; border-top: 2px solid var(--border); margin: 1.6rem 0 1rem; }
+
+  .toast {
+    position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%) translateY(2rem);
+    background: var(--accent-2); color: #fff; padding: .6rem 1.1rem; border-radius: 10px;
+    box-shadow: var(--shadow); opacity: 0; transition: all .25s ease; z-index: 100; pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <header class="topbar">
-  <h1>🌱 EcoLens — Sustainable Packaging Decision</h1>
+  <h1>🌱 EcoLens</h1>
   <div class="actions">
-    <button class="btn" id="themeToggle" title="Toggle theme">🌙 Dark</button>
-    <button class="btn" id="resetBtn" title="Reset all inputs and outputs">↺ Reset</button>
-    <button class="btn primary" id="runAllBtn">▶ Run All</button>
+    <button class="btn small" id="langToggle" title="Language">🌐 BM</button>
+    <button class="btn small" id="themeToggle" title="Toggle theme">🌙 <span data-i18n="dark">Dark</span></button>
+    <button class="btn small" id="exampleBtn" data-i18n="example">Fill example</button>
+    <button class="btn small" id="resetBtn" data-i18n="reset">Reset</button>
+    <button class="btn primary" id="runAllBtn">▶ <span data-i18n="runAll">Run All</span></button>
   </div>
 </header>
 
 <main>
   <!-- Widget 1: Welcome (static) -->
   <section class="card intro">
-    <div class="label">Welcome to EcoLens</div>
+    <div class="label" data-i18n="welcome">Welcome to EcoLens</div>
     <h2>🌱 EcoLens</h2>
-    <h3>❗ Problem</h3>
-    <p>SMEs want more sustainable packaging but often don't know what they can change
-      without increasing <strong>cost</strong>, reducing <strong>shelf life</strong>,
-      or affecting <strong>product protection</strong>.</p>
-    <h3>💡 Solution</h3>
-    <p><strong>EcoLens</strong> analyses a packaging image together with business
-      requirements and generates <strong>practical redesign strategies</strong> that
-      balance: sustainability, cost, product protection and production constraints.</p>
-    <ul>
-      <li>EcoLens goes beyond a simple packaging scanner. It also checks environmental
-        claims and produces a <strong>supplier-ready action plan</strong>.</li>
-      <li>EcoLens primarily supports:</li>
-    </ul>
+    <h3>❗ <span data-i18n="problem">Problem</span></h3>
+    <p data-i18n="problemText">SMEs want more sustainable packaging but often don't know what they can change
+      without increasing cost, reducing shelf life, or affecting product protection.</p>
+    <h3>💡 <span data-i18n="solution">Solution</span></h3>
+    <p data-i18n="solutionText"><strong>EcoLens</strong> analyses a packaging image together with business
+      requirements and generates practical redesign strategies that balance:
+      sustainability, cost, product protection and production constraints. It also checks
+      environmental claims and produces a supplier-ready action plan.</p>
     <div class="sdg">
-      <span>🏭 SDG 9 — Industry, innovation and infrastructure</span>
-      <span>♻️ SDG 12 — Responsible Consumption and Production</span>
-      <span>🌏 SDG 13 — Climate Action</span>
+      <span>🏭 SDG 9</span>
+      <span>♻️ SDG 12</span>
+      <span>🌏 SDG 13</span>
     </div>
   </section>
 
-  <!-- Input widgets 2-18 -->
+  <!-- Input widgets -->
   <section class="card">
-    <div class="label">Your Inputs</div>
-    <div class="grid-2">
-      <!-- Widget 2: Upload -->
-      <div style="grid-column: 1 / -1;">
-        <label class="field-label">📸 Upload Your Packaging</label>
-        <div class="dropzone" id="dropzone">
-          <span class="arrow">⬆️</span>
-          Drag &amp; drop an image (JPG, PNG, WEBP) or PDF here, or click to browse.
-          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
-        </div>
-        <div class="file-preview" id="filePreview">
-          <img id="filePreviewImg" alt="preview" />
-          <div class="meta" id="filePreviewMeta"></div>
-        </div>
-      </div>
+    <div class="label" data-i18n="yourInputs">Your Inputs</div>
+    <p style="color:var(--muted); font-size:.88rem; margin-top:-.2rem;" data-i18n="inputHelp">
+      Only the first few fields are needed to get started. Open "More details" for a sharper result,
+      or click "Fill example" to try it instantly.</p>
 
-      <!-- Widget 3 -->
+    <!-- Upload -->
+    <div style="margin-bottom:1rem;">
+      <label class="field-label">📸 <span data-i18n="w_upload">Upload Your Packaging</span> <span class="req">*</span></label>
+      <div class="dropzone" id="dropzone">
+        <span class="arrow">⬆️</span>
+        <span data-i18n="dropHint">Drag &amp; drop an image (JPG, PNG, WEBP) or PDF, or click to browse.</span>
+      </div>
+      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
+      <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+      <div class="upload-actions">
+        <button class="btn small" id="browseBtn" data-i18n="browse">📁 Browse</button>
+        <button class="btn small" id="cameraBtn" data-i18n="camera">📷 Take photo</button>
+      </div>
+      <div class="file-preview" id="filePreview">
+        <img id="filePreviewImg" alt="preview" />
+        <div class="meta" id="filePreviewMeta"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
       <div>
-        <label class="field-label" for="f_product_name">Product Name and Type</label>
+        <label class="field-label" for="f_product_name" data-i18n="w_product">Product Name and Type <span class="req">*</span></label>
         <input type="text" id="f_product_name" data-field="Product Name and Type"
-          placeholder="e.g. Chocolate cookies, 150g net weight" />
+          data-ph="ph_product" placeholder="e.g. Chocolate cookies, 150g net weight" />
       </div>
-      <!-- Widget 4 -->
       <div>
-        <label class="field-label" for="f_shelf_life">Required Shelf Life</label>
-        <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
-          placeholder="e.g. 6 months, 12 months, 2 years" />
-      </div>
-      <!-- Widget 5 -->
-      <div>
-        <label class="field-label" for="f_category">Product Category</label>
+        <label class="field-label" for="f_category" data-i18n="w_category">Product Category <span class="req">*</span></label>
         <select id="f_category" data-field="Product Category">
           <option>Food and Beverage</option>
           <option>Snacks</option>
@@ -256,110 +285,106 @@
           <option>Others</option>
         </select>
       </div>
-      <!-- Widget 6 -->
-      <div>
-        <label class="field-label" for="f_contains">What the Product Contains</label>
-        <input type="text" id="f_contains" data-field="What the Product Contains"
-          placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
-      </div>
-      <!-- Widget 7 -->
-      <div>
-        <label class="field-label" for="f_sensitivity">Moisture, Light or Oxygen Sensitivity</label>
-        <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
-          <option>Not sensitive</option>
-          <option>Moisture sensitive</option>
-          <option>Light sensitive</option>
-          <option>Oxygen sensitive</option>
-          <option>Moisture and light sensitive</option>
-          <option>Moisture and oxygen sensitive</option>
-          <option>All three - moisture, light and oxygen sensitive</option>
-        </select>
-      </div>
-      <!-- Widget 8 -->
-      <div>
-        <label class="field-label" for="f_current_materials">Current Packaging Materials
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
-          placeholder="e.g. Plastic tray, plastic wrapper and cardboard box. Leave blank if unknown." />
-      </div>
-      <!-- Widget 9 -->
-      <div>
-        <label class="field-label" for="f_sales_channel">Sales Channel</label>
-        <select id="f_sales_channel" data-field="Sales Channel">
-          <option>Retail only</option>
-          <option>E-commerce only</option>
-          <option>Both retail and e-commerce</option>
-        </select>
-      </div>
-      <!-- Widget 10 -->
-      <div>
-        <label class="field-label" for="f_recycled">Current Recycled Content
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_recycled" data-field="Current Recycled Content"
-          placeholder="e.g. Outer box uses 30% recycled fibre. Leave blank if unknown." />
-      </div>
-      <!-- Widget 11 -->
-      <div>
-        <label class="field-label" for="f_protection">Product Protection Requirements</label>
-        <input type="text" id="f_protection" data-field="Product Protection Requirements"
-          placeholder="e.g. Must protect against crushing, moisture and light. Fragile product." />
-      </div>
-      <!-- Widget 12 -->
-      <div>
-        <label class="field-label" for="f_cost_unit">Packaging Cost Per Unit</label>
-        <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
-          placeholder="e.g. RM 0.85 per unit, USD 0.20 per unit." />
-      </div>
-      <!-- Widget 13 -->
-      <div>
-        <label class="field-label" for="f_cost_increase">Maximum Packaging Cost Increase</label>
-        <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
-          placeholder="e.g. No more than 5% increase. Or: Cost must not increase at all." />
-      </div>
-      <!-- Widget 14 -->
-      <div>
-        <label class="field-label" for="f_objective">Main Sustainability Objective</label>
+      <div style="grid-column: 1 / -1;">
+        <label class="field-label" for="f_objective" data-i18n="w_objective">Main Sustainability Objective <span class="req">*</span></label>
         <input type="text" id="f_objective" data-field="Main Sustainability Objective"
-          placeholder="e.g. Reduce virgin plastic use. Improve recyclability." />
-      </div>
-      <!-- Widget 15 -->
-      <div>
-        <label class="field-label" for="f_claims">Existing Environmental Claims
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
-          placeholder="e.g. 100% recyclable, biodegradable, carbon neutral. Leave blank if none." />
-      </div>
-      <!-- Widget 16 -->
-      <div>
-        <label class="field-label" for="f_branding">Branding Requirements
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_branding" data-field="Branding Requirements"
-          placeholder="e.g. Must maintain full-colour printing. Brand colours cannot change." />
-      </div>
-      <!-- Widget 17 -->
-      <div>
-        <label class="field-label" for="f_market">Target Market or Country
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_market" data-field="Target Market or Country"
-          placeholder="e.g. Malaysia, Singapore, Southeast Asia, export to EU" />
-      </div>
-      <!-- Widget 18 -->
-      <div>
-        <label class="field-label" for="f_machinery">Packaging Machinery Constraints
-          <span class="optional-tag">(optional)</span></label>
-        <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
-          placeholder="e.g. Existing filling and sealing machinery must remain unchanged." />
+          data-ph="ph_objective" placeholder="e.g. Reduce virgin plastic use. Improve recyclability." />
       </div>
     </div>
+
+    <!-- Advanced / optional -->
+    <details class="advanced">
+      <summary data-i18n="moreDetails">More details (optional — improves accuracy)</summary>
+      <div class="grid-2">
+        <div>
+          <label class="field-label" for="f_shelf_life" data-i18n="w_shelf">Required Shelf Life</label>
+          <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
+            data-ph="ph_shelf" placeholder="e.g. 6 months, 12 months, 2 years" />
+        </div>
+        <div>
+          <label class="field-label" for="f_contains" data-i18n="w_contains">What the Product Contains</label>
+          <input type="text" id="f_contains" data-field="What the Product Contains"
+            data-ph="ph_contains" placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
+        </div>
+        <div>
+          <label class="field-label" for="f_sensitivity" data-i18n="w_sensitivity">Moisture, Light or Oxygen Sensitivity</label>
+          <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
+            <option>Not sensitive</option>
+            <option>Moisture sensitive</option>
+            <option>Light sensitive</option>
+            <option>Oxygen sensitive</option>
+            <option>Moisture and light sensitive</option>
+            <option>Moisture and oxygen sensitive</option>
+            <option>All three - moisture, light and oxygen sensitive</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="f_current_materials" data-i18n="w_materials">Current Packaging Materials</label>
+          <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
+            data-ph="ph_materials" placeholder="e.g. Plastic tray, plastic wrapper and cardboard box." />
+        </div>
+        <div>
+          <label class="field-label" for="f_sales_channel" data-i18n="w_channel">Sales Channel</label>
+          <select id="f_sales_channel" data-field="Sales Channel">
+            <option>Retail only</option>
+            <option>E-commerce only</option>
+            <option>Both retail and e-commerce</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label" for="f_recycled" data-i18n="w_recycled">Current Recycled Content</label>
+          <input type="text" id="f_recycled" data-field="Current Recycled Content"
+            data-ph="ph_recycled" placeholder="e.g. Outer box uses 30% recycled fibre." />
+        </div>
+        <div>
+          <label class="field-label" for="f_protection" data-i18n="w_protection">Product Protection Requirements</label>
+          <input type="text" id="f_protection" data-field="Product Protection Requirements"
+            data-ph="ph_protection" placeholder="e.g. Protect against crushing, moisture and light." />
+        </div>
+        <div>
+          <label class="field-label" for="f_cost_unit" data-i18n="w_cost">Packaging Cost Per Unit</label>
+          <div class="cost-wrap">
+            <span class="prefix">RM</span>
+            <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
+              data-ph="ph_cost" placeholder="0.85 per unit" />
+          </div>
+        </div>
+        <div>
+          <label class="field-label" for="f_cost_increase" data-i18n="w_costmax">Maximum Packaging Cost Increase</label>
+          <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
+            data-ph="ph_costmax" placeholder="e.g. No more than 5% increase, or no increase at all." />
+        </div>
+        <div>
+          <label class="field-label" for="f_claims" data-i18n="w_claims">Existing Environmental Claims</label>
+          <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
+            data-ph="ph_claims" placeholder="e.g. 100% recyclable, biodegradable. Leave blank if none." />
+        </div>
+        <div>
+          <label class="field-label" for="f_branding" data-i18n="w_branding">Branding Requirements</label>
+          <input type="text" id="f_branding" data-field="Branding Requirements"
+            data-ph="ph_branding" placeholder="e.g. Keep full-colour printing, brand colours and logo." />
+        </div>
+        <div>
+          <label class="field-label" for="f_market" data-i18n="w_market">Target Market or Country</label>
+          <input type="text" id="f_market" data-field="Target Market or Country"
+            data-ph="ph_market" placeholder="e.g. Malaysia, Singapore, export to EU" />
+        </div>
+        <div>
+          <label class="field-label" for="f_machinery" data-i18n="w_machinery">Packaging Machinery Constraints</label>
+          <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
+            data-ph="ph_machinery" placeholder="e.g. Existing filling/sealing machinery must stay." />
+        </div>
+      </div>
+    </details>
   </section>
 
   <hr class="section-divider" />
 
   <!-- Widget 19: Three Redesign Strategies -->
   <section class="card">
-    <div class="label">AI Analysis</div>
-    <h2>🔀 Three Redesign Strategies</h2>
-    <button class="btn" data-run="three_redesign_strategies">▶ Generate</button>
+    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
+    <h2>🔀 <span data-i18n="w_strategies">Three Redesign Strategies</span></h2>
+    <button class="btn" data-run="three_redesign_strategies">▶ <span data-i18n="generate">Generate</span></button>
     <div class="output-panel">
       <div class="spinner" data-spinner="three_redesign_strategies"></div>
       <div class="output-text" data-output="three_redesign_strategies"></div>
@@ -369,46 +394,46 @@
 
   <!-- Widgets 20-22: Redesign Visuals A/B/C -->
   <section class="card">
-    <div class="label">AI Image Generation</div>
-    <h2>🖼️ Packaging Redesign Visuals</h2>
-    <p style="color:var(--muted); font-size:.88rem;">Generated from the Three Redesign
+    <div class="label" data-i18n="aiImage">AI Image Generation</div>
+    <h2>🖼️ <span data-i18n="w_visuals">Packaging Redesign Visuals</span></h2>
+    <p style="color:var(--muted); font-size:.88rem;" data-i18n="visualsHint">Generated from the Three Redesign
       Strategies above. Run that first for best results.</p>
-    <div class="grid-2" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="img-grid">
       <div>
-        <strong>Option A — Quick Win</strong>
-        <button class="btn" data-image="A" style="margin:.4rem 0; width:100%;">▶ Generate A</button>
+        <strong data-i18n="optA">Option A — Quick Win</strong>
+        <button class="btn" data-image="A" style="margin:.4rem 0; width:100%;">▶ A</button>
         <div class="output-panel output-image">
           <div class="spinner" data-spinner="image_A"></div>
-          <div data-output="image_A"><div class="img-placeholder">No image yet</div></div>
+          <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
           <div class="panel-error" data-error="image_A"></div>
         </div>
       </div>
       <div>
-        <strong>Option B — Balanced</strong>
-        <button class="btn" data-image="B" style="margin:.4rem 0; width:100%;">▶ Generate B</button>
+        <strong data-i18n="optB">Option B — Balanced</strong>
+        <button class="btn" data-image="B" style="margin:.4rem 0; width:100%;">▶ B</button>
         <div class="output-panel output-image">
           <div class="spinner" data-spinner="image_B"></div>
-          <div data-output="image_B"><div class="img-placeholder">No image yet</div></div>
+          <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
           <div class="panel-error" data-error="image_B"></div>
         </div>
       </div>
       <div>
-        <strong>Option C — Ambitious</strong>
-        <button class="btn" data-image="C" style="margin:.4rem 0; width:100%;">▶ Generate C</button>
+        <strong data-i18n="optC">Option C — Ambitious</strong>
+        <button class="btn" data-image="C" style="margin:.4rem 0; width:100%;">▶ C</button>
         <div class="output-panel output-image">
           <div class="spinner" data-spinner="image_C"></div>
-          <div data-output="image_C"><div class="img-placeholder">No image yet</div></div>
+          <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
           <div class="panel-error" data-error="image_C"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Widget 23: Sustainability Problems -->
+  <!-- Widget 23 -->
   <section class="card">
-    <div class="label">AI Analysis</div>
-    <h2>🔍 Sustainability Problems Identified</h2>
-    <button class="btn" data-run="sustainability_problems_identified">▶ Generate</button>
+    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
+    <h2>🔍 <span data-i18n="w_problems">Sustainability Problems Identified</span></h2>
+    <button class="btn" data-run="sustainability_problems_identified">▶ <span data-i18n="generate">Generate</span></button>
     <div class="output-panel">
       <div class="spinner" data-spinner="sustainability_problems_identified"></div>
       <div class="output-text" data-output="sustainability_problems_identified"></div>
@@ -416,11 +441,11 @@
     </div>
   </section>
 
-  <!-- Widget 24: Packaging Audit -->
+  <!-- Widget 24 -->
   <section class="card">
-    <div class="label">AI Analysis</div>
-    <h2>🧾 Packaging Audit and Evidence Classification</h2>
-    <button class="btn" data-run="packaging_audit_and_evidence_classification">▶ Generate</button>
+    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
+    <h2>🧾 <span data-i18n="w_audit">Packaging Audit and Evidence Classification</span></h2>
+    <button class="btn" data-run="packaging_audit_and_evidence_classification">▶ <span data-i18n="generate">Generate</span></button>
     <div class="output-panel">
       <div class="spinner" data-spinner="packaging_audit_and_evidence_classification"></div>
       <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
@@ -428,23 +453,27 @@
     </div>
   </section>
 
-  <!-- Widget 25: Best-Fit Recommendation -->
+  <!-- Widget 25 -->
   <section class="card">
-    <div class="label">AI Analysis</div>
-    <h2>✅ Best-Fit Recommendation and Supplier Brief</h2>
-    <button class="btn" data-run="best_fit_recommendation_and_supplier_brief">▶ Generate</button>
+    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
+    <h2>✅ <span data-i18n="w_brief">Best-Fit Recommendation and Supplier Brief</span></h2>
+    <button class="btn" data-run="best_fit_recommendation_and_supplier_brief">▶ <span data-i18n="generate">Generate</span></button>
     <div class="output-panel">
       <div class="spinner" data-spinner="best_fit_recommendation_and_supplier_brief"></div>
       <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
+      <div class="panel-tools">
+        <button class="btn small" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
+        <button class="btn small" id="downloadBrief" data-i18n="download">⬇️ Download</button>
+      </div>
       <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
     </div>
   </section>
 
-  <!-- Widget 26: Trade-off Comparison -->
+  <!-- Widget 26 -->
   <section class="card">
-    <div class="label">AI Analysis</div>
-    <h2>⚖️ Trade-off Comparison</h2>
-    <button class="btn" data-run="trade_off_comparison">▶ Generate</button>
+    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
+    <h2>⚖️ <span data-i18n="w_tradeoff">Trade-off Comparison</span></h2>
+    <button class="btn" data-run="trade_off_comparison">▶ <span data-i18n="generate">Generate</span></button>
     <div class="output-panel">
       <div class="spinner" data-spinner="trade_off_comparison"></div>
       <div class="output-text" data-output="trade_off_comparison"></div>
@@ -452,26 +481,28 @@
     </div>
   </section>
 
-  <!-- Widget 27: Chatbot -->
+  <!-- Widget 27 -->
   <section class="card">
-    <div class="label">AI Chatbot</div>
+    <div class="label" data-i18n="aiChat">AI Chatbot</div>
     <h2>💬 EcoLens ChatAI</h2>
     <div class="output-panel output-chat">
       <div class="chat-log" id="chatLog">
-        <div class="bubble bot">I am now ready to help you!</div>
+        <div class="bubble bot" data-i18n="chatOpen">I am now ready to help you!</div>
       </div>
       <div class="panel-error" data-error="ecolens_chatai"></div>
       <div class="chat-input-row">
-        <input type="text" id="chatInput" placeholder="Ask anything!" />
-        <button class="btn primary" id="chatSend">Send</button>
+        <input type="text" id="chatInput" data-ph="ph_chat" placeholder="Ask anything!" />
+        <button class="btn primary" id="chatSend" data-i18n="send">Send</button>
       </div>
     </div>
   </section>
 
   <div class="run-all-wrap">
-    <button class="btn primary" id="runAllBtn2">▶ Run All AI Analyses</button>
+    <button class="btn primary" id="runAllBtn2">▶ <span data-i18n="runAll">Run All</span></button>
   </div>
 </main>
+
+<div class="toast" id="toast"></div>
 
 <script>
 /* ============================================================
@@ -488,63 +519,173 @@ const STREAM_URLS = {
 const DIAGRAM_API = '__DIAGRAM_API_URL__';
 
 /* ============================================================
-   State
+   i18n dictionary (EN + Bahasa Malaysia)
    ============================================================ */
-const state = {
-  fileData: null,     // raw base64 (no data: prefix)
-  fileMime: null,
-  outputs: {},        // widget -> full text (used as chat context + upstream)
-  chatHistory: [],    // [{role, content}]
+const I18N = {
+  en: {
+    dark: 'Dark', example: 'Fill example', reset: 'Reset', runAll: 'Run All',
+    welcome: 'Welcome to EcoLens', problem: 'Problem', solution: 'Solution',
+    problemText: "SMEs want more sustainable packaging but often don't know what they can change without increasing cost, reducing shelf life, or affecting product protection.",
+    solutionText: 'EcoLens analyses a packaging image together with business requirements and generates practical redesign strategies that balance: sustainability, cost, product protection and production constraints. It also checks environmental claims and produces a supplier-ready action plan.',
+    yourInputs: 'Your Inputs',
+    inputHelp: 'Only the first few fields are needed to get started. Open "More details" for a sharper result, or click "Fill example" to try it instantly.',
+    w_upload: 'Upload Your Packaging', dropHint: 'Drag & drop an image (JPG, PNG, WEBP) or PDF, or click to browse.',
+    browse: '📁 Browse', camera: '📷 Take photo',
+    w_product: 'Product Name and Type', w_category: 'Product Category', w_objective: 'Main Sustainability Objective',
+    moreDetails: 'More details (optional — improves accuracy)',
+    w_shelf: 'Required Shelf Life', w_contains: 'What the Product Contains',
+    w_sensitivity: 'Moisture, Light or Oxygen Sensitivity', w_materials: 'Current Packaging Materials',
+    w_channel: 'Sales Channel', w_recycled: 'Current Recycled Content',
+    w_protection: 'Product Protection Requirements', w_cost: 'Packaging Cost Per Unit',
+    w_costmax: 'Maximum Packaging Cost Increase', w_claims: 'Existing Environmental Claims',
+    w_branding: 'Branding Requirements', w_market: 'Target Market or Country',
+    w_machinery: 'Packaging Machinery Constraints',
+    aiAnalysis: 'AI Analysis', aiImage: 'AI Image Generation', aiChat: 'AI Chatbot',
+    w_strategies: 'Three Redesign Strategies', w_visuals: 'Packaging Redesign Visuals',
+    visualsHint: 'Generated from the Three Redesign Strategies above. Run that first for best results.',
+    w_problems: 'Sustainability Problems Identified', w_audit: 'Packaging Audit and Evidence Classification',
+    w_brief: 'Best-Fit Recommendation and Supplier Brief', w_tradeoff: 'Trade-off Comparison',
+    optA: 'Option A — Quick Win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
+    generate: 'Generate', noImage: 'No image yet', copy: '📋 Copy brief', download: '⬇️ Download',
+    send: 'Send', chatOpen: 'I am now ready to help you!',
+    ph_product: 'e.g. Chocolate cookies, 150g net weight',
+    ph_objective: 'e.g. Reduce virgin plastic use. Improve recyclability.',
+    ph_shelf: 'e.g. 6 months, 12 months, 2 years',
+    ph_contains: 'e.g. Chocolate-coated butter cookies with hazelnut filling',
+    ph_materials: 'e.g. Plastic tray, plastic wrapper and cardboard box.',
+    ph_recycled: 'e.g. Outer box uses 30% recycled fibre.',
+    ph_protection: 'e.g. Protect against crushing, moisture and light.',
+    ph_cost: '0.85 per unit', ph_costmax: 'e.g. No more than 5% increase, or no increase at all.',
+    ph_claims: 'e.g. 100% recyclable, biodegradable. Leave blank if none.',
+    ph_branding: 'e.g. Keep full-colour printing, brand colours and logo.',
+    ph_market: 'e.g. Malaysia, Singapore, export to EU',
+    ph_machinery: 'e.g. Existing filling/sealing machinery must stay.',
+    ph_chat: 'Ask anything!',
+    needInputs: 'Please upload a packaging image and fill the product name first.',
+    copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet — generate the brief first.',
+  },
+  bm: {
+    dark: 'Gelap', example: 'Isi contoh', reset: 'Set semula', runAll: 'Jalankan Semua',
+    welcome: 'Selamat datang ke EcoLens', problem: 'Masalah', solution: 'Penyelesaian',
+    problemText: 'PKS mahu pembungkusan lebih lestari tetapi selalunya tidak tahu apa yang boleh diubah tanpa menaikkan kos, mengurangkan jangka hayat, atau menjejaskan perlindungan produk.',
+    solutionText: 'EcoLens menganalisis imej pembungkusan bersama keperluan perniagaan dan menjana strategi reka bentuk semula yang praktikal yang mengimbangi: kelestarian, kos, perlindungan produk dan kekangan pengeluaran. Ia juga menyemak tuntutan alam sekitar dan menghasilkan pelan tindakan sedia untuk pembekal.',
+    yourInputs: 'Maklumat Anda',
+    inputHelp: 'Hanya beberapa medan pertama diperlukan untuk bermula. Buka "Maklumat lanjut" untuk hasil lebih tepat, atau klik "Isi contoh" untuk cuba segera.',
+    w_upload: 'Muat Naik Pembungkusan', dropHint: 'Seret & lepas imej (JPG, PNG, WEBP) atau PDF, atau klik untuk pilih.',
+    browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
+    w_product: 'Nama dan Jenis Produk', w_category: 'Kategori Produk', w_objective: 'Objektif Kelestarian Utama',
+    moreDetails: 'Maklumat lanjut (pilihan — meningkatkan ketepatan)',
+    w_shelf: 'Jangka Hayat Diperlukan', w_contains: 'Kandungan Produk',
+    w_sensitivity: 'Sensitiviti Lembapan, Cahaya atau Oksigen', w_materials: 'Bahan Pembungkusan Semasa',
+    w_channel: 'Saluran Jualan', w_recycled: 'Kandungan Kitar Semula Semasa',
+    w_protection: 'Keperluan Perlindungan Produk', w_cost: 'Kos Pembungkusan Seunit',
+    w_costmax: 'Kenaikan Kos Maksimum', w_claims: 'Tuntutan Alam Sekitar Sedia Ada',
+    w_branding: 'Keperluan Penjenamaan', w_market: 'Pasaran atau Negara Sasaran',
+    w_machinery: 'Kekangan Mesin Pembungkusan',
+    aiAnalysis: 'Analisis AI', aiImage: 'Penjanaan Imej AI', aiChat: 'Chatbot AI',
+    w_strategies: 'Tiga Strategi Reka Bentuk Semula', w_visuals: 'Visual Reka Bentuk Semula',
+    visualsHint: 'Dijana daripada Tiga Strategi di atas. Jalankan strategi itu dahulu untuk hasil terbaik.',
+    w_problems: 'Masalah Kelestarian Dikenal Pasti', w_audit: 'Audit Pembungkusan dan Klasifikasi Bukti',
+    w_brief: 'Cadangan Terbaik dan Ringkasan Pembekal', w_tradeoff: 'Perbandingan Pertukaran',
+    optA: 'Pilihan A — Menang Cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
+    generate: 'Jana', noImage: 'Tiada imej lagi', copy: '📋 Salin ringkasan', download: '⬇️ Muat turun',
+    send: 'Hantar', chatOpen: 'Saya sedia membantu anda!',
+    ph_product: 'cth. Biskut coklat, berat bersih 150g',
+    ph_objective: 'cth. Kurangkan plastik baharu. Tingkatkan kebolehkitaran.',
+    ph_shelf: 'cth. 6 bulan, 12 bulan, 2 tahun',
+    ph_contains: 'cth. Biskut mentega bersalut coklat dengan inti hazelnut',
+    ph_materials: 'cth. Dulang plastik, pembalut plastik dan kotak kadbod.',
+    ph_recycled: 'cth. Kotak luar guna 30% fiber kitar semula.',
+    ph_protection: 'cth. Lindungi daripada himpitan, lembapan dan cahaya.',
+    ph_cost: '0.85 seunit', ph_costmax: 'cth. Tidak lebih 5% kenaikan, atau tiada kenaikan langsung.',
+    ph_claims: 'cth. 100% boleh dikitar semula, terbiodegradasi. Kosongkan jika tiada.',
+    ph_branding: 'cth. Kekalkan cetakan warna penuh, warna jenama dan logo.',
+    ph_market: 'cth. Malaysia, Singapura, eksport ke EU',
+    ph_machinery: 'cth. Mesin pengisi/pengedap sedia ada mesti kekal.',
+    ph_chat: 'Tanya apa sahaja!',
+    needInputs: 'Sila muat naik imej pembungkusan dan isi nama produk dahulu.',
+    copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin — jana ringkasan dahulu.',
+  },
 };
 
+let lang = 'en';
+function t(key) { return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key; }
+
+function applyLang(l) {
+  lang = l;
+  document.documentElement.setAttribute('lang', l === 'bm' ? 'ms' : 'en');
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (I18N[lang][k] !== undefined) el.textContent = I18N[lang][k];
+  });
+  document.querySelectorAll('[data-ph]').forEach(el => {
+    const k = el.getAttribute('data-ph');
+    if (I18N[lang][k] !== undefined) el.setAttribute('placeholder', I18N[lang][k]);
+  });
+  document.getElementById('langToggle').textContent = l === 'en' ? '🌐 BM' : '🌐 EN';
+  try { localStorage.setItem('ecolens-lang', l); } catch(e) {}
+}
+
 /* ============================================================
-   Field collection
+   State
    ============================================================ */
+const state = { fileData: null, fileMime: null, outputs: {}, chatHistory: [] };
+
 function collectFields() {
   const fields = {};
   document.querySelectorAll('[data-field]').forEach(el => {
     const key = el.getAttribute('data-field');
-    const val = (el.value || '').trim();
+    let val = (el.value || '').trim();
+    if (el.id === 'f_cost_unit' && val) val = 'RM ' + val; // ensure RM currency context
     if (val) fields[key] = val;
   });
   return fields;
 }
 
 /* ============================================================
-   File upload (drag + drop + browse) → base64
+   Toast helper
+   ============================================================ */
+const toastEl = document.getElementById('toast');
+let toastTimer;
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   File upload (drag + drop + browse + camera) → base64
    ============================================================ */
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
+const cameraInput = document.getElementById('cameraInput');
 const filePreview = document.getElementById('filePreview');
 const filePreviewImg = document.getElementById('filePreviewImg');
 const filePreviewMeta = document.getElementById('filePreviewMeta');
 
 dropzone.addEventListener('click', () => fileInput.click());
+document.getElementById('browseBtn').addEventListener('click', e => { e.preventDefault(); fileInput.click(); });
+document.getElementById('cameraBtn').addEventListener('click', e => { e.preventDefault(); cameraInput.click(); });
 ['dragover','dragenter'].forEach(ev =>
   dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
 ['dragleave','drop'].forEach(ev =>
   dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
-dropzone.addEventListener('drop', e => {
-  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', e => {
-  if (e.target.files.length) handleFile(e.target.files[0]);
-});
+dropzone.addEventListener('drop', e => { if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
+cameraInput.addEventListener('change', e => { if (e.target.files.length) handleFile(e.target.files[0]); });
 
 function handleFile(file) {
   const reader = new FileReader();
   reader.onload = () => {
-    const result = reader.result; // data:<mime>;base64,xxxx
+    const result = reader.result;
     const comma = result.indexOf(',');
     state.fileData = result.slice(comma + 1);
     state.fileMime = file.type || 'application/octet-stream';
     filePreview.style.display = 'block';
     if (state.fileMime.startsWith('image/')) {
-      filePreviewImg.src = result;
-      filePreviewImg.style.display = 'block';
-    } else {
-      filePreviewImg.style.display = 'none';
-    }
+      filePreviewImg.src = result; filePreviewImg.style.display = 'block';
+    } else { filePreviewImg.style.display = 'none'; }
     filePreviewMeta.textContent = `${file.name} · ${state.fileMime} · ${(file.size/1024).toFixed(0)} KB`;
   };
   reader.readAsDataURL(file);
@@ -554,41 +695,34 @@ function handleFile(file) {
    Minimal per-line markdown renderer
    ============================================================ */
 function inlineMd(text) {
-  // escape html first
-  let t = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
-  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  t = t.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return t;
+  let x = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  x = x.replace(/`([^`]+)`/g, '<code>$1</code>');
+  x = x.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  x = x.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  return x;
 }
-
 function renderLine(container, rawLine) {
   const line = rawLine.replace(/\s+$/,'');
   const span = document.createElement('span');
   span.className = 'md-line';
-
-  if (/^\s*---\s*$/.test(line) || /^\s*___\s*$/.test(line)) {
-    span.classList.add('hr');
-  } else if (/^###\s+/.test(line)) {
-    span.innerHTML = '<h3>' + inlineMd(line.replace(/^###\s+/,'')) + '</h3>';
-  } else if (/^##\s+/.test(line)) {
-    span.innerHTML = '<h2>' + inlineMd(line.replace(/^##\s+/,'')) + '</h2>';
-  } else if (/^#\s+/.test(line)) {
-    span.innerHTML = '<h1>' + inlineMd(line.replace(/^#\s+/,'')) + '</h1>';
-  } else if (/^\s*[-*]\s+/.test(line)) {
-    span.innerHTML = '<ul><li>' + inlineMd(line.replace(/^\s*[-*]\s+/,'')) + '</li></ul>';
-  } else if (/^\s*\d+\.\s+/.test(line)) {
-    span.innerHTML = '<ol><li>' + inlineMd(line.replace(/^\s*\d+\.\s+/,'')) + '</li></ol>';
-  } else if (line.trim() === '') {
-    span.innerHTML = '<br/>';
-  } else {
-    span.innerHTML = inlineMd(line);
-  }
+  if (/^\s*---\s*$/.test(line) || /^\s*___\s*$/.test(line)) span.classList.add('hr');
+  else if (/^###\s+/.test(line)) span.innerHTML = '<h3>' + inlineMd(line.replace(/^###\s+/,'')) + '</h3>';
+  else if (/^##\s+/.test(line)) span.innerHTML = '<h2>' + inlineMd(line.replace(/^##\s+/,'')) + '</h2>';
+  else if (/^#\s+/.test(line)) span.innerHTML = '<h1>' + inlineMd(line.replace(/^#\s+/,'')) + '</h1>';
+  else if (/^\s*[-*]\s+/.test(line)) span.innerHTML = '<ul><li>' + inlineMd(line.replace(/^\s*[-*]\s+/,'')) + '</li></ul>';
+  else if (/^\s*\d+\.\s+/.test(line)) span.innerHTML = '<ol><li>' + inlineMd(line.replace(/^\s*\d+\.\s+/,'')) + '</li></ol>';
+  else if (line.trim() === '') span.innerHTML = '<br/>';
+  else span.innerHTML = inlineMd(line);
   container.appendChild(span);
+}
+function makeLineFrag(line) {
+  const tmp = document.createElement('div');
+  renderLine(tmp, line);
+  return tmp.firstChild || document.createTextNode('');
 }
 
 /* ============================================================
-   Streaming fetch with typing effect (line-buffered)
+   Streaming fetch with typing effect
    ============================================================ */
 async function streamInto(widget, url, bodyObj, outputEl) {
   const spinner = document.querySelector(`[data-spinner="${widget}"]`);
@@ -597,34 +731,27 @@ async function streamInto(widget, url, bodyObj, outputEl) {
   outputEl.innerHTML = '';
   if (spinner) spinner.style.display = 'block';
 
-  // active-line cursor
   const cursorLine = document.createElement('span');
   cursorLine.className = 'md-line';
   const cursor = document.createElement('span');
-  cursor.className = 'cursor';
-  cursor.innerHTML = '&nbsp;';
+  cursor.className = 'cursor'; cursor.innerHTML = '&nbsp;';
 
-  let fullText = '';
   try {
     const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(bodyObj),
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     if (spinner) spinner.style.display = 'none';
-
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
     outputEl.appendChild(cursorLine);
     cursorLine.appendChild(cursor);
-
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      fullText += '';
       let nl;
       while ((nl = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, nl);
@@ -632,37 +759,19 @@ async function streamInto(widget, url, bodyObj, outputEl) {
         outputEl.insertBefore(makeLineFrag(line), cursorLine);
         outputEl.scrollTop = outputEl.scrollHeight;
       }
-      // show in-progress partial line on the cursor line
-      cursorLine.firstChild && (cursorLine.textContent = '');
       cursorLine.innerHTML = inlineMd(buffer);
       cursorLine.appendChild(cursor);
       outputEl.scrollTop = outputEl.scrollHeight;
     }
-    // flush remaining buffer
-    if (buffer.length) {
-      outputEl.insertBefore(makeLineFrag(buffer), cursorLine);
-    }
-    cursor.remove();
-    cursorLine.remove();
-
-    // reconstruct full text for context (strip html)
-    fullText = outputEl.innerText;
-    state.outputs[widget] = fullText;
+    if (buffer.length) outputEl.insertBefore(makeLineFrag(buffer), cursorLine);
+    cursor.remove(); cursorLine.remove();
+    state.outputs[widget] = outputEl.innerText;
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
     if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
   }
 }
 
-function makeLineFrag(line) {
-  const tmp = document.createElement('div');
-  renderLine(tmp, line);
-  return tmp.firstChild || document.createTextNode('');
-}
-
-/* ============================================================
-   Build request body for a text widget
-   ============================================================ */
 const PROMPT_HINT = {
   three_redesign_strategies: 'Generate the three redesign strategies.',
   sustainability_problems_identified: 'Identify the sustainability problems.',
@@ -672,15 +781,8 @@ const PROMPT_HINT = {
 };
 
 function buildTextBody(widget) {
-  const body = {
-    fields: collectFields(),
-    prompt: PROMPT_HINT[widget] || '',
-  };
-  if (state.fileData && state.fileMime) {
-    body.file_data = state.fileData;
-    body.file_mime = state.fileMime;
-  }
-  // Widgets that depend on upstream analysis.
+  const body = { fields: collectFields(), prompt: PROMPT_HINT[widget] || '' };
+  if (state.fileData && state.fileMime) { body.file_data = state.fileData; body.file_mime = state.fileMime; }
   const needsUpstream = ['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'];
   if (needsUpstream.includes(widget)) {
     body.upstream = {
@@ -690,6 +792,12 @@ function buildTextBody(widget) {
     };
   }
   return body;
+}
+
+function validateInputs() {
+  const hasName = (document.getElementById('f_product_name').value || '').trim();
+  if (!state.fileData || !hasName) { toast(t('needInputs')); return false; }
+  return true;
 }
 
 async function runWidget(widget) {
@@ -710,13 +818,8 @@ async function runImage(option) {
   if (spinner) spinner.style.display = 'block';
   try {
     const resp = await fetch(DIAGRAM_API, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        option: option,
-        fields: collectFields(),
-        strategies: state.outputs.three_redesign_strategies || '',
-      }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ option, fields: collectFields(), strategies: state.outputs.three_redesign_strategies || '' }),
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -725,11 +828,10 @@ async function runImage(option) {
     const img = document.createElement('img');
     img.src = 'data:image/png;base64,' + data.image_base64;
     img.alt = 'Packaging redesign option ' + option;
-    outputEl.innerHTML = '';
-    outputEl.appendChild(img);
+    outputEl.innerHTML = ''; outputEl.appendChild(img);
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
-    outputEl.innerHTML = '<div class="img-placeholder">No image</div>';
+    outputEl.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>';
     if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
   }
 }
@@ -755,14 +857,12 @@ async function sendChat() {
   if (!msg) return;
   chatInput.value = '';
   addBubble('user', msg);
-
   const botBubble = addBubble('bot', '');
   const errorEl = document.querySelector('[data-error="ecolens_chatai"]');
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
 
   const body = {
-    message: msg,
-    history: state.chatHistory.slice(),
+    message: msg, history: state.chatHistory.slice(),
     context: {
       'Three Redesign Strategies': state.outputs.three_redesign_strategies || '',
       'Sustainability Problems Identified': state.outputs.sustainability_problems_identified || '',
@@ -772,23 +872,19 @@ async function sendChat() {
     },
   };
   if (state.fileData && state.fileMime && state.fileMime.startsWith('image/')) {
-    body.file_data = state.fileData;
-    body.file_mime = state.fileMime;
+    body.file_data = state.fileData; body.file_mime = state.fileMime;
   }
 
   let reply = '';
   try {
     const resp = await fetch(STREAM_URLS.ecolens_chatai, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
     const cursor = document.createElement('span');
-    cursor.className = 'cursor';
-    cursor.innerHTML = '&nbsp;';
+    cursor.className = 'cursor'; cursor.innerHTML = '&nbsp;';
     botBubble.appendChild(cursor);
     while (true) {
       const { done, value } = await reader.read();
@@ -800,8 +896,6 @@ async function sendChat() {
     }
     cursor.remove();
     botBubble.innerHTML = inlineMd(reply);
-
-    // persist memory
     state.chatHistory.push({ role: 'user', content: msg });
     state.chatHistory.push({ role: 'assistant', content: reply });
   } catch (err) {
@@ -809,30 +903,77 @@ async function sendChat() {
     if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
   }
 }
-
 chatSend.addEventListener('click', sendChat);
 chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
+/* ============================================================
+   Copy / download supplier brief
+   ============================================================ */
+function briefText() { return state.outputs.best_fit_recommendation_and_supplier_brief || ''; }
+document.getElementById('copyBrief').addEventListener('click', () => {
+  const txt = briefText();
+  if (!txt.trim()) { toast(t('nothingCopy')); return; }
+  navigator.clipboard.writeText(txt).then(() => toast(t('copied')),
+    () => toast(t('nothingCopy')));
+});
+document.getElementById('downloadBrief').addEventListener('click', () => {
+  const txt = briefText();
+  if (!txt.trim()) { toast(t('nothingCopy')); return; }
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ecolens-supplier-brief.txt';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+});
 
 /* ============================================================
    Button wiring
    ============================================================ */
 document.querySelectorAll('[data-run]').forEach(btn =>
-  btn.addEventListener('click', () => runWidget(btn.getAttribute('data-run'))));
+  btn.addEventListener('click', () => { if (validateInputs()) runWidget(btn.getAttribute('data-run')); }));
 document.querySelectorAll('[data-image]').forEach(btn =>
-  btn.addEventListener('click', () => runImage(btn.getAttribute('data-image'))));
+  btn.addEventListener('click', () => { if (validateInputs()) runImage(btn.getAttribute('data-image')); }));
 
 async function runAll() {
-  const textWidgets = Object.keys(STREAM_URLS).filter(w => w !== 'ecolens_chatai');
-  // fire the three independent analyses in parallel first
+  if (!validateInputs()) return;
   const independent = ['three_redesign_strategies', 'sustainability_problems_identified', 'packaging_audit_and_evidence_classification'];
   await Promise.all(independent.map(runWidget));
-  // then dependent widgets that build on the above
   await Promise.all(['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'].map(runWidget));
-  // then images (depend on strategies)
   await Promise.all(['A','B','C'].map(runImage));
 }
 document.getElementById('runAllBtn').addEventListener('click', runAll);
 document.getElementById('runAllBtn2').addEventListener('click', runAll);
+
+/* ============================================================
+   Example fill — realistic Malaysian SME product
+   ============================================================ */
+const EXAMPLE = {
+  f_product_name: 'Kuih bangkit coklat, 150g, isi 12 keping',
+  f_category: 'Snacks',
+  f_objective: 'Reduce virgin plastic and improve local recyclability',
+  f_shelf_life: '9 months',
+  f_contains: 'Coconut-based crumbly cookies with cocoa, sensitive to humidity',
+  f_sensitivity: 'Moisture sensitive',
+  f_current_materials: 'Clear plastic clamshell tray + printed flow-wrap film + outer paper sleeve',
+  f_sales_channel: 'Both retail and e-commerce',
+  f_recycled: '',
+  f_protection: 'Must stop crushing and keep out humidity in a hot climate',
+  f_cost_unit: '0.90 per unit',
+  f_cost_increase: 'No more than 8% increase',
+  f_claims: 'Recyclable (not verified)',
+  f_branding: 'Keep brand colours (red/gold) and logo on the front panel',
+  f_market: 'Malaysia and Singapore, planning export to EU later',
+  f_machinery: 'Existing flow-wrap sealing machine must remain',
+};
+document.getElementById('exampleBtn').addEventListener('click', () => {
+  Object.entries(EXAMPLE).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) el.value = val;
+  });
+  document.querySelector('details.advanced').open = true;
+  toast(lang === 'bm' ? 'Contoh diisi' : 'Example filled');
+});
 
 /* ============================================================
    Theme toggle (persisted)
@@ -840,22 +981,26 @@ document.getElementById('runAllBtn2').addEventListener('click', runAll);
 const themeToggle = document.getElementById('themeToggle');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  themeToggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+  const lbl = theme === 'dark' ? (lang==='bm'?'Terang':'Light') : t('dark');
+  themeToggle.innerHTML = (theme === 'dark' ? '☀️ ' : '🌙 ') + lbl;
   try { localStorage.setItem('ecolens-theme', theme); } catch(e) {}
 }
 themeToggle.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
   applyTheme(current === 'dark' ? 'light' : 'dark');
 });
-(function initTheme(){
-  let saved = 'light';
-  try { saved = localStorage.getItem('ecolens-theme') || 'light'; } catch(e) {}
-  applyTheme(saved);
-})();
 
 /* ============================================================
-   Reset — clears inputs + outputs but KEEPS chat memory,
-   per requirement "the chatbox can still remember the knowledge".
+   Language toggle
+   ============================================================ */
+document.getElementById('langToggle').addEventListener('click', () => {
+  applyLang(lang === 'en' ? 'bm' : 'en');
+  // keep theme label in the chosen language
+  applyTheme(document.documentElement.getAttribute('data-theme'));
+});
+
+/* ============================================================
+   Reset — clears inputs + outputs, KEEPS chat memory
    ============================================================ */
 document.getElementById('resetBtn').addEventListener('click', () => {
   document.querySelectorAll('[data-field]').forEach(el => {
@@ -863,14 +1008,25 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   });
   state.fileData = null; state.fileMime = null;
   filePreview.style.display = 'none';
-  fileInput.value = '';
+  fileInput.value = ''; cameraInput.value = '';
   document.querySelectorAll('.output-text').forEach(el => el.innerHTML = '');
   document.querySelectorAll('[data-output^="image_"]').forEach(el =>
-    el.innerHTML = '<div class="img-placeholder">No image yet</div>');
+    el.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>');
   document.querySelectorAll('.panel-error').forEach(el => { el.classList.remove('show'); el.textContent=''; });
   state.outputs = {};
   // chatHistory intentionally preserved so the chatbot keeps its knowledge
 });
+
+/* ============================================================
+   Init
+   ============================================================ */
+(function init(){
+  let savedTheme = 'light', savedLang = 'en';
+  try { savedTheme = localStorage.getItem('ecolens-theme') || 'light'; } catch(e) {}
+  try { savedLang = localStorage.getItem('ecolens-lang') || 'en'; } catch(e) {}
+  applyLang(savedLang);
+  applyTheme(savedTheme);
+})();
 </script>
 </body>
 </html>
