@@ -3,588 +3,1138 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🌱 EcoLens — Sustainable Packaging Decision</title>
+<title>EcoLens — Sustainable packaging decisions for SMEs</title>
+<meta name="description" content="Upload a photo of your packaging and get practical redesign options, an evidence-checked audit and a supplier-ready brief. Built for Malaysian SMEs." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23c6f05f'/%3E%3Cpath d='M7 25c0-11 7-18 19-19-.6 12-7.5 19-19 19Z' fill='%230b6e4f'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+  /* ============================================================
+     Design tokens — "Rainforest" theme (see design/themes/).
+     Swap these two blocks to re-theme the whole site.
+     ============================================================ */
   :root {
-    --bg: #f4f6f3;
+    --bg: #f3f7f4;
+    --bg-alt: #ffffff;
     --panel: #ffffff;
-    --panel-2: #f0f3ee;
-    --text: #1d2a22;
-    --muted: #5c6b60;
-    --border: #d8e0d6;
-    --accent: #2f8f4e;
-    --accent-2: #1f6e3b;
-    --accent-soft: #e3f2e7;
-    --danger: #c0392b;
-    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 6px 20px rgba(0,0,0,.04);
-    --scroll-thumb: #bcccb8;
+    --panel-2: #f3f8f5;
+    --text: #0c2a21;
+    --muted: #4c685e;
+    --border: #d9e7df;
+    --accent: #0b6e4f;
+    --accent-2: #08533b;
+    --accent-soft: #e0f1e8;
+    --lime: #c6f05f;
+    --lime-2: #d6f87f;
+    --on-lime: #0c2a21;
+    --on-accent: #ffffff;
+    --canopy: linear-gradient(125deg, #04281e 0%, #0a5e44 55%, #0a5560 100%);
+    --nav-bg: #052c21;
+    --footer-bg: #04211a;
+    --danger: #c2412d;
+    --danger-soft: #fdecea;
+    --good-bg: #e2f5d6; --good-fg: #2b6a10;
+    --mid-bg: #fff2cc;  --mid-fg: #855800;
+    --shadow-sm: 0 1px 2px rgba(12,42,33,.06);
+    --shadow: 0 1px 2px rgba(12,42,33,.05), 0 16px 40px -18px rgba(12,42,33,.25);
+    --shadow-lg: 0 30px 70px -25px rgba(3,30,22,.55);
+    --scroll-thumb: #b5d1c3;
+    --toast-bg: #0c2a21; --toast-fg: #ffffff;
+    --radius-lg: 22px;
+    --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
   [data-theme="dark"] {
-    --bg: #0f1511;
-    --panel: #182019;
-    --panel-2: #121a14;
-    --text: #e4ece3;
-    --muted: #9bab9d;
-    --border: #273227;
-    --accent: #4caf6e;
-    --accent-2: #6fcf8f;
-    --accent-soft: #1c2a20;
-    --danger: #e57366;
-    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
-    --scroll-thumb: #35483a;
+    --bg: #06120e;
+    --bg-alt: #0a1814;
+    --panel: #0d1f19;
+    --panel-2: #0a1914;
+    --text: #e3f1ea;
+    --muted: #8fb0a3;
+    --border: #1d3b30;
+    --accent: #2fbf86;
+    --accent-2: #66dcaa;
+    --accent-soft: #11352a;
+    --on-accent: #03140d;
+    --canopy: linear-gradient(125deg, #02150f 0%, #073a2b 55%, #07363d 100%);
+    --nav-bg: #03140f;
+    --footer-bg: #020c09;
+    --danger: #f08470;
+    --danger-soft: #3a1712;
+    --good-bg: #173d22; --good-fg: #a6e88a;
+    --mid-bg: #3d3112;  --mid-fg: #f5cf6b;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 16px 40px -18px rgba(0,0,0,.7);
+    --shadow-lg: 0 30px 70px -25px rgba(0,0,0,.8);
+    --scroll-thumb: #24493c;
+    --toast-bg: #e3f1ea; --toast-fg: #06120e;
   }
 
-  * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  /* ============================================================
+     Base
+     ============================================================ */
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { scroll-behavior: smooth; scroll-padding-top: 84px; }
   body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: var(--font); line-height: 1.6; -webkit-font-smoothing: antialiased;
     transition: background .25s ease, color .25s ease;
   }
-
-  header.topbar {
-    position: sticky; top: 0; z-index: 50;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: .6rem; padding: .75rem 1.25rem; flex-wrap: wrap;
-    background: var(--panel); border-bottom: 1px solid var(--border);
-    box-shadow: var(--shadow);
+  h1, h2, h3, h4 { line-height: 1.2; margin: 0; }
+  p { margin: 0; }
+  a { color: inherit; }
+  img { max-width: 100%; display: block; }
+  button:focus-visible, a:focus-visible, [tabindex]:focus-visible, summary:focus-visible {
+    outline: 3px solid var(--accent); outline-offset: 2px;
   }
-  .topbar h1 { font-size: 1.1rem; margin: 0; font-weight: 650; }
-  .topbar .actions { display: flex; gap: .5rem; align-items: center; flex-wrap: wrap; }
+  .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
 
+  /* ============================================================
+     Buttons
+     ============================================================ */
   .btn {
-    font: inherit; cursor: pointer; border: 1px solid var(--border);
-    background: var(--panel-2); color: var(--text);
-    padding: .5rem .9rem; border-radius: 8px; transition: all .15s ease;
-    display: inline-flex; align-items: center; gap: .4rem;
+    font: inherit; font-weight: 700; font-size: .97rem; line-height: 1.2;
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .8rem 1.4rem; border-radius: 999px; border: 1.5px solid transparent;
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+    transition: transform .15s ease, background .15s ease, border-color .15s ease, color .15s ease;
   }
-  .btn:hover { border-color: var(--accent); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
-  .btn.primary:hover { background: var(--accent-2); }
-  .btn.small { padding: .35rem .6rem; font-size: .82rem; }
-  .btn:disabled { opacity: .55; cursor: not-allowed; }
-
-  main { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
-
-  .card {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1rem;
-    box-shadow: var(--shadow);
-  }
-  .card > .label {
-    font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
-    color: var(--muted); font-weight: 700; margin-bottom: .45rem;
-  }
-  .card h2 { font-size: 1.05rem; margin: .1rem 0 .6rem; }
-
-  label.field-label { display: block; font-weight: 600; margin-bottom: .35rem; font-size: .92rem; }
-  .optional-tag { color: var(--muted); font-weight: 400; font-size: .8rem; }
-  .req { color: var(--danger); font-weight: 700; }
-
-  input[type="text"], textarea, select {
-    width: 100%; font: inherit; color: var(--text);
-    background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 9px; padding: .6rem .7rem; transition: border-color .15s ease;
-  }
-  input[type="text"]:focus, textarea:focus, select:focus {
-    outline: none; border-color: var(--accent);
-  }
-  .cost-wrap { position: relative; }
-  .cost-wrap .prefix {
-    position: absolute; left: .6rem; top: 50%; transform: translateY(-50%);
-    color: var(--muted); font-size: .9rem; pointer-events: none;
-  }
-  .cost-wrap input { padding-left: 2.4rem; }
-  textarea { resize: vertical; min-height: 60px; }
-  ::placeholder { color: var(--muted); opacity: .8; }
-
-  .intro h2 { font-size: 1.5rem; }
-  .intro h3 { color: var(--accent-2); margin-top: 1rem; }
-  .intro ul { margin: .4rem 0; }
-  .sdg { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
-  .sdg span {
-    background: var(--accent-soft); color: var(--accent-2);
-    padding: .35rem .7rem; border-radius: 20px; font-size: .85rem; font-weight: 600;
+  .btn:disabled { opacity: .65; cursor: progress; transform: none !important; }
+  .btn-primary { background: var(--lime); color: var(--on-lime); box-shadow: 0 10px 24px -10px rgba(110,160,20,.75); }
+  .btn-primary:hover { background: var(--lime-2); transform: translateY(-1px); }
+  .btn-secondary { background: var(--panel); color: var(--text); border-color: var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-ghost { background: transparent; color: var(--muted); }
+  .btn-ghost:hover { color: var(--text); background: var(--panel-2); }
+  .btn-ghost-light { background: rgba(255,255,255,.08); color: #fff; border-color: rgba(255,255,255,.3); }
+  .btn-ghost-light:hover { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.55); }
+  .btn-sm { padding: .5rem .95rem; font-size: .86rem; }
+  .btn-lg { padding: 1rem 1.65rem; font-size: 1.04rem; }
+  .btn-block { width: 100%; }
+  .link-btn {
+    background: none; border: none; padding: .2rem; font: inherit; font-weight: 700;
+    color: var(--accent); cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
   }
 
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
-
-  details.advanced { margin-top: 1rem; border-top: 1px dashed var(--border); padding-top: .8rem; }
-  details.advanced > summary {
-    cursor: pointer; font-weight: 600; color: var(--accent-2); list-style: none;
-    display: flex; align-items: center; gap: .4rem; user-select: none;
+  /* ============================================================
+     Navigation
+     ============================================================ */
+  .nav {
+    position: sticky; top: 0; z-index: 60;
+    background: var(--nav-bg); border-bottom: 1px solid rgba(255,255,255,.08);
   }
-  details.advanced > summary::before { content: "▸"; transition: transform .15s ease; }
-  details.advanced[open] > summary::before { transform: rotate(90deg); }
-  details.advanced > .grid-2 { margin-top: .9rem; }
+  .nav-inner { display: flex; align-items: center; gap: 1.5rem; height: 68px; }
+  .brand {
+    display: inline-flex; align-items: center; gap: .6rem; text-decoration: none;
+    color: #fff; font-weight: 800; font-size: 1.18rem; letter-spacing: -.02em;
+  }
+  .brand-mark {
+    width: 34px; height: 34px; border-radius: 11px; flex: none;
+    display: grid; place-items: center; background: var(--lime); color: #0b6e4f;
+  }
+  .nav-links { display: flex; gap: 1.7rem; margin-left: 1.2rem; }
+  .nav-links a { color: rgba(255,255,255,.78); text-decoration: none; font-weight: 600; font-size: .93rem; }
+  .nav-links a:hover { color: #fff; }
+  .nav-actions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+  .icon-btn {
+    height: 38px; min-width: 38px; padding: 0 .7rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.08); color: #fff;
+    font: inherit; font-weight: 700; font-size: .82rem;
+  }
+  .icon-btn:hover { background: rgba(255,255,255,.16); }
+  @media (max-width: 860px) { .nav-links { display: none; } }
+  @media (max-width: 400px) { .nav-cta { display: none; } }
 
-  /* file dropzone */
+  /* ============================================================
+     Hero
+     ============================================================ */
+  .hero {
+    background: radial-gradient(900px 520px at 88% 0%, rgba(198,240,95,.22), transparent 60%), var(--canopy);
+    color: #e6f4ed; padding: 4.5rem 0 5.5rem; overflow: hidden;
+  }
+  .hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 3.5rem; align-items: center; }
+  .pill-eyebrow {
+    display: inline-flex; align-items: center; gap: .55rem; padding: .42rem .9rem; border-radius: 999px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.18);
+    font-size: .82rem; font-weight: 600; color: #d9f0e4;
+  }
+  .pill-eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--lime); }
+  .hero h1 {
+    font-size: clamp(2.3rem, 5.2vw, 3.8rem); line-height: 1.05; letter-spacing: -.035em;
+    font-weight: 800; color: #fff; margin: 1.3rem 0 1.2rem;
+  }
+  .hero h1 span { display: block; }
+  .hero h1 .hl { color: var(--lime); }
+  .hero-sub { font-size: clamp(1.02rem, 1.6vw, 1.17rem); color: rgba(230,244,237,.86); max-width: 36rem; }
+  .hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; margin: 2.1rem 0 1.7rem; }
+  .trust { display: flex; gap: .6rem 1.4rem; flex-wrap: wrap; list-style: none; margin: 0; padding: 0;
+    font-size: .9rem; color: rgba(230,244,237,.82); }
+  .trust li::before { content: "✓"; color: var(--lime); font-weight: 800; margin-right: .45rem; }
+
+  .hero-visual { position: relative; padding: 1.8rem 1rem; }
+  .mock {
+    background: var(--panel); color: var(--text); border-radius: 24px; padding: 1.4rem;
+    box-shadow: var(--shadow-lg); transform: rotate(1.2deg);
+  }
+  .mock-head { display: flex; justify-content: space-between; align-items: flex-start; gap: .8rem; margin-bottom: 1.1rem; }
+  .mock-kicker { font-size: .7rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .mock-title { font-weight: 800; font-size: 1.08rem; margin-top: .15rem; }
+  .mock-badge { background: var(--lime); color: var(--on-lime); font-weight: 800; font-size: .74rem;
+    padding: .3rem .65rem; border-radius: 999px; white-space: nowrap; }
+  .mock-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: .6rem; margin-bottom: 1rem; }
+  .mock-opt { border: 1.5px solid var(--border); border-radius: 14px; padding: .65rem .75rem;
+    font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .mock-opt b { display: block; font-size: 1.2rem; color: var(--text); font-weight: 800; }
+  .mock-opt.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
+  .mock-row { display: flex; justify-content: space-between; align-items: center; gap: .8rem;
+    padding: .55rem 0; border-bottom: 1px dashed var(--border); font-size: .88rem; font-weight: 600; }
+  .lvl { font-size: .74rem; font-weight: 800; padding: .18rem .6rem; border-radius: 999px; }
+  .lvl.good { background: var(--good-bg); color: var(--good-fg); }
+  .lvl.mid { background: var(--mid-bg); color: var(--mid-fg); }
+  .mock-foot { margin-top: 1rem; font-weight: 700; font-size: .88rem; color: var(--accent);
+    background: var(--accent-soft); padding: .7rem .85rem; border-radius: 12px; }
+  .float-chip {
+    position: absolute; background: var(--panel); color: var(--text); border-radius: 14px;
+    padding: .6rem .85rem; font-size: .82rem; font-weight: 700; box-shadow: var(--shadow-lg); white-space: nowrap;
+  }
+  .float-chip.c1 { top: 0; left: -1.2rem; transform: rotate(-3deg); }
+  .float-chip.c2 { bottom: 0; right: -.6rem; transform: rotate(2deg); }
+  @media (max-width: 960px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .hero-visual { max-width: 480px; width: 100%; margin: 0 auto; }
+    .float-chip.c1 { left: 0; } .float-chip.c2 { right: 0; }
+  }
+  @media (max-width: 600px) { .hero { padding: 3rem 0 3.8rem; } }
+  @media (max-width: 420px) { .float-chip { display: none; } }
+
+  /* SDG strip */
+  .strip { background: var(--bg-alt); border-bottom: 1px solid var(--border); }
+  .strip-inner { display: flex; align-items: center; justify-content: center; gap: 1rem 2rem; flex-wrap: wrap; padding: 1.4rem 1.25rem; }
+  .strip-label { font-size: .82rem; font-weight: 700; color: var(--muted); }
+  .sdg-list { display: flex; gap: .7rem 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .sdg { display: inline-flex; align-items: center; gap: .55rem; font-weight: 700; font-size: .92rem; }
+  .sdg b { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+    color: #fff; font-size: .95rem; font-weight: 800; }
+  .sdg-9 b { background: #f36d25; } .sdg-12 b { background: #bf8b2e; } .sdg-13 b { background: #3f7e44; }
+
+  /* ============================================================
+     Sections
+     ============================================================ */
+  .section { padding: 5.5rem 0; }
+  .section.alt { background: var(--bg-alt); border-block: 1px solid var(--border); }
+  .section-head { max-width: 680px; margin: 0 auto 3rem; text-align: center; }
+  .eyebrow { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: .8rem; }
+  .section-head h2 { font-size: clamp(1.75rem, 3.4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; }
+  .section-head p { margin-top: 1rem; color: var(--muted); font-size: 1.06rem; }
+  @media (max-width: 700px) { .section { padding: 3.8rem 0; } .section-head { margin-bottom: 2.2rem; } }
+
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
+
+  /* Features */
+  .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .feature { padding: 1.7rem; transition: transform .2s ease, border-color .2s ease; }
+  .feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+  .f-icon { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center;
+    font-size: 1.45rem; background: var(--accent-soft); margin-bottom: 1.1rem; }
+  .feature h3 { font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: .45rem; }
+  .feature p { color: var(--muted); font-size: .95rem; }
+  @media (max-width: 960px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .feature-grid { grid-template-columns: 1fr; } }
+
+  /* How it works */
+  .steps { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
+  .steps::before { content: ""; position: absolute; top: 28px; left: calc(16.66% + 34px); right: calc(16.66% + 34px);
+    border-top: 2px dashed var(--border); }
+  .step { position: relative; text-align: center; }
+  .step-badge { width: 56px; height: 56px; border-radius: 18px; margin: 0 auto 1.1rem; display: grid; place-items: center;
+    background: var(--lime); color: var(--on-lime); font-weight: 800; font-size: 1.3rem;
+    box-shadow: 0 10px 24px -10px rgba(110,160,20,.85); }
+  .step h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: .4rem; }
+  .step p { color: var(--muted); font-size: .95rem; max-width: 30ch; margin: 0 auto; }
+  @media (max-width: 760px) { .steps { grid-template-columns: 1fr; gap: 1.8rem; } .steps::before { display: none; } }
+
+  /* ============================================================
+     Analyser (form + summary)
+     ============================================================ */
+  .app { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr); gap: 1.5rem; align-items: start; }
+  .app-main { padding: .4rem 1.8rem; }
+  .step-block { padding: 1.6rem 0; }
+  .step-block + .step-block { border-top: 1px solid var(--border); }
+  .step-head { display: flex; gap: .9rem; align-items: flex-start; margin-bottom: 1.2rem; }
+  .step-num { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: .92rem; transition: background .2s ease; }
+  .step-num.done { background: var(--lime); color: var(--on-lime); font-size: 0; }
+  .step-num.done::after { content: "✓"; font-size: 1rem; }
+  .step-head h3 { font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
+  .step-head p { color: var(--muted); font-size: .9rem; margin-top: .15rem; }
+
   .dropzone {
-    border: 2px dashed var(--border); border-radius: 12px;
-    padding: 1.6rem; text-align: center; cursor: pointer;
-    color: var(--muted); transition: all .15s ease; background: var(--panel-2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .3rem;
+    text-align: center; padding: 2.2rem 1rem; cursor: pointer;
+    border: 2px dashed var(--border); border-radius: 18px; background: var(--panel-2);
+    transition: border-color .15s ease, background .15s ease;
   }
-  .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-2); }
-  .dropzone .arrow { font-size: 1.8rem; display: block; margin-bottom: .3rem; }
-  .dropzone input { display: none; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); }
+  .dropzone.shake { animation: shake .45s; border-color: var(--danger); }
+  @keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+  .dz-icon { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
+    background: var(--panel); color: var(--accent); box-shadow: var(--shadow-sm); margin-bottom: .45rem; }
+  .dz-title { font-weight: 800; font-size: 1.02rem; }
+  .dz-hint { color: var(--muted); font-size: .87rem; }
   #fileInput, #cameraInput { display: none; }
-  .upload-actions { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }
+  .upload-actions { display: flex; gap: .5rem; margin-top: .8rem; flex-wrap: wrap; }
+  .file-preview { display: flex; align-items: center; gap: 1rem; padding: .9rem;
+    border: 1.5px solid var(--accent); background: var(--accent-soft); border-radius: 18px; }
+  .file-preview img, .fp-pdf { width: 84px; height: 84px; border-radius: 12px; flex: none; object-fit: cover; background: var(--panel); }
+  .fp-pdf { display: grid; place-items: center; font-weight: 800; color: var(--accent); }
+  .fp-body { flex: 1; min-width: 0; }
+  .fp-title { font-weight: 800; color: var(--accent); }
+  .fp-meta { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fp-actions { display: flex; gap: .8rem; margin-top: .3rem; }
 
-  /* live camera modal */
-  .cam-modal {
-    display: none; position: fixed; inset: 0; z-index: 200;
-    background: rgba(0,0,0,.72); align-items: center; justify-content: center; padding: 1rem;
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem; }
+  .field.span-2 { grid-column: 1 / -1; }
+  .field label { display: flex; align-items: center; gap: .45rem; font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
+  .req { color: var(--danger); }
+  .tag { font-size: .7rem; font-weight: 700; padding: .1rem .5rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+  input[type="text"], select {
+    width: 100%; font: inherit; font-size: .95rem; color: var(--text); background: var(--panel);
+    border: 1.5px solid var(--border); border-radius: 12px; padding: .72rem .85rem;
+    transition: border-color .15s ease, box-shadow .15s ease;
   }
+  select {
+    appearance: none; -webkit-appearance: none; padding-right: 2.4rem; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236b8a7e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right .9rem center;
+  }
+  input[type="text"]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  input.invalid { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
+  ::placeholder { color: var(--muted); opacity: .75; }
+  .cost-wrap { position: relative; }
+  .cost-wrap .prefix { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
+    color: var(--muted); font-size: .9rem; font-weight: 700; pointer-events: none; }
+  .cost-wrap input { padding-left: 2.7rem; }
+
+  details.advanced { margin-top: 1.3rem; border: 1.5px solid var(--border); border-radius: 16px; background: var(--panel-2); }
+  details.advanced > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .65rem;
+    padding: .95rem 1.1rem; font-weight: 700; user-select: none; }
+  details.advanced > summary::-webkit-details-marker { display: none; }
+  details.advanced > summary::before { content: "+"; width: 24px; height: 24px; border-radius: 50%; flex: none;
+    display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; }
+  details.advanced[open] > summary::before { content: "–"; }
+  .count { margin-left: auto; font-size: .76rem; font-weight: 700; color: var(--muted); white-space: nowrap;
+    background: var(--panel); border: 1px solid var(--border); padding: .1rem .55rem; border-radius: 999px; }
+  .adv-body { padding: .3rem 1.1rem 1.3rem; }
+  .group + .group { margin-top: 1.4rem; }
+  .group h4 { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 800; margin-bottom: .75rem; }
+
+  .summary { position: sticky; top: 88px; padding: 1.5rem; }
+  .summary h3 { font-size: 1.15rem; font-weight: 800; margin-bottom: 1rem; }
+  .ready, .mods { list-style: none; margin: 0; padding: 0; }
+  .ready { display: grid; gap: .6rem; margin-bottom: 1.3rem; }
+  .ready li { display: flex; align-items: center; gap: .6rem; font-size: .92rem; font-weight: 600; }
+  .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex: none;
+    display: grid; place-items: center; font-size: .72rem; font-weight: 800; color: transparent; }
+  .tick::after { content: "✓"; }
+  .ready li.ok .tick { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .ready .aside { margin-left: auto; font-size: .78rem; color: var(--muted); font-weight: 600; }
+  .sum-label { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+    padding-top: 1.1rem; margin-bottom: .45rem; border-top: 1px solid var(--border); }
+  .mods { margin-bottom: 1.4rem; }
+  .mods li { display: flex; align-items: center; gap: .6rem; font-size: .9rem; padding: .42rem 0; }
+  .report-on .mods li { cursor: pointer; }
+  .report-on .mods li:hover span:nth-child(2) { color: var(--accent); }
+  .pill { margin-left: auto; font-size: .72rem; font-weight: 700; padding: .12rem .55rem; border-radius: 999px; white-space: nowrap;
+    background: var(--panel-2); color: var(--muted); border: 1px solid var(--border); }
+  [data-status="running"] .pill { background: var(--mid-bg); color: var(--mid-fg); border-color: transparent; }
+  [data-status="done"] .pill { background: var(--good-bg); color: var(--good-fg); border-color: transparent; }
+  [data-status="error"] .pill { background: var(--danger-soft); color: var(--danger); border-color: transparent; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); flex: none; }
+  [data-status="waiting"] .dot { background: var(--muted); }
+  [data-status="running"] .dot { background: #e5a50a; animation: pulse 1s ease-in-out infinite; }
+  [data-status="done"] .dot { background: var(--accent); }
+  [data-status="error"] .dot { background: var(--danger); }
+  @keyframes pulse { 50% { opacity: .3; } }
+  .sum-time { text-align: center; font-size: .82rem; color: var(--muted); margin-top: .7rem; }
+  .sum-links { display: flex; justify-content: center; align-items: center; gap: .4rem; margin-top: .4rem; color: var(--muted); font-size: .88rem; }
+
+  @media (max-width: 960px) { .app { grid-template-columns: 1fr; } .summary { position: static; } }
+  @media (max-width: 640px) { .app-main { padding: .2rem 1.1rem; } .field-grid { grid-template-columns: 1fr; } }
+
+  /* ============================================================
+     Report
+     ============================================================ */
+  .report { margin-top: 3.5rem; scroll-margin-top: 84px; }
+  .report-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
+  .report-head .eyebrow { margin-bottom: .4rem; }
+  .report-head h2 { font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: 800; letter-spacing: -.025em; }
+  .report-product { color: var(--muted); margin-top: .25rem; }
+  .report-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  .progress { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.2rem; }
+  .progress-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .progress-bar span { display: block; height: 100%; width: 0; border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--lime)); transition: width .4s ease; }
+  .progress-text { font-size: .85rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .alert { display: flex; gap: .7rem; padding: .9rem 1.1rem; border-radius: 14px; margin-bottom: 1.2rem;
+    background: var(--danger-soft); color: var(--danger); font-weight: 600; }
+
+  .tabs { position: relative; display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 1rem; padding: .3rem;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 999px; width: max-content; max-width: 100%; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; font: inherit; font-size: .9rem; font-weight: 700;
+    color: var(--muted); background: transparent; border: none; padding: .6rem 1rem; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+  .tab[aria-selected="true"][data-status="done"] .dot { background: var(--lime); }
+  .tab[aria-selected="true"][data-status="idle"] .dot { background: rgba(255,255,255,.4); }
+
+  .tab-panels { padding: 1.6rem 1.8rem; }
+  .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;
+    padding-bottom: 1.1rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
+  .panel-head h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -.015em; }
+  .panel-head p { color: var(--muted); font-size: .92rem; margin-top: .25rem; max-width: 60ch; }
+  .panel-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+  @media (max-width: 640px) { .tab-panels { padding: 1.2rem 1.1rem; } }
+
+  .output-text { min-height: 200px; font-size: .96rem; line-height: 1.7; overflow-x: auto;
+    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+  .output-text:empty::before { content: attr(data-empty); display: block; padding: 3.5rem 1rem; text-align: center;
+    color: var(--muted); font-size: .92rem; border: 1.5px dashed var(--border); border-radius: 14px; }
+  .output-text[data-empty=""]:empty::before { display: none; }
+  .panel-error { color: var(--danger); font-size: .9rem; margin-top: .6rem; display: none; }
+  .panel-error.show { display: block; }
+
+  .skeleton { display: none; padding: .2rem 0 1rem; }
+  .skeleton i { display: block; height: 12px; border-radius: 6px; margin: .75rem 0;
+    background: linear-gradient(90deg, var(--panel-2) 0%, var(--border) 50%, var(--panel-2) 100%);
+    background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+  .skeleton i:nth-child(1) { width: 38%; height: 18px; }
+  .skeleton i:nth-child(2) { width: 94%; } .skeleton i:nth-child(3) { width: 86%; }
+  .skeleton i:nth-child(4) { width: 72%; } .skeleton i:nth-child(5) { width: 90%; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+  .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .img-card { border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: var(--panel-2); }
+  .img-card-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .75rem .9rem; }
+  .img-card-head strong { font-size: .9rem; }
+  .img-frame { position: relative; aspect-ratio: 1 / 1; background: var(--panel); border-top: 1px solid var(--border); }
+  .img-frame [data-output] { width: 100%; height: 100%; display: grid; place-items: center; }
+  .img-frame img { width: 100%; height: 100%; object-fit: cover; }
+  .img-frame .skeleton { position: absolute; inset: 0; padding: 0; }
+  .img-frame .skeleton i { width: 100% !important; height: 100% !important; margin: 0; border-radius: 0; }
+  .img-placeholder { color: var(--muted); font-size: .88rem; text-align: center; padding: 1rem; }
+  .img-card .panel-error { padding: 0 .9rem .8rem; }
+  @media (max-width: 960px) { .img-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 600px) { .img-grid { grid-template-columns: 1fr; } }
+
+  /* Streamed markdown */
+  .md-line { display: block; opacity: 0; animation: fadeIn .35s ease forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .md-line h1 { font-size: 1.35rem; font-weight: 800; margin: 1rem 0 .4rem; letter-spacing: -.015em; }
+  .md-line h2 { font-size: 1.15rem; font-weight: 800; margin: 1rem 0 .35rem; }
+  .md-line h3 { font-size: 1rem; font-weight: 800; margin: .8rem 0 .25rem; color: var(--accent); }
+  .md-line strong { font-weight: 700; }
+  .md-line code { background: var(--accent-soft); padding: .1rem .4rem; border-radius: 6px; font-size: .88em; }
+  .md-line.hr { border-top: 1px solid var(--border); margin: 1rem 0; height: 0; }
+  .md-line ul, .md-line ol { margin: .1rem 0 .1rem 1.2rem; padding-left: .2rem; }
+  .md-line.tr { display: grid; border-bottom: 1px solid var(--border); font-size: .9rem; line-height: 1.5; }
+  .md-line.tr > span { padding: .6rem .75rem; }
+  .md-line.tr > span:first-child { font-weight: 700; }
+  .md-line.tr.sep { display: none; }
+  .md-line:not(.tr) + .md-line.tr, .output-text > .md-line.tr:first-child {
+    background: var(--accent-soft); border-radius: 10px 10px 0 0; border-bottom: none; font-weight: 800; }
+  .cursor { display: inline-block; width: 8px; background: var(--accent); margin-left: 2px; border-radius: 2px;
+    animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ============================================================
+     FAQ, CTA, footer
+     ============================================================ */
+  .faq { max-width: 780px; margin: 0 auto; display: grid; gap: .8rem; }
+  .faq details { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; transition: border-color .15s ease; }
+  .faq details[open] { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
+  .faq summary { list-style: none; cursor: pointer; padding: 1.1rem 1.3rem; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: "+"; flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent-soft); color: var(--accent); font-weight: 800; transition: transform .2s ease; }
+  .faq details[open] summary::after { transform: rotate(45deg); }
+  .faq details p { padding: 0 1.3rem 1.2rem; color: var(--muted); }
+
+  .cta-band { background: var(--bg-alt); padding: 0 0 5.5rem; }
+  .cta-box { display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap;
+    padding: 3.2rem 2.6rem; border-radius: 28px; color: #fff;
+    background: radial-gradient(600px 300px at 90% 0%, rgba(198,240,95,.25), transparent 60%), var(--canopy); }
+  .cta-box h2 { font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 800; letter-spacing: -.03em; max-width: 22ch; }
+  .cta-box p { color: rgba(230,244,237,.82); margin-top: .6rem; }
+  @media (max-width: 600px) { .cta-box { padding: 2.2rem 1.5rem; } .cta-band { padding-bottom: 3.8rem; } }
+
+  .footer { background: var(--footer-bg); color: rgba(230,244,237,.72); padding: 3.5rem 0 2rem; font-size: .92rem; }
+  .footer-grid { display: grid; grid-template-columns: 1.6fr 1fr 1fr; gap: 2rem; }
+  .footer .brand { margin-bottom: .9rem; }
+  .footer h4 { color: #fff; font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .9rem; }
+  .footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+  .footer a { text-decoration: none; }
+  .footer a:hover { color: #fff; }
+  .footer-bottom { margin-top: 2.5rem; padding-top: 1.4rem; border-top: 1px solid rgba(255,255,255,.1);
+    display: flex; justify-content: space-between; gap: .6rem 1.5rem; flex-wrap: wrap; font-size: .84rem; }
+  @media (max-width: 760px) { .footer-grid { grid-template-columns: 1fr 1fr; } .footer-brand { grid-column: 1 / -1; } }
+
+  /* ============================================================
+     Camera modal
+     ============================================================ */
+  .cam-modal { display: none; position: fixed; inset: 0; z-index: 200; padding: 1rem;
+    background: rgba(0,0,0,.72); align-items: center; justify-content: center; }
   .cam-modal.show { display: flex; }
-  .cam-box {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
-    padding: 1rem; max-width: 560px; width: 100%; box-shadow: var(--shadow);
-  }
-  .cam-box video {
-    width: 100%; border-radius: 10px; background: #000; max-height: 60vh; object-fit: contain;
-  }
+  .cam-box { background: var(--panel); border: 1px solid var(--border); border-radius: 22px;
+    padding: 1rem; max-width: 560px; width: 100%; box-shadow: var(--shadow-lg); }
+  .cam-box video { width: 100%; border-radius: 14px; background: #000; max-height: 60vh; object-fit: contain; }
   .cam-controls { display: flex; gap: .5rem; margin-top: .8rem; justify-content: center; flex-wrap: wrap; }
   .cam-error { color: var(--danger); font-size: .9rem; margin-top: .5rem; text-align: center; display: none; }
   .cam-error.show { display: block; }
-  .file-preview { margin-top: .8rem; display: none; }
-  .file-preview img { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid var(--border); }
-  .file-preview .meta { font-size: .82rem; color: var(--muted); margin-top: .35rem; }
 
-  /* output panels */
-  .output-panel {
-    position: relative; background: var(--panel-2); border: 1px solid var(--border);
-    border-radius: 11px; padding: .9rem 1rem; margin-top: .6rem;
-  }
-  .output-text {
-    height: 340px; overflow-y: auto; overflow-x: auto; font-size: .92rem;
-    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
-  }
-  .output-text::-webkit-scrollbar { width: 7px; height: 7px; }
-  .output-text::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
-  .output-text::-webkit-scrollbar-track { background: transparent; }
-  .output-image, .output-chat { height: auto; }
-
-  .md-line { display: block; opacity: 0; animation: fadeIn .35s ease forwards; }
-  @keyframes fadeIn { to { opacity: 1; } }
-  .md-line h1 { font-size: 1.3rem; margin: .5rem 0 .3rem; }
-  .md-line h2 { font-size: 1.12rem; margin: .5rem 0 .3rem; }
-  .md-line h3 { font-size: 1rem; margin: .45rem 0 .25rem; color: var(--accent-2); }
-  .md-line code { background: var(--accent-soft); padding: .1rem .35rem; border-radius: 5px; font-size: .88em; }
-  .md-line.hr { border-top: 1px solid var(--border); margin: .6rem 0; height: 0; }
-  .md-line ul, .md-line ol { margin: .1rem 0 .1rem 1.1rem; }
-
-  .cursor { display: inline-block; width: 7px; background: var(--accent);
-    margin-left: 2px; animation: blink 1s step-end infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .spinner {
-    width: 22px; height: 22px; border: 3px solid var(--border);
-    border-top-color: var(--accent); border-radius: 50%;
-    animation: spin .7s linear infinite; display: none; margin: .3rem auto;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .panel-error { color: var(--danger); font-size: .9rem; margin-top: .4rem; display: none; }
-  .panel-error.show { display: block; }
-
-  .panel-tools { display: flex; gap: .5rem; margin-top: .5rem; }
-
-  .output-image img { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); }
-  .img-placeholder { color: var(--muted); font-size: .9rem; text-align: center; padding: 2rem 0; }
-
-  .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-  @media (max-width: 760px) { .img-grid { grid-template-columns: 1fr; } }
-
-  /* chat */
-  .chat-log {
-    display: flex; flex-direction: column; gap: .6rem;
-    max-height: 420px; overflow-y: auto; padding: .3rem;
-    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
-  }
-  .chat-log::-webkit-scrollbar { width: 7px; }
-  .chat-log::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
-  .bubble { padding: .6rem .85rem; border-radius: 14px; max-width: 85%; font-size: .92rem; }
-  .bubble.bot { background: var(--accent-soft); align-self: flex-start; border-bottom-left-radius: 4px; }
-  .bubble.user { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-  .chat-input-row { display: flex; gap: .5rem; }
-  .chat-input-row input { flex: 1; }
-
-  /* floating chat widget */
+  /* ============================================================
+     Floating chat
+     ============================================================ */
   .chat-fab {
-    position: fixed; right: 1.1rem; bottom: 1.1rem; z-index: 150;
-    display: inline-flex; align-items: center; gap: .5rem;
-    background: var(--accent); color: #fff; font-weight: 600;
-    padding: .7rem 1rem; border-radius: 30px; cursor: pointer;
-    box-shadow: 0 6px 20px rgba(0,0,0,.25); font-size: 1.1rem;
+    position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 150;
+    display: inline-flex; align-items: center; gap: .55rem; border: none; cursor: pointer;
+    background: var(--lime); color: var(--on-lime); font: inherit; font-weight: 800; font-size: .95rem;
+    padding: .85rem 1.25rem; border-radius: 999px; box-shadow: 0 14px 30px -10px rgba(4,40,30,.6);
     transition: transform .15s ease, background .15s ease;
-    user-select: none;
   }
-  .chat-fab:hover { background: var(--accent-2); transform: translateY(-2px); }
+  .chat-fab:hover { background: var(--lime-2); transform: translateY(-2px); }
   .chat-fab.hidden { display: none; }
-  .chat-fab-label { font-size: .9rem; }
-
   .chat-float {
-    position: fixed; right: 1.1rem; bottom: 1.1rem; z-index: 160;
-    width: 380px; max-width: calc(100vw - 2rem);
-    height: 540px; max-height: calc(100vh - 2rem);
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,.3);
-    display: none; flex-direction: column; overflow: hidden;
-    animation: chatIn .2s ease;
+    position: fixed; right: 1.2rem; bottom: 1.2rem; z-index: 160;
+    width: 390px; max-width: calc(100vw - 2rem); height: 580px; max-height: calc(100vh - 2rem);
+    background: var(--panel); border: 1px solid var(--border); border-radius: 22px; box-shadow: var(--shadow-lg);
+    display: none; flex-direction: column; overflow: hidden; animation: chatIn .2s ease;
   }
   .chat-float.show { display: flex; }
   @keyframes chatIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  .chat-float-head {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: .8rem 1rem; background: var(--accent); color: #fff; font-weight: 650;
-  }
-  .chat-float-close {
-    background: transparent; border: none; color: #fff; cursor: pointer;
-    font-size: 1rem; padding: .2rem .4rem; border-radius: 6px;
-  }
-  .chat-float-close:hover { background: rgba(255,255,255,.2); }
-  .chat-float .chat-log {
-    flex: 1; max-height: none; padding: .8rem;
-    background: var(--panel-2); border-bottom: 1px solid var(--border);
-  }
-  .chat-float .chat-input-row { padding: .7rem; background: var(--panel); }
+  .chat-float-head { display: flex; align-items: center; gap: .7rem; padding: .95rem 1.1rem; background: var(--canopy); color: #fff; }
+  .chat-avatar { width: 36px; height: 36px; border-radius: 12px; flex: none; display: grid; place-items: center;
+    background: var(--lime); color: #0b6e4f; }
+  .chat-title { font-weight: 800; font-size: .98rem; line-height: 1.2; }
+  .chat-sub { font-size: .76rem; color: rgba(255,255,255,.75); }
+  .chat-float-close { margin-left: auto; width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer;
+    background: rgba(255,255,255,.1); color: #fff; font-size: .95rem; }
+  .chat-float-close:hover { background: rgba(255,255,255,.22); }
+  .chat-log { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: .6rem;
+    background: var(--panel-2); scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+  .bubble { padding: .65rem .9rem; border-radius: 16px; max-width: 85%; font-size: .92rem; line-height: 1.55;
+    white-space: pre-wrap; overflow-wrap: anywhere; }
+  .bubble.bot { background: var(--panel); border: 1px solid var(--border); align-self: flex-start; border-bottom-left-radius: 6px; }
+  .bubble.user { background: var(--accent); color: var(--on-accent); align-self: flex-end; border-bottom-right-radius: 6px; }
+  .chat-suggest { display: flex; gap: .4rem; flex-wrap: wrap; padding: .75rem 1rem 0; background: var(--panel); }
+  .chip { font: inherit; font-size: .8rem; font-weight: 600; padding: .4rem .75rem; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--panel-2); color: var(--text); }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+  .chat-input-row { display: flex; gap: .5rem; padding: .8rem 1rem 1rem; background: var(--panel); }
+  .chat-input-row input { flex: 1; border-radius: 999px; }
+  .chat-float .panel-error { margin: 0 1rem; }
   @media (max-width: 480px) {
     .chat-float { right: .5rem; bottom: .5rem; height: calc(100vh - 1rem); }
     .chat-fab-label { display: none; }
-    .chat-fab { padding: .8rem; border-radius: 50%; }
+    .chat-fab { padding: .95rem; }
   }
-
-  .run-all-wrap { position: sticky; bottom: 0; z-index: 40; padding: .8rem 0;
-    display: flex; justify-content: center; }
-  .run-all-wrap .btn { box-shadow: var(--shadow); }
-
-  .section-divider { border: none; border-top: 2px solid var(--border); margin: 1.6rem 0 1rem; }
 
   .toast {
-    position: fixed; bottom: 1.2rem; left: 50%; transform: translateX(-50%) translateY(2rem);
-    background: var(--accent-2); color: #fff; padding: .6rem 1.1rem; border-radius: 10px;
-    box-shadow: var(--shadow); opacity: 0; transition: all .25s ease; z-index: 100; pointer-events: none;
+    position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%) translateY(2rem);
+    background: var(--toast-bg); color: var(--toast-fg); padding: .75rem 1.2rem; border-radius: 14px;
+    box-shadow: var(--shadow-lg); opacity: 0; transition: all .25s ease; z-index: 300; pointer-events: none;
+    font-weight: 600; font-size: .92rem; max-width: calc(100vw - 2rem); text-align: center;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Sticky generate bar — only when the summary card is stacked below the form */
+  .mobile-bar { display: none; }
+  .mb-text { font-size: .86rem; font-weight: 700; color: var(--muted); line-height: 1.3; }
+  .mb-text.ok { color: var(--accent); }
+  @media (max-width: 960px) {
+    .mobile-bar {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 140;
+      display: flex; align-items: center; justify-content: space-between; gap: .8rem;
+      padding: .75rem 1rem calc(.75rem + env(safe-area-inset-bottom));
+      background: var(--panel); border-top: 1px solid var(--border); box-shadow: 0 -10px 30px -12px rgba(0,0,0,.25);
+      transform: translateY(110%); transition: transform .25s ease;
+    }
+    .mobile-bar.show { transform: translateY(0); }
+    body.mb-on .chat-fab { bottom: 5.4rem; }
+    body.mb-on .toast { bottom: 5.6rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
-<header class="topbar">
-  <h1>🌱 EcoLens</h1>
-  <div class="actions">
-    <button class="btn small" id="langToggle" title="Language">🌐 BM</button>
-    <button class="btn small" id="themeToggle" title="Toggle theme">🌙 <span data-i18n="dark">Dark</span></button>
-    <button class="btn small" id="exampleBtn" data-i18n="example">Fill example</button>
-    <button class="btn small" id="resetBtn" data-i18n="reset">Reset</button>
-    <button class="btn primary" id="runAllBtn">▶ <span data-i18n="runAll">Run All</span></button>
+
+<!-- ============================================================
+     Navigation
+     ============================================================ -->
+<header class="nav">
+  <div class="container nav-inner">
+    <a href="#top" class="brand" aria-label="EcoLens home">
+      <span class="brand-mark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z" fill="currentColor"/><path d="M4.5 19.5 13 11" fill="none" style="stroke:var(--lime)" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      EcoLens
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#how" data-i18n="nav_how">How it works</a>
+      <a href="#faq" data-i18n="nav_faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <button type="button" class="icon-btn" id="langToggle">BM</button>
+      <button type="button" class="icon-btn" id="themeToggle">🌙</button>
+      <a href="#analyse" class="btn btn-primary btn-sm nav-cta" data-i18n="nav_cta">Start analysis</a>
+    </div>
   </div>
 </header>
 
 <main>
-  <!-- Widget 1: Welcome (static) -->
-  <section class="card intro">
-    <div class="label" data-i18n="welcome">Welcome to EcoLens</div>
-    <h2>🌱 EcoLens</h2>
-    <h3>❗ <span data-i18n="problem">Problem</span></h3>
-    <p data-i18n="problemText">SMEs want more sustainable packaging but often don't know what they can change
-      without increasing cost, reducing shelf life, or affecting product protection.</p>
-    <h3>💡 <span data-i18n="solution">Solution</span></h3>
-    <p data-i18n="solutionText"><strong>EcoLens</strong> analyses a packaging image together with business
-      requirements and generates practical redesign strategies that balance:
-      sustainability, cost, product protection and production constraints. It also checks
-      environmental claims and produces a supplier-ready action plan.</p>
-    <div class="sdg">
-      <span>🏭 SDG 9</span>
-      <span>♻️ SDG 12</span>
-      <span>🌏 SDG 13</span>
+  <!-- ============================================================
+       Hero
+       ============================================================ -->
+  <section class="hero" id="top">
+    <div class="container hero-grid">
+      <div>
+        <span class="pill-eyebrow" data-i18n="hero_eyebrow">Built for Malaysian SMEs · Powered by Amazon Bedrock</span>
+        <h1><span data-i18n="hero_title_1">Greener packaging decisions,</span><span class="hl" data-i18n="hero_title_2">without the guesswork.</span></h1>
+        <p class="hero-sub" data-i18n="hero_sub">Upload a photo of your packaging and answer three quick questions. EcoLens gives you three practical redesign options, an evidence-checked audit and a brief you can send straight to your supplier.</p>
+        <div class="hero-ctas">
+          <a href="#analyse" class="btn btn-primary btn-lg"><span data-i18n="hero_cta">Analyse my packaging</span> <span aria-hidden="true">→</span></a>
+          <button type="button" class="btn btn-ghost-light btn-lg" id="heroExampleBtn" data-i18n="hero_cta2">Try an example</button>
+        </div>
+        <ul class="trust">
+          <li data-i18n="trust1">No sign-up needed</li>
+          <li data-i18n="trust2">Costs in RM</li>
+          <li data-i18n="trust3">English &amp; Bahasa Malaysia</li>
+        </ul>
+      </div>
+
+      <div class="hero-visual" aria-hidden="true">
+        <div class="mock">
+          <div class="mock-head">
+            <div>
+              <div class="mock-kicker" data-i18n="mock_kicker">Sample report</div>
+              <div class="mock-title">Kuih bangkit, 150g</div>
+            </div>
+            <span class="mock-badge" data-i18n="mock_badge">Best fit: Option B</span>
+          </div>
+          <div class="mock-opts">
+            <div class="mock-opt"><b>A</b><span data-i18n="mock_a">Quick win</span></div>
+            <div class="mock-opt on"><b>B</b><span data-i18n="mock_b">Balanced</span></div>
+            <div class="mock-opt"><b>C</b><span data-i18n="mock_c">Ambitious</span></div>
+          </div>
+          <div class="mock-row"><span data-i18n="mock_r1">Plastic reduction</span><span class="lvl good" data-i18n="lvl_high">High</span></div>
+          <div class="mock-row"><span data-i18n="mock_r2">Cost impact</span><span class="lvl mid" data-i18n="lvl_med">Medium</span></div>
+          <div class="mock-row"><span data-i18n="mock_r3">Shelf-life risk</span><span class="lvl good" data-i18n="lvl_low">Low</span></div>
+          <div class="mock-foot" data-i18n="mock_foot">✓ Supplier brief ready to send</div>
+        </div>
+        <div class="float-chip c1" data-i18n="chip1">🧾 Every finding evidence-labelled</div>
+        <div class="float-chip c2" data-i18n="chip2">🖼️ 3 redesign visuals</div>
+      </div>
     </div>
   </section>
 
-  <!-- Input widgets -->
-  <section class="card">
-    <div class="label" data-i18n="yourInputs">Your Inputs</div>
-    <p style="color:var(--muted); font-size:.88rem; margin-top:-.2rem;" data-i18n="inputHelp">
-      Only the first few fields are needed to get started. Open "More details" for a sharper result,
-      or click "Fill example" to try it instantly.</p>
-
-    <!-- Upload -->
-    <div style="margin-bottom:1rem;">
-      <label class="field-label">📸 <span data-i18n="w_upload">Upload Your Packaging</span> <span class="req">*</span></label>
-      <div class="dropzone" id="dropzone">
-        <span class="arrow">⬆️</span>
-        <span data-i18n="dropHint">Drag &amp; drop an image (JPG, PNG, WEBP) or PDF, or click to browse.</span>
-      </div>
-      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
-      <input type="file" id="cameraInput" accept="image/*" capture="environment" />
-      <div class="upload-actions">
-        <button class="btn small" id="browseBtn" data-i18n="browse">📁 Browse</button>
-        <button class="btn small" id="cameraBtn" data-i18n="camera">📷 Take photo</button>
-      </div>
-      <div class="file-preview" id="filePreview">
-        <img id="filePreviewImg" alt="preview" />
-        <div class="meta" id="filePreviewMeta"></div>
+  <!-- SDG strip -->
+  <section class="strip" aria-label="Sustainable Development Goals">
+    <div class="container strip-inner">
+      <span class="strip-label" data-i18n="sdg_label">Aligned with the UN Sustainable Development Goals</span>
+      <div class="sdg-list">
+        <span class="sdg sdg-9"><b>9</b><span data-i18n="sdg9">Industry &amp; innovation</span></span>
+        <span class="sdg sdg-12"><b>12</b><span data-i18n="sdg12">Responsible production</span></span>
+        <span class="sdg sdg-13"><b>13</b><span data-i18n="sdg13">Climate action</span></span>
       </div>
     </div>
+  </section>
 
-    <!-- Live camera modal -->
-    <div class="cam-modal" id="camModal" aria-hidden="true">
-      <div class="cam-box">
-        <video id="camVideo" autoplay playsinline muted></video>
-        <canvas id="camCanvas" style="display:none;"></canvas>
-        <div class="cam-error" id="camError"></div>
-        <div class="cam-controls">
-          <button class="btn" id="camSwitch" data-i18n="camSwitch">🔄 Switch</button>
-          <button class="btn primary" id="camCapture" data-i18n="camCapture">📸 Capture</button>
-          <button class="btn" id="camCancel" data-i18n="camCancel">✖ Cancel</button>
-        </div>
+  <!-- ============================================================
+       Features
+       ============================================================ -->
+  <section class="section" id="features">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="feat_eyebrow">Why EcoLens</span>
+        <h2 data-i18n="feat_title">Greener packaging without risking cost or quality</h2>
+        <p data-i18n="feat_sub">SMEs want greener packaging but worry about cost, shelf life and product protection. EcoLens weighs all of them together, so every recommendation is one you can actually make.</p>
+      </div>
+      <div class="feature-grid">
+        <article class="card feature"><div class="f-icon">🔀</div><h3 data-i18n="f1_t">Three redesign paths</h3><p data-i18n="f1_d">A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.</p></article>
+        <article class="card feature"><div class="f-icon">🧾</div><h3 data-i18n="f2_t">Evidence-checked audit</h3><p data-i18n="f2_d">Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.</p></article>
+        <article class="card feature"><div class="f-icon">🔍</div><h3 data-i18n="f3_t">Problems, prioritised</h3><p data-i18n="f3_d">See which issues matter most (high, medium or low) and why they matter for your product.</p></article>
+        <article class="card feature"><div class="f-icon">⚖️</div><h3 data-i18n="f4_t">Side-by-side trade-offs</h3><p data-i18n="f4_d">Compare your current packaging with each option on cost, protection, shelf life and more.</p></article>
+        <article class="card feature"><div class="f-icon">✅</div><h3 data-i18n="f5_t">Supplier-ready brief</h3><p data-i18n="f5_d">Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.</p></article>
+        <article class="card feature"><div class="f-icon">💬</div><h3 data-i18n="f6_t">Visuals and an AI advisor</h3><p data-i18n="f6_d">Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.</p></article>
       </div>
     </div>
+  </section>
 
-    <div class="grid-2">
-      <div>
-        <label class="field-label" for="f_product_name" data-i18n="w_product">Product Name and Type <span class="req">*</span></label>
-        <input type="text" id="f_product_name" data-field="Product Name and Type"
-          data-ph="ph_product" placeholder="e.g. Chocolate cookies, 150g net weight" />
+  <!-- ============================================================
+       How it works
+       ============================================================ -->
+  <section class="section alt" id="how">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="how_eyebrow">How it works</span>
+        <h2 data-i18n="how_title">Your report in three simple steps</h2>
       </div>
-      <div>
-        <label class="field-label" for="f_category" data-i18n="w_category">Product Category <span class="req">*</span></label>
-        <select id="f_category" data-field="Product Category">
-          <option>Food and Beverage</option>
-          <option>Snacks</option>
-          <option>Cosmetics and Personal Care</option>
-          <option>Household Products</option>
-          <option>Electronics</option>
-          <option>Pharmaceuticals</option>
-          <option>Others</option>
-        </select>
-      </div>
-      <div style="grid-column: 1 / -1;">
-        <label class="field-label" for="f_objective" data-i18n="w_objective">Main Sustainability Objective <span class="req">*</span></label>
-        <input type="text" id="f_objective" data-field="Main Sustainability Objective"
-          data-ph="ph_objective" placeholder="e.g. Reduce virgin plastic use. Improve recyclability." />
+      <div class="steps">
+        <div class="step"><div class="step-badge">1</div><h3 data-i18n="s1_t">Snap or upload</h3><p data-i18n="s1_d">Take a photo of your current packaging, or upload an image or PDF.</p></div>
+        <div class="step"><div class="step-badge">2</div><h3 data-i18n="s2_t">Tell us the basics</h3><p data-i18n="s2_d">Product name, category and goal are enough. Add more details for a sharper result.</p></div>
+        <div class="step"><div class="step-badge">3</div><h3 data-i18n="s3_t">Get your report</h3><p data-i18n="s3_d">Strategies, audit, trade-offs, visuals and a supplier brief. Then ask the advisor anything.</p></div>
       </div>
     </div>
+  </section>
 
-    <!-- Advanced / optional -->
-    <details class="advanced">
-      <summary data-i18n="moreDetails">More details (optional — improves accuracy)</summary>
-      <div class="grid-2">
-        <div>
-          <label class="field-label" for="f_shelf_life" data-i18n="w_shelf">Required Shelf Life</label>
-          <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
-            data-ph="ph_shelf" placeholder="e.g. 6 months, 12 months, 2 years" />
-        </div>
-        <div>
-          <label class="field-label" for="f_contains" data-i18n="w_contains">What the Product Contains</label>
-          <input type="text" id="f_contains" data-field="What the Product Contains"
-            data-ph="ph_contains" placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
-        </div>
-        <div>
-          <label class="field-label" for="f_sensitivity" data-i18n="w_sensitivity">Moisture, Light or Oxygen Sensitivity</label>
-          <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
-            <option>Not sensitive</option>
-            <option>Moisture sensitive</option>
-            <option>Light sensitive</option>
-            <option>Oxygen sensitive</option>
-            <option>Moisture and light sensitive</option>
-            <option>Moisture and oxygen sensitive</option>
-            <option>All three - moisture, light and oxygen sensitive</option>
-          </select>
-        </div>
-        <div>
-          <label class="field-label" for="f_current_materials" data-i18n="w_materials">Current Packaging Materials</label>
-          <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
-            data-ph="ph_materials" placeholder="e.g. Plastic tray, plastic wrapper and cardboard box." />
-        </div>
-        <div>
-          <label class="field-label" for="f_sales_channel" data-i18n="w_channel">Sales Channel</label>
-          <select id="f_sales_channel" data-field="Sales Channel">
-            <option>Retail only</option>
-            <option>E-commerce only</option>
-            <option>Both retail and e-commerce</option>
-          </select>
-        </div>
-        <div>
-          <label class="field-label" for="f_recycled" data-i18n="w_recycled">Current Recycled Content</label>
-          <input type="text" id="f_recycled" data-field="Current Recycled Content"
-            data-ph="ph_recycled" placeholder="e.g. Outer box uses 30% recycled fibre." />
-        </div>
-        <div>
-          <label class="field-label" for="f_protection" data-i18n="w_protection">Product Protection Requirements</label>
-          <input type="text" id="f_protection" data-field="Product Protection Requirements"
-            data-ph="ph_protection" placeholder="e.g. Protect against crushing, moisture and light." />
-        </div>
-        <div>
-          <label class="field-label" for="f_cost_unit" data-i18n="w_cost">Packaging Cost Per Unit</label>
-          <div class="cost-wrap">
-            <span class="prefix">RM</span>
-            <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
-              data-ph="ph_cost" placeholder="0.85 per unit" />
+  <!-- ============================================================
+       Analyser
+       ============================================================ -->
+  <section class="section" id="analyse">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="an_eyebrow">Start here</span>
+        <h2 data-i18n="an_title">Analyse your packaging</h2>
+        <p data-i18n="an_sub">Only a photo and a product name are required. Everything else is optional.</p>
+      </div>
+
+      <div class="app">
+        <div class="card app-main">
+          <!-- Step 1: upload -->
+          <div class="step-block" id="stepUpload">
+            <div class="step-head">
+              <span class="step-num" id="num1">1</span>
+              <div><h3 data-i18n="w_upload">Upload your packaging</h3><p data-i18n="step1_d">A clear photo of the front works best.</p></div>
+            </div>
+            <div class="dropzone" id="dropzone" role="button" tabindex="0">
+              <span class="dz-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+              <span class="dz-title" data-i18n="dropTitle">Drop your photo here</span>
+              <span class="dz-hint" data-i18n="dropHint">JPG, PNG, WEBP or PDF · or click to browse</span>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+            <div class="upload-actions" id="uploadActions">
+              <button type="button" class="btn btn-secondary btn-sm" id="browseBtn" data-i18n="browse">📁 Browse files</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="cameraBtn" data-i18n="camera">📷 Take photo</button>
+            </div>
+            <div class="file-preview" id="filePreview" hidden>
+              <img id="filePreviewImg" alt="Packaging preview" />
+              <div class="fp-pdf" id="filePreviewPdf" hidden>PDF</div>
+              <div class="fp-body">
+                <div class="fp-title" data-i18n="photoAdded">✓ Packaging added</div>
+                <div class="fp-meta" id="filePreviewMeta"></div>
+                <div class="fp-actions">
+                  <button type="button" class="link-btn" id="changeFileBtn" data-i18n="change">Change</button>
+                  <button type="button" class="link-btn" id="removeFileBtn" data-i18n="remove">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live camera modal -->
+          <div class="cam-modal" id="camModal" aria-hidden="true">
+            <div class="cam-box">
+              <video id="camVideo" autoplay playsinline muted></video>
+              <canvas id="camCanvas" style="display:none;"></canvas>
+              <div class="cam-error" id="camError"></div>
+              <div class="cam-controls">
+                <button type="button" class="btn btn-secondary" id="camSwitch" data-i18n="camSwitch">🔄 Switch</button>
+                <button type="button" class="btn btn-primary" id="camCapture" data-i18n="camCapture">📸 Capture</button>
+                <button type="button" class="btn btn-secondary" id="camCancel" data-i18n="camCancel">✖ Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: details -->
+          <div class="step-block">
+            <div class="step-head">
+              <span class="step-num" id="num2">2</span>
+              <div><h3 data-i18n="step2_t">About your product</h3><p data-i18n="step2_d">Three quick questions.</p></div>
+            </div>
+            <div class="field-grid">
+              <div class="field span-2">
+                <label for="f_product_name"><span data-i18n="w_product">Product name and type</span> <span class="req">*</span></label>
+                <input type="text" id="f_product_name" data-field="Product Name and Type"
+                  data-ph="ph_product" placeholder="e.g. Chocolate cookies, 150g net weight" />
+              </div>
+              <div class="field">
+                <label for="f_category" data-i18n="w_category">Product category</label>
+                <select id="f_category" data-field="Product Category">
+                  <option>Food and Beverage</option>
+                  <option>Snacks</option>
+                  <option>Cosmetics and Personal Care</option>
+                  <option>Household Products</option>
+                  <option>Electronics</option>
+                  <option>Pharmaceuticals</option>
+                  <option>Others</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f_objective"><span data-i18n="w_objective">Main sustainability goal</span> <span class="tag" data-i18n="recommended">Recommended</span></label>
+                <input type="text" id="f_objective" data-field="Main Sustainability Objective"
+                  data-ph="ph_objective" placeholder="e.g. Reduce virgin plastic use" />
+              </div>
+            </div>
+
+            <details class="advanced">
+              <summary><span data-i18n="moreDetails">Add more details (optional, sharper results)</span><span class="count" id="detailCount">0/13</span></summary>
+              <div class="adv-body">
+                <div class="group">
+                  <h4 data-i18n="g_product">Product &amp; protection</h4>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="f_contains" data-i18n="w_contains">What the product contains</label>
+                      <input type="text" id="f_contains" data-field="What the Product Contains"
+                        data-ph="ph_contains" placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
+                    </div>
+                    <div class="field">
+                      <label for="f_shelf_life" data-i18n="w_shelf">Required shelf life</label>
+                      <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
+                        data-ph="ph_shelf" placeholder="e.g. 6 months, 12 months, 2 years" />
+                    </div>
+                    <div class="field">
+                      <label for="f_sensitivity" data-i18n="w_sensitivity">Moisture, light or oxygen sensitivity</label>
+                      <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
+                        <option>Not sensitive</option>
+                        <option>Moisture sensitive</option>
+                        <option>Light sensitive</option>
+                        <option>Oxygen sensitive</option>
+                        <option>Moisture and light sensitive</option>
+                        <option>Moisture and oxygen sensitive</option>
+                        <option>All three - moisture, light and oxygen sensitive</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="f_protection" data-i18n="w_protection">Product protection requirements</label>
+                      <input type="text" id="f_protection" data-field="Product Protection Requirements"
+                        data-ph="ph_protection" placeholder="e.g. Protect against crushing, moisture and light." />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="group">
+                  <h4 data-i18n="g_packaging">Current packaging</h4>
+                  <div class="field-grid">
+                    <div class="field span-2">
+                      <label for="f_current_materials" data-i18n="w_materials">Current packaging materials</label>
+                      <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
+                        data-ph="ph_materials" placeholder="e.g. Plastic tray, plastic wrapper and cardboard box." />
+                    </div>
+                    <div class="field">
+                      <label for="f_recycled" data-i18n="w_recycled">Current recycled content</label>
+                      <input type="text" id="f_recycled" data-field="Current Recycled Content"
+                        data-ph="ph_recycled" placeholder="e.g. Outer box uses 30% recycled fibre." />
+                    </div>
+                    <div class="field">
+                      <label for="f_claims" data-i18n="w_claims">Existing environmental claims</label>
+                      <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
+                        data-ph="ph_claims" placeholder="e.g. 100% recyclable, biodegradable. Leave blank if none." />
+                    </div>
+                    <div class="field">
+                      <label for="f_branding" data-i18n="w_branding">Branding requirements</label>
+                      <input type="text" id="f_branding" data-field="Branding Requirements"
+                        data-ph="ph_branding" placeholder="e.g. Keep full-colour printing, brand colours and logo." />
+                    </div>
+                    <div class="field">
+                      <label for="f_machinery" data-i18n="w_machinery">Packaging machinery constraints</label>
+                      <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
+                        data-ph="ph_machinery" placeholder="e.g. Existing filling/sealing machinery must stay." />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="group">
+                  <h4 data-i18n="g_business">Business &amp; market</h4>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="f_sales_channel" data-i18n="w_channel">Sales channel</label>
+                      <select id="f_sales_channel" data-field="Sales Channel">
+                        <option>Retail only</option>
+                        <option>E-commerce only</option>
+                        <option>Both retail and e-commerce</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="f_market" data-i18n="w_market">Target market or country</label>
+                      <input type="text" id="f_market" data-field="Target Market or Country"
+                        data-ph="ph_market" placeholder="e.g. Malaysia, Singapore, export to EU" />
+                    </div>
+                    <div class="field">
+                      <label for="f_cost_unit" data-i18n="w_cost">Packaging cost per unit</label>
+                      <div class="cost-wrap">
+                        <span class="prefix">RM</span>
+                        <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
+                          data-ph="ph_cost" placeholder="0.85 per unit" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="f_cost_increase" data-i18n="w_costmax">Maximum cost increase</label>
+                      <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
+                        data-ph="ph_costmax" placeholder="e.g. No more than 5%, or none at all." />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
         </div>
-        <div>
-          <label class="field-label" for="f_cost_increase" data-i18n="w_costmax">Maximum Packaging Cost Increase</label>
-          <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
-            data-ph="ph_costmax" placeholder="e.g. No more than 5% increase, or no increase at all." />
+
+        <!-- Summary / progress -->
+        <aside class="app-side">
+          <div class="card summary" id="summary">
+            <h3 data-i18n="sum_title">Your report</h3>
+            <ul class="ready">
+              <li id="rdPhoto"><span class="tick"></span><span data-i18n="sum_photo">Packaging photo</span><span class="aside" data-i18n="required">Required</span></li>
+              <li id="rdName"><span class="tick"></span><span data-i18n="sum_name">Product name</span><span class="aside" data-i18n="required">Required</span></li>
+              <li id="rdMore"><span class="tick"></span><span data-i18n="sum_more">Extra details</span><span class="aside" id="rdMoreCount">0/13</span></li>
+            </ul>
+            <div class="sum-label" data-i18n="sum_includes">What's included</div>
+            <ul class="mods">
+              <li data-mod="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span><span class="pill"></span></li>
+              <li data-mod="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span><span class="pill"></span></li>
+              <li data-mod="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span><span class="pill"></span></li>
+              <li data-mod="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span><span class="pill"></span></li>
+              <li data-mod="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span><span class="pill"></span></li>
+              <li data-mod="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span><span class="pill"></span></li>
+            </ul>
+            <button type="button" class="btn btn-primary btn-lg btn-block" id="runAllBtn"><span id="runAllLabel" data-i18n="gen">Generate my report</span> <span aria-hidden="true">→</span></button>
+            <p class="sum-time" data-i18n="sum_time">Usually ready in 1–2 minutes.</p>
+            <div class="sum-links">
+              <button type="button" class="link-btn" id="exampleBtn" data-i18n="example">Fill example</button>
+              <span aria-hidden="true">·</span>
+              <button type="button" class="link-btn" id="resetBtn" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- ============================================================
+           Report (revealed after the first run)
+           ============================================================ -->
+      <div class="report" id="report" hidden>
+        <div class="report-head">
+          <div>
+            <span class="eyebrow" data-i18n="rep_eyebrow">Report</span>
+            <h2 data-i18n="rep_title">Your packaging report</h2>
+            <p class="report-product" id="reportProduct"></p>
+          </div>
+          <div class="report-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="askAdvisorBtn" data-i18n="askAdvisor">💬 Ask the advisor</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="downloadAllBtn" data-i18n="downloadAll">⬇️ Full report</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="startOverBtn" data-i18n="startOver">Start over</button>
+          </div>
         </div>
-        <div>
-          <label class="field-label" for="f_claims" data-i18n="w_claims">Existing Environmental Claims</label>
-          <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
-            data-ph="ph_claims" placeholder="e.g. 100% recyclable, biodegradable. Leave blank if none." />
+        <div class="progress"><div class="progress-bar"><span id="progressFill"></span></div><span class="progress-text" id="progressText"></span></div>
+        <div class="alert" id="wrongInputAlert" role="alert" hidden><span aria-hidden="true">⚠️</span><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
+
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab" role="tab" data-tab="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span></button>
+          <button type="button" class="tab" role="tab" data-tab="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span></button>
+          <button type="button" class="tab" role="tab" data-tab="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span></button>
+          <button type="button" class="tab" role="tab" data-tab="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span></button>
+          <button type="button" class="tab" role="tab" data-tab="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span></button>
+          <button type="button" class="tab" role="tab" data-tab="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span></button>
         </div>
-        <div>
-          <label class="field-label" for="f_branding" data-i18n="w_branding">Branding Requirements</label>
-          <input type="text" id="f_branding" data-field="Branding Requirements"
-            data-ph="ph_branding" placeholder="e.g. Keep full-colour printing, brand colours and logo." />
-        </div>
-        <div>
-          <label class="field-label" for="f_market" data-i18n="w_market">Target Market or Country</label>
-          <input type="text" id="f_market" data-field="Target Market or Country"
-            data-ph="ph_market" placeholder="e.g. Malaysia, Singapore, export to EU" />
-        </div>
-        <div>
-          <label class="field-label" for="f_machinery" data-i18n="w_machinery">Packaging Machinery Constraints</label>
-          <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
-            data-ph="ph_machinery" placeholder="e.g. Existing filling/sealing machinery must stay." />
+
+        <div class="card tab-panels">
+          <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
+            <div class="panel-head">
+              <div><h3>✅ <span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">⬇️ Download</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief" data-i18n="regen">↻ Regenerate</button>
+              </div>
+            </div>
+            <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
+            <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="strategies" hidden>
+            <div class="panel-head">
+              <div><h3>🔀 <span data-i18n="w_strategies">Three redesign strategies</span></h3><p data-i18n="d_str">Three improvement paths: a quick win, a balanced redesign and an ambitious option.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="three_redesign_strategies" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="three_redesign_strategies"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="three_redesign_strategies"></div>
+            <div class="panel-error" data-error="three_redesign_strategies"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="visuals" hidden>
+            <div class="panel-head">
+              <div><h3>🖼️ <span data-i18n="w_visuals">Packaging redesign visuals</span></h3><p data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p></div>
+            </div>
+            <div class="img-grid">
+              <div class="img-card">
+                <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-frame">
+                  <div class="skeleton" data-spinner="image_A"><i></i></div>
+                  <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                </div>
+                <div class="panel-error" data-error="image_A"></div>
+              </div>
+              <div class="img-card">
+                <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-frame">
+                  <div class="skeleton" data-spinner="image_B"><i></i></div>
+                  <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                </div>
+                <div class="panel-error" data-error="image_B"></div>
+              </div>
+              <div class="img-card">
+                <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-frame">
+                  <div class="skeleton" data-spinner="image_C"><i></i></div>
+                  <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                </div>
+                <div class="panel-error" data-error="image_C"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="tradeoff" hidden>
+            <div class="panel-head">
+              <div><h3>⚖️ <span data-i18n="w_tradeoff">Trade-off comparison</span></h3><p data-i18n="d_trd">How each option compares with your current packaging.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="trade_off_comparison" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="trade_off_comparison"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="trade_off_comparison"></div>
+            <div class="panel-error" data-error="trade_off_comparison"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
+            <div class="panel-head">
+              <div><h3>🔍 <span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="sustainability_problems_identified"></div>
+            <div class="panel-error" data-error="sustainability_problems_identified"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
+            <div class="panel-head">
+              <div><h3>🧾 <span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
+            <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
+          </div>
         </div>
       </div>
-    </details>
-  </section>
-
-  <hr class="section-divider" />
-
-  <!-- Widget 19: Three Redesign Strategies -->
-  <section class="card">
-    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
-    <h2>🔀 <span data-i18n="w_strategies">Three Redesign Strategies</span></h2>
-    <button class="btn" data-run="three_redesign_strategies">▶ <span data-i18n="generate">Generate</span></button>
-    <div class="output-panel">
-      <div class="spinner" data-spinner="three_redesign_strategies"></div>
-      <div class="output-text" data-output="three_redesign_strategies"></div>
-      <div class="panel-error" data-error="three_redesign_strategies"></div>
     </div>
   </section>
 
-  <!-- Widgets 20-22: Redesign Visuals A/B/C -->
-  <section class="card">
-    <div class="label" data-i18n="aiImage">AI Image Generation</div>
-    <h2>🖼️ <span data-i18n="w_visuals">Packaging Redesign Visuals</span></h2>
-    <p style="color:var(--muted); font-size:.88rem;" data-i18n="visualsHint">Generated from the Three Redesign
-      Strategies above. Run that first for best results.</p>
-    <div class="img-grid">
-      <div>
-        <strong data-i18n="optA">Option A — Quick Win</strong>
-        <button class="btn" data-image="A" style="margin:.4rem 0; width:100%;">▶ A</button>
-        <div class="output-panel output-image">
-          <div class="spinner" data-spinner="image_A"></div>
-          <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-          <div class="panel-error" data-error="image_A"></div>
+  <!-- ============================================================
+       FAQ + closing CTA
+       ============================================================ -->
+  <section class="section alt" id="faq" style="border-bottom:none;">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="faq_eyebrow">FAQ</span>
+        <h2 data-i18n="faq_title">Questions, answered</h2>
+      </div>
+      <div class="faq">
+        <details><summary data-i18n="q1">Do I need an account?</summary><p data-i18n="a1">No. Open the page, add your packaging and generate your report. There is nothing to sign up for.</p></details>
+        <details><summary data-i18n="q2">What should I upload?</summary><p data-i18n="a2">A clear, well-lit photo of the front of your current packaging works best. You can also upload a PDF.</p></details>
+        <details><summary data-i18n="q3">What happens to my data?</summary><p data-i18n="a3">EcoLens doesn't save your uploads. Your photo and details are sent to Amazon Bedrock only to write your report, and your report and chat stay in this browser tab. They're gone when you close it.</p></details>
+        <details><summary data-i18n="q4">How accurate is the report?</summary><p data-i18n="a4">EcoLens shows how sure it is: findings are labelled as observed, inferred, verified or unknown. Always confirm materials, costs and environmental claims with your supplier before you change your packaging.</p></details>
+        <details><summary data-i18n="q5">Can I use Bahasa Malaysia?</summary><p data-i18n="a5">Yes. Switch the site language at the top, and answer in English, Bahasa Malaysia or a mix. EcoLens replies in the language you mainly use.</p></details>
+        <details><summary data-i18n="q6">Are the redesign images final artwork?</summary><p data-i18n="a6">No. They are AI concepts to help you picture each option. Your designer and supplier should produce the final artwork.</p></details>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-band">
+    <div class="container">
+      <div class="cta-box">
+        <div>
+          <h2 data-i18n="cta_title">Ready to make your packaging greener?</h2>
+          <p data-i18n="cta_sub">All it takes is a photo and a minute of your time.</p>
         </div>
-      </div>
-      <div>
-        <strong data-i18n="optB">Option B — Balanced</strong>
-        <button class="btn" data-image="B" style="margin:.4rem 0; width:100%;">▶ B</button>
-        <div class="output-panel output-image">
-          <div class="spinner" data-spinner="image_B"></div>
-          <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-          <div class="panel-error" data-error="image_B"></div>
-        </div>
-      </div>
-      <div>
-        <strong data-i18n="optC">Option C — Ambitious</strong>
-        <button class="btn" data-image="C" style="margin:.4rem 0; width:100%;">▶ C</button>
-        <div class="output-panel output-image">
-          <div class="spinner" data-spinner="image_C"></div>
-          <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-          <div class="panel-error" data-error="image_C"></div>
-        </div>
+        <a href="#analyse" class="btn btn-primary btn-lg"><span data-i18n="hero_cta">Analyse my packaging</span> <span aria-hidden="true">→</span></a>
       </div>
     </div>
   </section>
-
-  <!-- Widget 23 -->
-  <section class="card">
-    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
-    <h2>🔍 <span data-i18n="w_problems">Sustainability Problems Identified</span></h2>
-    <button class="btn" data-run="sustainability_problems_identified">▶ <span data-i18n="generate">Generate</span></button>
-    <div class="output-panel">
-      <div class="spinner" data-spinner="sustainability_problems_identified"></div>
-      <div class="output-text" data-output="sustainability_problems_identified"></div>
-      <div class="panel-error" data-error="sustainability_problems_identified"></div>
-    </div>
-  </section>
-
-  <!-- Widget 24 -->
-  <section class="card">
-    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
-    <h2>🧾 <span data-i18n="w_audit">Packaging Audit and Evidence Classification</span></h2>
-    <button class="btn" data-run="packaging_audit_and_evidence_classification">▶ <span data-i18n="generate">Generate</span></button>
-    <div class="output-panel">
-      <div class="spinner" data-spinner="packaging_audit_and_evidence_classification"></div>
-      <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
-      <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
-    </div>
-  </section>
-
-  <!-- Widget 25 -->
-  <section class="card">
-    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
-    <h2>✅ <span data-i18n="w_brief">Best-Fit Recommendation and Supplier Brief</span></h2>
-    <button class="btn" data-run="best_fit_recommendation_and_supplier_brief">▶ <span data-i18n="generate">Generate</span></button>
-    <div class="output-panel">
-      <div class="spinner" data-spinner="best_fit_recommendation_and_supplier_brief"></div>
-      <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
-      <div class="panel-tools">
-        <button class="btn small" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
-        <button class="btn small" id="downloadBrief" data-i18n="download">⬇️ Download</button>
-      </div>
-      <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
-    </div>
-  </section>
-
-  <!-- Widget 26 -->
-  <section class="card">
-    <div class="label" data-i18n="aiAnalysis">AI Analysis</div>
-    <h2>⚖️ <span data-i18n="w_tradeoff">Trade-off Comparison</span></h2>
-    <button class="btn" data-run="trade_off_comparison">▶ <span data-i18n="generate">Generate</span></button>
-    <div class="output-panel">
-      <div class="spinner" data-spinner="trade_off_comparison"></div>
-      <div class="output-text" data-output="trade_off_comparison"></div>
-      <div class="panel-error" data-error="trade_off_comparison"></div>
-    </div>
-  </section>
-
-  <!-- Widget 27 -->
-  <div class="run-all-wrap">
-    <button class="btn primary" id="runAllBtn2">▶ <span data-i18n="runAll">Run All</span></button>
-  </div>
 </main>
 
-<!-- Widget 27: EcoLens ChatAI — floating bottom-right -->
-<div class="chat-fab" id="chatFab" title="EcoLens ChatAI" aria-label="Open chat">
-  💬
-  <span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
-</div>
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#top" class="brand">
+          <span class="brand-mark"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z" fill="currentColor"/><path d="M4.5 19.5 13 11" fill="none" style="stroke:var(--lime)" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+          EcoLens
+        </a>
+        <p data-i18n="foot_tag">Practical, AI-assisted packaging decisions for Malaysian SMEs.</p>
+      </div>
+      <div>
+        <h4 data-i18n="foot_product">Product</h4>
+        <ul>
+          <li><a href="#features" data-i18n="nav_features">Features</a></li>
+          <li><a href="#how" data-i18n="nav_how">How it works</a></li>
+          <li><a href="#analyse" data-i18n="nav_analyse">Analyse</a></li>
+          <li><a href="#faq" data-i18n="nav_faq">FAQ</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 data-i18n="foot_goals">Supports</h4>
+        <ul>
+          <li>SDG 9 · <span data-i18n="sdg9">Industry &amp; innovation</span></li>
+          <li>SDG 12 · <span data-i18n="sdg12">Responsible production</span></li>
+          <li>SDG 13 · <span data-i18n="sdg13">Climate action</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span data-i18n="foot_copy">© 2026 EcoLens. Powered by Amazon Bedrock on AWS.</span>
+      <span data-i18n="foot_note">EcoLens gives guidance, not certification. Verify all claims with your supplier.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============================================================
+     EcoLens advisor (floating chat)
+     ============================================================ -->
+<button type="button" class="chat-fab" id="chatFab" aria-label="Open chat">
+  💬 <span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
+</button>
 
 <div class="chat-float" id="chatFloat" aria-hidden="true">
   <div class="chat-float-head">
-    <span>💬 EcoLens ChatAI</span>
-    <button class="chat-float-close" id="chatClose" aria-label="Close chat">✖</button>
+    <span class="chat-avatar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z" fill="currentColor"/></svg></span>
+    <div><div class="chat-title" data-i18n="chatTitle">EcoLens Advisor</div><div class="chat-sub" data-i18n="chatSub">Knows your report · English &amp; BM</div></div>
+    <button type="button" class="chat-float-close" id="chatClose" aria-label="Close chat">✖</button>
   </div>
   <div class="chat-log" id="chatLog">
-    <div class="bubble bot" data-i18n="chatOpen">I am now ready to help you!</div>
+    <div class="bubble bot" data-i18n="chatOpen">Hi! I'm your EcoLens advisor.</div>
   </div>
-  <div class="panel-error" data-error="ecolens_chatai" style="margin:0 .8rem;"></div>
+  <div class="panel-error" data-error="ecolens_chatai"></div>
+  <div class="chat-suggest" id="chatSuggest">
+    <button type="button" class="chip" data-i18n="sug1">Which option suits a tight budget?</button>
+    <button type="button" class="chip" data-i18n="sug2">What should I ask my supplier?</button>
+    <button type="button" class="chip" data-i18n="sug3">Explain the trade-offs simply</button>
+  </div>
   <div class="chat-input-row">
-    <input type="text" id="chatInput" data-ph="ph_chat" placeholder="Ask anything!" />
-    <button class="btn primary" id="chatSend" data-i18n="send">Send</button>
+    <input type="text" id="chatInput" data-ph="ph_chat" placeholder="Ask about your packaging…" />
+    <button type="button" class="btn btn-primary btn-sm" id="chatSend" data-i18n="send">Send</button>
   </div>
 </div>
 
-<div class="toast" id="toast"></div>
+<div class="mobile-bar" id="mobileBar">
+  <span class="mb-text" id="mbText"></span>
+  <button type="button" class="btn btn-primary btn-sm" id="mobileRunBtn"><span id="mobileRunLabel" data-i18n="gen">Generate my report</span></button>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script>
 /* ============================================================
@@ -611,90 +1161,220 @@ function isConfiguredUrl(url) {
    ============================================================ */
 const I18N = {
   en: {
-    dark: 'Dark', example: 'Fill example', reset: 'Reset', runAll: 'Run All',
-    welcome: 'Welcome to EcoLens', problem: 'Problem', solution: 'Solution',
-    problemText: "SMEs want more sustainable packaging but often don't know what they can change without increasing cost, reducing shelf life, or affecting product protection.",
-    solutionText: 'EcoLens analyses a packaging image together with business requirements and generates practical redesign strategies that balance: sustainability, cost, product protection and production constraints. It also checks environmental claims and produces a supplier-ready action plan.',
-    yourInputs: 'Your Inputs',
-    inputHelp: 'Only the first few fields are needed to get started. Open "More details" for a sharper result, or click "Fill example" to try it instantly.',
-    w_upload: 'Upload Your Packaging', dropHint: 'Drag & drop an image (JPG, PNG, WEBP) or PDF, or click to browse.',
-    browse: '📁 Browse', camera: '📷 Take photo',
+    nav_features: 'Features', nav_how: 'How it works', nav_faq: 'FAQ', nav_analyse: 'Analyse', nav_cta: 'Start analysis',
+    dark: 'Dark mode', light: 'Light mode',
+    hero_eyebrow: 'Built for Malaysian SMEs · Powered by Amazon Bedrock',
+    hero_title_1: 'Greener packaging decisions,', hero_title_2: 'without the guesswork.',
+    hero_sub: 'Upload a photo of your packaging and answer three quick questions. EcoLens gives you three practical redesign options, an evidence-checked audit and a brief you can send straight to your supplier.',
+    hero_cta: 'Analyse my packaging', hero_cta2: 'Try an example',
+    trust1: 'No sign-up needed', trust2: 'Costs in RM', trust3: 'English & Bahasa Malaysia',
+    mock_kicker: 'Sample report', mock_badge: 'Best fit: Option B',
+    mock_a: 'Quick win', mock_b: 'Balanced', mock_c: 'Ambitious',
+    mock_r1: 'Plastic reduction', mock_r2: 'Cost impact', mock_r3: 'Shelf-life risk',
+    lvl_high: 'High', lvl_med: 'Medium', lvl_low: 'Low',
+    mock_foot: '✓ Supplier brief ready to send',
+    chip1: '🧾 Every finding evidence-labelled', chip2: '🖼️ 3 redesign visuals',
+    sdg_label: 'Aligned with the UN Sustainable Development Goals',
+    sdg9: 'Industry & innovation', sdg12: 'Responsible production', sdg13: 'Climate action',
+    feat_eyebrow: 'Why EcoLens', feat_title: 'Greener packaging without risking cost or quality',
+    feat_sub: 'SMEs want greener packaging but worry about cost, shelf life and product protection. EcoLens weighs all of them together, so every recommendation is one you can actually make.',
+    f1_t: 'Three redesign paths', f1_d: 'A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.',
+    f2_t: 'Evidence-checked audit', f2_d: 'Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.',
+    f3_t: 'Problems, prioritised', f3_d: 'See which issues matter most (high, medium or low) and why they matter for your product.',
+    f4_t: 'Side-by-side trade-offs', f4_d: 'Compare your current packaging with each option on cost, protection, shelf life and more.',
+    f5_t: 'Supplier-ready brief', f5_d: 'Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.',
+    f6_t: 'Visuals and an AI advisor', f6_d: 'Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.',
+    how_eyebrow: 'How it works', how_title: 'Your report in three simple steps',
+    s1_t: 'Snap or upload', s1_d: 'Take a photo of your current packaging, or upload an image or PDF.',
+    s2_t: 'Tell us the basics', s2_d: 'Product name, category and goal are enough. Add more details for a sharper result.',
+    s3_t: 'Get your report', s3_d: 'Strategies, audit, trade-offs, visuals and a supplier brief. Then ask the advisor anything.',
+    an_eyebrow: 'Start here', an_title: 'Analyse your packaging',
+    an_sub: 'Only a photo and a product name are required. Everything else is optional.',
+    w_upload: 'Upload your packaging', step1_d: 'A clear photo of the front works best.',
+    dropTitle: 'Drop your photo here', dropHint: 'JPG, PNG, WEBP or PDF · or click to browse',
+    browse: '📁 Browse files', camera: '📷 Take photo',
+    photoAdded: '✓ Packaging added', change: 'Change', remove: 'Remove',
     camSwitch: '🔄 Switch', camCapture: '📸 Capture', camCancel: '✖ Cancel',
-    w_product: 'Product Name and Type', w_category: 'Product Category', w_objective: 'Main Sustainability Objective',
-    moreDetails: 'More details (optional — improves accuracy)',
-    w_shelf: 'Required Shelf Life', w_contains: 'What the Product Contains',
-    w_sensitivity: 'Moisture, Light or Oxygen Sensitivity', w_materials: 'Current Packaging Materials',
-    w_channel: 'Sales Channel', w_recycled: 'Current Recycled Content',
-    w_protection: 'Product Protection Requirements', w_cost: 'Packaging Cost Per Unit',
-    w_costmax: 'Maximum Packaging Cost Increase', w_claims: 'Existing Environmental Claims',
-    w_branding: 'Branding Requirements', w_market: 'Target Market or Country',
-    w_machinery: 'Packaging Machinery Constraints',
-    aiAnalysis: 'AI Analysis', aiImage: 'AI Image Generation', aiChat: 'AI Chatbot',
-    w_strategies: 'Three Redesign Strategies', w_visuals: 'Packaging Redesign Visuals',
-    visualsHint: 'Generated from the Three Redesign Strategies above. Run that first for best results.',
-    w_problems: 'Sustainability Problems Identified', w_audit: 'Packaging Audit and Evidence Classification',
-    w_brief: 'Best-Fit Recommendation and Supplier Brief', w_tradeoff: 'Trade-off Comparison',
-    optA: 'Option A — Quick Win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
-    generate: 'Generate', noImage: 'No image yet', copy: '📋 Copy brief', download: '⬇️ Download',
-    send: 'Send', chatOpen: 'I am now ready to help you!', chatFab: 'Ask EcoLens',
+    step2_t: 'About your product', step2_d: 'Three quick questions.',
+    w_product: 'Product name and type', w_category: 'Product category', w_objective: 'Main sustainability goal',
+    recommended: 'Recommended', required: 'Required',
+    moreDetails: 'Add more details (optional, sharper results)',
+    g_product: 'Product & protection', g_packaging: 'Current packaging', g_business: 'Business & market',
+    w_shelf: 'Required shelf life', w_contains: 'What the product contains',
+    w_sensitivity: 'Moisture, light or oxygen sensitivity', w_materials: 'Current packaging materials',
+    w_channel: 'Sales channel', w_recycled: 'Current recycled content',
+    w_protection: 'Product protection requirements', w_cost: 'Packaging cost per unit',
+    w_costmax: 'Maximum cost increase', w_claims: 'Existing environmental claims',
+    w_branding: 'Branding requirements', w_market: 'Target market or country',
+    w_machinery: 'Packaging machinery constraints',
     ph_product: 'e.g. Chocolate cookies, 150g net weight',
-    ph_objective: 'e.g. Reduce virgin plastic use. Improve recyclability.',
+    ph_objective: 'e.g. Reduce virgin plastic use',
     ph_shelf: 'e.g. 6 months, 12 months, 2 years',
     ph_contains: 'e.g. Chocolate-coated butter cookies with hazelnut filling',
     ph_materials: 'e.g. Plastic tray, plastic wrapper and cardboard box.',
     ph_recycled: 'e.g. Outer box uses 30% recycled fibre.',
     ph_protection: 'e.g. Protect against crushing, moisture and light.',
-    ph_cost: '0.85 per unit', ph_costmax: 'e.g. No more than 5% increase, or no increase at all.',
+    ph_cost: '0.85 per unit', ph_costmax: 'e.g. No more than 5%, or none at all.',
     ph_claims: 'e.g. 100% recyclable, biodegradable. Leave blank if none.',
     ph_branding: 'e.g. Keep full-colour printing, brand colours and logo.',
     ph_market: 'e.g. Malaysia, Singapore, export to EU',
     ph_machinery: 'e.g. Existing filling/sealing machinery must stay.',
-    ph_chat: 'Ask anything!',
-    needInputs: 'Please upload a packaging image and fill the product name first.',
-    copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet — generate the brief first.',
+    ph_chat: 'Ask about your packaging…',
+    sum_title: 'Your report', sum_photo: 'Packaging photo', sum_name: 'Product name', sum_more: 'Extra details',
+    sum_includes: "What's included",
+    m_rec: 'Recommendation & brief', m_str: 'Redesign strategies', m_vis: 'Redesign visuals',
+    m_trd: 'Trade-off table', m_prb: 'Problems found', m_aud: 'Packaging audit',
+    st_idle: 'Included', st_waiting: 'Queued', st_running: 'In progress', st_done: 'Ready', st_error: 'Failed',
+    gen: 'Generate my report', generating: 'Generating…', sum_time: 'Usually ready in 1–2 minutes.',
+    mb_photo: 'Step 1: add a photo', mb_name: 'Step 2: add your product name', mb_ready: '✓ Ready to generate',
+    example: 'Fill example', reset: 'Reset',
+    rep_eyebrow: 'Report', rep_title: 'Your packaging report', rep_progress: '{n} of {total} sections ready',
+    askAdvisor: '💬 Ask the advisor', downloadAll: '⬇️ Full report', startOver: 'Start over',
+    wrongInput: "EcoLens couldn't match your photo to the product details. Check that the photo shows your packaging and the product name is correct, then generate again.",
+    w_brief: 'Best-fit recommendation & supplier brief', w_strategies: 'Three redesign strategies',
+    w_visuals: 'Packaging redesign visuals', w_tradeoff: 'Trade-off comparison',
+    w_problems: 'Sustainability problems identified', w_audit: 'Packaging audit & evidence classification',
+    d_rec: 'The option that best fits your constraints, plus a brief to send to your supplier.',
+    d_str: 'Three improvement paths: a quick win, a balanced redesign and an ambitious option.',
+    d_vis: 'AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.',
+    d_trd: 'How each option compares with your current packaging.',
+    d_prb: 'Sustainability issues in your current packaging, by priority.',
+    d_aud: 'What EcoLens can see in your packaging, and how sure it is.',
+    copy: '📋 Copy brief', download: '⬇️ Download', regen: '↻ Regenerate',
+    optA: 'Option A — Quick win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
+    noImage: 'No image yet',
+    emptyPanel: 'This section appears here once you generate your report.',
+    panelWaiting: 'Waiting for earlier sections to finish…',
+    faq_eyebrow: 'FAQ', faq_title: 'Questions, answered',
+    q1: 'Do I need an account?', a1: 'No. Open the page, add your packaging and generate your report. There is nothing to sign up for.',
+    q2: 'What should I upload?', a2: 'A clear, well-lit photo of the front of your current packaging works best. You can also upload a PDF.',
+    q3: 'What happens to my data?', a3: "EcoLens doesn't save your uploads. Your photo and details are sent to Amazon Bedrock only to write your report, and your report and chat stay in this browser tab. They're gone when you close it.",
+    q4: 'How accurate is the report?', a4: 'EcoLens shows how sure it is: findings are labelled as observed, inferred, verified or unknown. Always confirm materials, costs and environmental claims with your supplier before you change your packaging.',
+    q5: 'Can I use Bahasa Malaysia?', a5: 'Yes. Switch the site language at the top, and answer in English, Bahasa Malaysia or a mix. EcoLens replies in the language you mainly use.',
+    q6: 'Are the redesign images final artwork?', a6: 'No. They are AI concepts to help you picture each option. Your designer and supplier should produce the final artwork.',
+    cta_title: 'Ready to make your packaging greener?', cta_sub: 'All it takes is a photo and a minute of your time.',
+    foot_tag: 'Practical, AI-assisted packaging decisions for Malaysian SMEs.',
+    foot_product: 'Product', foot_goals: 'Supports',
+    foot_copy: '© 2026 EcoLens. Powered by Amazon Bedrock on AWS.',
+    foot_note: 'EcoLens gives guidance, not certification. Verify all claims with your supplier.',
+    chatFab: 'Ask EcoLens', chatTitle: 'EcoLens Advisor', chatSub: 'Knows your report · English & BM',
+    chatOpen: "Hi! I'm your EcoLens advisor. Generate a report and I'll answer with your results in mind, or ask me anything about packaging.",
+    sug1: 'Which option suits a tight budget?', sug2: 'What should I ask my supplier?', sug3: 'Explain the trade-offs simply',
+    send: 'Send',
+    needPhoto: 'Add a photo of your packaging first.', needName: 'Enter your product name first.',
+    exampleFilled: 'Example filled', exampleNeedsPhoto: 'Example filled. Now add a photo of your packaging.',
+    copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet. Generate the brief first.',
+    nothingDownload: 'Nothing to download yet. Generate your report first.',
+    reportReady: 'Your report is ready', checkInputs: 'Please check your photo and product details.',
+    resetDone: 'Form cleared. Chat memory kept.', busy: 'Please wait until the report finishes.',
   },
   bm: {
-    dark: 'Gelap', example: 'Isi contoh', reset: 'Set semula', runAll: 'Jalankan Semua',
-    welcome: 'Selamat datang ke EcoLens', problem: 'Masalah', solution: 'Penyelesaian',
-    problemText: 'PKS mahu pembungkusan lebih lestari tetapi selalunya tidak tahu apa yang boleh diubah tanpa menaikkan kos, mengurangkan jangka hayat, atau menjejaskan perlindungan produk.',
-    solutionText: 'EcoLens menganalisis imej pembungkusan bersama keperluan perniagaan dan menjana strategi reka bentuk semula yang praktikal yang mengimbangi: kelestarian, kos, perlindungan produk dan kekangan pengeluaran. Ia juga menyemak tuntutan alam sekitar dan menghasilkan pelan tindakan sedia untuk pembekal.',
-    yourInputs: 'Maklumat Anda',
-    inputHelp: 'Hanya beberapa medan pertama diperlukan untuk bermula. Buka "Maklumat lanjut" untuk hasil lebih tepat, atau klik "Isi contoh" untuk cuba segera.',
-    w_upload: 'Muat Naik Pembungkusan', dropHint: 'Seret & lepas imej (JPG, PNG, WEBP) atau PDF, atau klik untuk pilih.',
+    nav_features: 'Ciri-ciri', nav_how: 'Cara ia berfungsi', nav_faq: 'Soalan Lazim', nav_analyse: 'Analisis', nav_cta: 'Mula analisis',
+    dark: 'Mod gelap', light: 'Mod terang',
+    hero_eyebrow: 'Dibina untuk PKS Malaysia · Dikuasakan oleh Amazon Bedrock',
+    hero_title_1: 'Keputusan pembungkusan lebih hijau,', hero_title_2: 'tanpa meneka-neka.',
+    hero_sub: 'Muat naik gambar pembungkusan anda dan jawab tiga soalan ringkas. EcoLens memberi anda tiga pilihan reka bentuk semula yang praktikal, audit yang disemak dengan bukti dan ringkasan yang boleh terus dihantar kepada pembekal anda.',
+    hero_cta: 'Analisis pembungkusan saya', hero_cta2: 'Cuba contoh',
+    trust1: 'Tiada pendaftaran', trust2: 'Kos dalam RM', trust3: 'Bahasa Inggeris & Bahasa Malaysia',
+    mock_kicker: 'Contoh laporan', mock_badge: 'Paling sesuai: Pilihan B',
+    mock_a: 'Menang cepat', mock_b: 'Seimbang', mock_c: 'Bercita-cita',
+    mock_r1: 'Pengurangan plastik', mock_r2: 'Kesan kos', mock_r3: 'Risiko jangka hayat',
+    lvl_high: 'Tinggi', lvl_med: 'Sederhana', lvl_low: 'Rendah',
+    mock_foot: '✓ Ringkasan pembekal sedia dihantar',
+    chip1: '🧾 Setiap dapatan dilabel bukti', chip2: '🖼️ 3 visual reka bentuk semula',
+    sdg_label: 'Sejajar dengan Matlamat Pembangunan Mampan PBB',
+    sdg9: 'Industri & inovasi', sdg12: 'Pengeluaran bertanggungjawab', sdg13: 'Tindakan iklim',
+    feat_eyebrow: 'Kenapa EcoLens', feat_title: 'Pembungkusan lebih hijau tanpa menjejaskan kos atau kualiti',
+    feat_sub: 'PKS mahukan pembungkusan lebih hijau tetapi bimbang tentang kos, jangka hayat dan perlindungan produk. EcoLens menimbang kesemuanya serentak, jadi setiap cadangan ialah sesuatu yang benar-benar boleh anda laksanakan.',
+    f1_t: 'Tiga laluan reka bentuk semula', f1_d: 'Satu menang cepat, satu reka bentuk seimbang dan satu pilihan bercita-cita tinggi, setiap satu dengan kos, kesukaran dan risiko.',
+    f2_t: 'Audit disemak bukti', f2_d: 'Setiap dapatan dilabel OBSERVED, INFERRED, VERIFIED atau UNKNOWN, supaya anda tahu apa yang perlu disemak semula.',
+    f3_t: 'Masalah mengikut keutamaan', f3_d: 'Lihat isu mana yang paling penting (tinggi, sederhana atau rendah) dan sebabnya untuk produk anda.',
+    f4_t: 'Perbandingan sebelah-menyebelah', f4_d: 'Bandingkan pembungkusan semasa dengan setiap pilihan dari segi kos, perlindungan, jangka hayat dan banyak lagi.',
+    f5_t: 'Ringkasan sedia untuk pembekal', f5_d: 'Salin atau muat turun ringkasan jelas yang menyenaraikan spesifikasi, ujian dan bukti untuk diminta daripada pembekal anda.',
+    f6_t: 'Visual dan penasihat AI', f6_d: 'Lihat pratonton setiap reka bentuk semula, kemudian tanya soalan susulan dalam Bahasa Inggeris atau Bahasa Malaysia.',
+    how_eyebrow: 'Cara ia berfungsi', how_title: 'Laporan anda dalam tiga langkah mudah',
+    s1_t: 'Ambil gambar atau muat naik', s1_d: 'Ambil gambar pembungkusan semasa anda, atau muat naik imej atau PDF.',
+    s2_t: 'Beritahu maklumat asas', s2_d: 'Nama produk, kategori dan matlamat sudah memadai. Tambah butiran untuk hasil lebih tepat.',
+    s3_t: 'Dapatkan laporan anda', s3_d: 'Strategi, audit, perbandingan, visual dan ringkasan pembekal. Kemudian tanya penasihat apa sahaja.',
+    an_eyebrow: 'Mula di sini', an_title: 'Analisis pembungkusan anda',
+    an_sub: 'Hanya gambar dan nama produk diperlukan. Selebihnya adalah pilihan.',
+    w_upload: 'Muat naik pembungkusan anda', step1_d: 'Gambar bahagian hadapan yang jelas adalah terbaik.',
+    dropTitle: 'Lepaskan gambar anda di sini', dropHint: 'JPG, PNG, WEBP atau PDF · atau klik untuk pilih',
     browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
+    photoAdded: '✓ Pembungkusan ditambah', change: 'Tukar', remove: 'Buang',
     camSwitch: '🔄 Tukar', camCapture: '📸 Tangkap', camCancel: '✖ Batal',
-    w_product: 'Nama dan Jenis Produk', w_category: 'Kategori Produk', w_objective: 'Objektif Kelestarian Utama',
-    moreDetails: 'Maklumat lanjut (pilihan — meningkatkan ketepatan)',
-    w_shelf: 'Jangka Hayat Diperlukan', w_contains: 'Kandungan Produk',
-    w_sensitivity: 'Sensitiviti Lembapan, Cahaya atau Oksigen', w_materials: 'Bahan Pembungkusan Semasa',
-    w_channel: 'Saluran Jualan', w_recycled: 'Kandungan Kitar Semula Semasa',
-    w_protection: 'Keperluan Perlindungan Produk', w_cost: 'Kos Pembungkusan Seunit',
-    w_costmax: 'Kenaikan Kos Maksimum', w_claims: 'Tuntutan Alam Sekitar Sedia Ada',
-    w_branding: 'Keperluan Penjenamaan', w_market: 'Pasaran atau Negara Sasaran',
-    w_machinery: 'Kekangan Mesin Pembungkusan',
-    aiAnalysis: 'Analisis AI', aiImage: 'Penjanaan Imej AI', aiChat: 'Chatbot AI',
-    w_strategies: 'Tiga Strategi Reka Bentuk Semula', w_visuals: 'Visual Reka Bentuk Semula',
-    visualsHint: 'Dijana daripada Tiga Strategi di atas. Jalankan strategi itu dahulu untuk hasil terbaik.',
-    w_problems: 'Masalah Kelestarian Dikenal Pasti', w_audit: 'Audit Pembungkusan dan Klasifikasi Bukti',
-    w_brief: 'Cadangan Terbaik dan Ringkasan Pembekal', w_tradeoff: 'Perbandingan Pertukaran',
-    optA: 'Pilihan A — Menang Cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
-    generate: 'Jana', noImage: 'Tiada imej lagi', copy: '📋 Salin ringkasan', download: '⬇️ Muat turun',
-    send: 'Hantar', chatOpen: 'Saya sedia membantu anda!', chatFab: 'Tanya EcoLens',
+    step2_t: 'Tentang produk anda', step2_d: 'Tiga soalan ringkas.',
+    w_product: 'Nama dan jenis produk', w_category: 'Kategori produk', w_objective: 'Matlamat kelestarian utama',
+    recommended: 'Disyorkan', required: 'Wajib',
+    moreDetails: 'Tambah butiran (pilihan, hasil lebih tepat)',
+    g_product: 'Produk & perlindungan', g_packaging: 'Pembungkusan semasa', g_business: 'Perniagaan & pasaran',
+    w_shelf: 'Jangka hayat diperlukan', w_contains: 'Kandungan produk',
+    w_sensitivity: 'Sensitiviti lembapan, cahaya atau oksigen', w_materials: 'Bahan pembungkusan semasa',
+    w_channel: 'Saluran jualan', w_recycled: 'Kandungan kitar semula semasa',
+    w_protection: 'Keperluan perlindungan produk', w_cost: 'Kos pembungkusan seunit',
+    w_costmax: 'Kenaikan kos maksimum', w_claims: 'Tuntutan alam sekitar sedia ada',
+    w_branding: 'Keperluan penjenamaan', w_market: 'Pasaran atau negara sasaran',
+    w_machinery: 'Kekangan mesin pembungkusan',
     ph_product: 'cth. Biskut coklat, berat bersih 150g',
-    ph_objective: 'cth. Kurangkan plastik baharu. Tingkatkan kebolehkitaran.',
+    ph_objective: 'cth. Kurangkan plastik baharu',
     ph_shelf: 'cth. 6 bulan, 12 bulan, 2 tahun',
     ph_contains: 'cth. Biskut mentega bersalut coklat dengan inti hazelnut',
     ph_materials: 'cth. Dulang plastik, pembalut plastik dan kotak kadbod.',
     ph_recycled: 'cth. Kotak luar guna 30% fiber kitar semula.',
     ph_protection: 'cth. Lindungi daripada himpitan, lembapan dan cahaya.',
-    ph_cost: '0.85 seunit', ph_costmax: 'cth. Tidak lebih 5% kenaikan, atau tiada kenaikan langsung.',
+    ph_cost: '0.85 seunit', ph_costmax: 'cth. Tidak lebih 5%, atau tiada kenaikan langsung.',
     ph_claims: 'cth. 100% boleh dikitar semula, terbiodegradasi. Kosongkan jika tiada.',
     ph_branding: 'cth. Kekalkan cetakan warna penuh, warna jenama dan logo.',
     ph_market: 'cth. Malaysia, Singapura, eksport ke EU',
     ph_machinery: 'cth. Mesin pengisi/pengedap sedia ada mesti kekal.',
-    ph_chat: 'Tanya apa sahaja!',
-    needInputs: 'Sila muat naik imej pembungkusan dan isi nama produk dahulu.',
-    copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin — jana ringkasan dahulu.',
+    ph_chat: 'Tanya tentang pembungkusan anda…',
+    sum_title: 'Laporan anda', sum_photo: 'Gambar pembungkusan', sum_name: 'Nama produk', sum_more: 'Butiran tambahan',
+    sum_includes: 'Kandungan laporan',
+    m_rec: 'Cadangan & ringkasan', m_str: 'Strategi reka bentuk semula', m_vis: 'Visual reka bentuk semula',
+    m_trd: 'Jadual perbandingan', m_prb: 'Masalah dikenal pasti', m_aud: 'Audit pembungkusan',
+    st_idle: 'Termasuk', st_waiting: 'Menunggu', st_running: 'Sedang diproses', st_done: 'Siap', st_error: 'Gagal',
+    gen: 'Jana laporan saya', generating: 'Sedang menjana…', sum_time: 'Biasanya siap dalam 1–2 minit.',
+    mb_photo: 'Langkah 1: tambah gambar', mb_name: 'Langkah 2: isi nama produk', mb_ready: '✓ Sedia untuk dijana',
+    example: 'Isi contoh', reset: 'Set semula',
+    rep_eyebrow: 'Laporan', rep_title: 'Laporan pembungkusan anda', rep_progress: '{n} daripada {total} bahagian siap',
+    askAdvisor: '💬 Tanya penasihat', downloadAll: '⬇️ Laporan penuh', startOver: 'Mula semula',
+    wrongInput: 'EcoLens tidak dapat memadankan gambar dengan butiran produk. Pastikan gambar menunjukkan pembungkusan anda dan nama produk betul, kemudian jana semula.',
+    w_brief: 'Cadangan terbaik & ringkasan pembekal', w_strategies: 'Tiga strategi reka bentuk semula',
+    w_visuals: 'Visual reka bentuk semula', w_tradeoff: 'Perbandingan pertukaran',
+    w_problems: 'Masalah kelestarian dikenal pasti', w_audit: 'Audit pembungkusan & klasifikasi bukti',
+    d_rec: 'Pilihan paling sesuai dengan kekangan anda, berserta ringkasan untuk dihantar kepada pembekal.',
+    d_str: 'Tiga laluan penambahbaikan: menang cepat, reka bentuk seimbang dan pilihan bercita-cita tinggi.',
+    d_vis: 'Konsep AI bagi setiap pilihan, dijana daripada strategi. Anggap sebagai inspirasi, bukan reka bentuk muktamad.',
+    d_trd: 'Perbandingan setiap pilihan dengan pembungkusan semasa anda.',
+    d_prb: 'Isu kelestarian dalam pembungkusan semasa anda, mengikut keutamaan.',
+    d_aud: 'Apa yang EcoLens nampak pada pembungkusan anda, dan sejauh mana ia pasti.',
+    copy: '📋 Salin ringkasan', download: '⬇️ Muat turun', regen: '↻ Jana semula',
+    optA: 'Pilihan A — Menang cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
+    noImage: 'Tiada imej lagi',
+    emptyPanel: 'Bahagian ini akan dipaparkan selepas anda menjana laporan.',
+    panelWaiting: 'Menunggu bahagian sebelumnya siap…',
+    faq_eyebrow: 'Soalan Lazim', faq_title: 'Soalan anda, terjawab',
+    q1: 'Perlukah saya mendaftar akaun?', a1: 'Tidak. Buka halaman ini, tambah pembungkusan anda dan jana laporan. Tiada pendaftaran diperlukan.',
+    q2: 'Apa yang perlu saya muat naik?', a2: 'Gambar bahagian hadapan pembungkusan semasa yang jelas dan terang adalah terbaik. Anda juga boleh muat naik PDF.',
+    q3: 'Apa berlaku kepada data saya?', a3: 'EcoLens tidak menyimpan muat naik anda. Gambar dan butiran anda dihantar ke Amazon Bedrock hanya untuk menulis laporan, dan laporan serta sembang anda kekal dalam tab pelayar ini. Ia hilang apabila anda menutupnya.',
+    q4: 'Sejauh mana ketepatan laporan ini?', a4: 'EcoLens menunjukkan tahap keyakinannya: dapatan dilabel sebagai diperhati, disimpulkan, disahkan atau tidak diketahui. Sentiasa sahkan bahan, kos dan tuntutan alam sekitar dengan pembekal sebelum menukar pembungkusan.',
+    q5: 'Bolehkah saya guna Bahasa Malaysia?', a5: 'Boleh. Tukar bahasa laman di bahagian atas, dan jawab dalam Bahasa Inggeris, Bahasa Malaysia atau campuran. EcoLens akan membalas dalam bahasa yang paling banyak anda gunakan.',
+    q6: 'Adakah imej reka bentuk semula itu reka bentuk muktamad?', a6: 'Tidak. Ia konsep AI untuk membantu anda membayangkan setiap pilihan. Pereka dan pembekal anda patut menghasilkan reka bentuk muktamad.',
+    cta_title: 'Sedia untuk menjadikan pembungkusan anda lebih hijau?', cta_sub: 'Hanya perlukan sekeping gambar dan seminit masa anda.',
+    foot_tag: 'Keputusan pembungkusan praktikal berbantukan AI untuk PKS Malaysia.',
+    foot_product: 'Produk', foot_goals: 'Menyokong',
+    foot_copy: '© 2026 EcoLens. Dikuasakan oleh Amazon Bedrock di AWS.',
+    foot_note: 'EcoLens memberi panduan, bukan pensijilan. Sahkan semua tuntutan dengan pembekal anda.',
+    chatFab: 'Tanya EcoLens', chatTitle: 'Penasihat EcoLens', chatSub: 'Tahu laporan anda · BI & BM',
+    chatOpen: 'Hai! Saya penasihat EcoLens anda. Jana laporan dan saya akan menjawab berdasarkan keputusan anda, atau tanya apa sahaja tentang pembungkusan.',
+    sug1: 'Pilihan mana sesuai untuk bajet terhad?', sug2: 'Apa yang patut saya tanya pembekal?', sug3: 'Terangkan perbandingan dengan mudah',
+    send: 'Hantar',
+    needPhoto: 'Tambah gambar pembungkusan anda dahulu.', needName: 'Masukkan nama produk anda dahulu.',
+    exampleFilled: 'Contoh diisi', exampleNeedsPhoto: 'Contoh diisi. Sekarang tambah gambar pembungkusan anda.',
+    copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin. Jana ringkasan dahulu.',
+    nothingDownload: 'Tiada apa untuk dimuat turun. Jana laporan dahulu.',
+    reportReady: 'Laporan anda sudah siap', checkInputs: 'Sila semak gambar dan butiran produk anda.',
+    resetDone: 'Borang dikosongkan. Memori sembang dikekalkan.', busy: 'Sila tunggu sehingga laporan siap.',
   },
 };
 
@@ -712,8 +1392,12 @@ function applyLang(l) {
     const k = el.getAttribute('data-ph');
     if (I18N[lang][k] !== undefined) el.setAttribute('placeholder', I18N[lang][k]);
   });
-  document.getElementById('langToggle').textContent = l === 'en' ? '🌐 BM' : '🌐 EN';
+  const langBtn = document.getElementById('langToggle');
+  langBtn.textContent = l === 'en' ? 'BM' : 'EN';
+  langBtn.title = l === 'en' ? 'Tukar ke Bahasa Malaysia' : 'Switch to English';
   try { localStorage.setItem('ecolens-lang', l); } catch(e) {}
+  renderStatus();
+  updateReadiness();
 }
 
 /* ============================================================
@@ -733,6 +1417,49 @@ function collectFields() {
 }
 
 /* ============================================================
+   Report sections + status (idle → waiting → running → done/error)
+   ============================================================ */
+const MODULES = {
+  three_redesign_strategies: 'strategies',
+  sustainability_problems_identified: 'problems',
+  packaging_audit_and_evidence_classification: 'audit',
+  best_fit_recommendation_and_supplier_brief: 'recommendation',
+  trade_off_comparison: 'tradeoff',
+  image_A: 'visuals', image_B: 'visuals', image_C: 'visuals',
+};
+const modStatus = {};
+
+function aggregate(list) {
+  if (list.includes('running')) return 'running';
+  if (list.includes('waiting')) return 'waiting';
+  if (list.includes('error')) return 'error';
+  if (list.includes('done')) return 'done';
+  return 'idle';
+}
+
+function setStatus(key, s) { modStatus[key] = s; renderStatus(); }
+
+function renderStatus() {
+  document.querySelectorAll('[data-mod], [data-tab]').forEach(el => {
+    const group = el.dataset.mod || el.dataset.tab;
+    const keys = Object.keys(MODULES).filter(k => MODULES[k] === group);
+    const s = aggregate(keys.map(k => modStatus[k] || 'idle'));
+    el.dataset.status = s;
+    const pill = el.querySelector('.pill');
+    if (pill) pill.textContent = t('st_' + s);
+  });
+  document.querySelectorAll('.output-text[data-output]').forEach(el => {
+    const s = modStatus[el.dataset.output] || 'idle';
+    el.dataset.empty = s === 'running' ? '' : t(s === 'waiting' ? 'panelWaiting' : 'emptyPanel');
+  });
+  const keys = Object.keys(MODULES);
+  const done = keys.filter(k => modStatus[k] === 'done').length;
+  document.getElementById('progressFill').style.width = (done / keys.length * 100) + '%';
+  document.getElementById('progressText').textContent =
+    t('rep_progress').replace('{n}', done).replace('{total}', keys.length);
+}
+
+/* ============================================================
    Toast helper
    ============================================================ */
 const toastEl = document.getElementById('toast');
@@ -741,8 +1468,53 @@ function toast(msg) {
   toastEl.textContent = msg;
   toastEl.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2200);
+  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2600);
 }
+
+/* ============================================================
+   Readiness checklist (summary card + step badges)
+   ============================================================ */
+const EXTRA_IDS = ['f_contains', 'f_shelf_life', 'f_sensitivity', 'f_protection', 'f_current_materials',
+  'f_recycled', 'f_claims', 'f_branding', 'f_machinery', 'f_sales_channel', 'f_market', 'f_cost_unit', 'f_cost_increase'];
+
+function updateReadiness() {
+  const hasPhoto = !!state.fileData;
+  const hasName = !!document.getElementById('f_product_name').value.trim();
+  const extras = EXTRA_IDS.filter(id => {
+    const el = document.getElementById(id);
+    return el.tagName === 'SELECT' ? el.selectedIndex > 0 : !!el.value.trim();
+  }).length;
+  const count = extras + '/' + EXTRA_IDS.length;
+  document.getElementById('rdPhoto').classList.toggle('ok', hasPhoto);
+  document.getElementById('rdName').classList.toggle('ok', hasName);
+  document.getElementById('rdMore').classList.toggle('ok', extras > 0);
+  document.getElementById('rdMoreCount').textContent = count;
+  document.getElementById('detailCount').textContent = count;
+  document.getElementById('num1').classList.toggle('done', hasPhoto);
+  document.getElementById('num2').classList.toggle('done', hasName);
+  const mbText = document.getElementById('mbText');
+  mbText.textContent = t(!hasPhoto ? 'mb_photo' : !hasName ? 'mb_name' : 'mb_ready');
+  mbText.classList.toggle('ok', hasPhoto && hasName);
+}
+
+// Show the sticky generate bar while the form is on screen but the summary card is not (stacked layouts).
+(function watchMobileBar() {
+  const bar = document.getElementById('mobileBar');
+  let formOn = false, summaryOn = false;
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.target.id === 'summary') summaryOn = e.isIntersecting; else formOn = e.isIntersecting; });
+    const on = formOn && !summaryOn;
+    bar.classList.toggle('show', on);
+    document.body.classList.toggle('mb-on', on && window.matchMedia('(max-width: 960px)').matches);
+  });
+  io.observe(document.querySelector('.app-main'));
+  io.observe(document.getElementById('summary'));
+})();
+
+document.querySelectorAll('[data-field]').forEach(el => {
+  el.addEventListener('input', () => { el.classList.remove('invalid'); updateReadiness(); });
+  el.addEventListener('change', updateReadiness);
+});
 
 /* ============================================================
    File upload (drag + drop + browse + camera) → base64
@@ -750,13 +1522,20 @@ function toast(msg) {
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const cameraInput = document.getElementById('cameraInput');
+const uploadActions = document.getElementById('uploadActions');
 const filePreview = document.getElementById('filePreview');
 const filePreviewImg = document.getElementById('filePreviewImg');
+const filePreviewPdf = document.getElementById('filePreviewPdf');
 const filePreviewMeta = document.getElementById('filePreviewMeta');
 
 dropzone.addEventListener('click', () => fileInput.click());
-document.getElementById('browseBtn').addEventListener('click', e => { e.preventDefault(); fileInput.click(); });
-document.getElementById('cameraBtn').addEventListener('click', e => { e.preventDefault(); openCamera(); });
+dropzone.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+});
+document.getElementById('browseBtn').addEventListener('click', () => fileInput.click());
+document.getElementById('cameraBtn').addEventListener('click', () => openCamera());
+document.getElementById('changeFileBtn').addEventListener('click', () => fileInput.click());
+document.getElementById('removeFileBtn').addEventListener('click', clearFile);
 ['dragover','dragenter'].forEach(ev =>
   dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
 ['dragleave','drop'].forEach(ev =>
@@ -779,13 +1558,26 @@ function handleFile(file) {
 function setImage(base64, mime, name, bytes) {
   state.fileData = base64;
   state.fileMime = mime || 'image/jpeg';
-  filePreview.style.display = 'block';
-  if (state.fileMime.startsWith('image/')) {
-    filePreviewImg.src = 'data:' + state.fileMime + ';base64,' + base64;
-    filePreviewImg.style.display = 'block';
-  } else { filePreviewImg.style.display = 'none'; }
+  const isImage = state.fileMime.startsWith('image/');
+  if (isImage) filePreviewImg.src = 'data:' + state.fileMime + ';base64,' + base64;
+  filePreviewImg.hidden = !isImage;
+  filePreviewPdf.hidden = isImage;
   const kb = bytes ? (bytes / 1024).toFixed(0) + ' KB' : '';
-  filePreviewMeta.textContent = `${name} · ${state.fileMime}${kb ? ' · ' + kb : ''}`;
+  filePreviewMeta.textContent = `${name}${kb ? ' · ' + kb : ''}`;
+  filePreview.hidden = false;
+  dropzone.hidden = true;
+  uploadActions.hidden = true;
+  updateReadiness();
+}
+
+function clearFile() {
+  state.fileData = null; state.fileMime = null;
+  filePreviewImg.removeAttribute('src');
+  filePreview.hidden = true;
+  dropzone.hidden = false;
+  uploadActions.hidden = false;
+  fileInput.value = ''; cameraInput.value = '';
+  updateReadiness();
 }
 
 /* ============================================================
@@ -803,19 +1595,14 @@ let camFacing = 'environment';
 async function startStream() {
   stopStream();
   camError.classList.remove('show'); camError.textContent = '';
-  try {
-    camStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: camFacing } }, audio: false,
-    });
-    camVideo.srcObject = camStream;
-  } catch (err) {
-    // Permission denied, no camera, or insecure context → fall back.
-    throw err;
-  }
+  camStream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: { ideal: camFacing } }, audio: false,
+  });
+  camVideo.srcObject = camStream;
 }
 
 function stopStream() {
-  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+  if (camStream) { camStream.getTracks().forEach(tr => tr.stop()); camStream = null; }
   camVideo.srcObject = null;
 }
 
@@ -827,7 +1614,7 @@ async function openCamera() {
   try {
     await startStream();
   } catch (err) {
-    // Graceful fallback: close modal, use the OS camera via file input.
+    // Permission denied, no camera, or insecure context → use the OS camera via file input.
     closeCamera();
     cameraInput.click();
   }
@@ -862,7 +1649,7 @@ camModal.addEventListener('click', e => { if (e.target === camModal) closeCamera
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && camModal.classList.contains('show')) closeCamera(); });
 
 /* ============================================================
-   Minimal per-line markdown renderer
+   Minimal per-line markdown renderer (incl. table rows)
    ============================================================ */
 function inlineMd(text) {
   let x = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -875,7 +1662,19 @@ function renderLine(container, rawLine) {
   const line = rawLine.replace(/\s+$/,'');
   const span = document.createElement('span');
   span.className = 'md-line';
-  if (/^\s*---\s*$/.test(line) || /^\s*___\s*$/.test(line)) span.classList.add('hr');
+  if (/^\s*\|/.test(line)) {
+    // Table row: each row is its own grid line; the first row of a table is styled as the header.
+    const cells = line.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+    span.classList.add('tr');
+    if (cells.every(c => /^:?-{2,}:?$/.test(c))) span.classList.add('sep');
+    else {
+      const n = cells.length;
+      span.style.gridTemplateColumns = n > 1 ? `minmax(150px,1.4fr) repeat(${n - 1}, minmax(110px,1fr))` : '1fr';
+      span.style.minWidth = (150 + (n - 1) * 110) + 'px';
+      span.innerHTML = cells.map(c => '<span>' + inlineMd(c) + '</span>').join('');
+    }
+  }
+  else if (/^\s*---\s*$/.test(line) || /^\s*___\s*$/.test(line)) span.classList.add('hr');
   else if (/^###\s+/.test(line)) span.innerHTML = '<h3>' + inlineMd(line.replace(/^###\s+/,'')) + '</h3>';
   else if (/^##\s+/.test(line)) span.innerHTML = '<h2>' + inlineMd(line.replace(/^##\s+/,'')) + '</h2>';
   else if (/^#\s+/.test(line)) span.innerHTML = '<h1>' + inlineMd(line.replace(/^#\s+/,'')) + '</h1>';
@@ -899,15 +1698,18 @@ async function streamInto(widget, url, bodyObj, outputEl) {
   const errorEl = document.querySelector(`[data-error="${widget}"]`);
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
+  delete state.outputs[widget];
 
   if (!isConfiguredUrl(url)) {
     if (errorEl) {
       errorEl.textContent = '⚠️ API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
+    setStatus(widget, 'error');
     return;
   }
 
+  setStatus(widget, 'running');
   if (spinner) spinner.style.display = 'block';
 
   const cursorLine = document.createElement('span');
@@ -924,30 +1726,32 @@ async function streamInto(widget, url, bodyObj, outputEl) {
     if (spinner) spinner.style.display = 'none';
     const reader = resp.body.getReader();
     const decoder = new TextDecoder();
+    let raw = '';
     let buffer = '';
     outputEl.appendChild(cursorLine);
     cursorLine.appendChild(cursor);
     while (true) {
       const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
+      const chunk = done ? decoder.decode() : decoder.decode(value, { stream: true });
+      raw += chunk; buffer += chunk;
       let nl;
       while ((nl = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, nl);
         buffer = buffer.slice(nl + 1);
         outputEl.insertBefore(makeLineFrag(line), cursorLine);
-        outputEl.scrollTop = outputEl.scrollHeight;
       }
+      if (done) break;
       cursorLine.innerHTML = inlineMd(buffer);
       cursorLine.appendChild(cursor);
-      outputEl.scrollTop = outputEl.scrollHeight;
     }
     if (buffer.length) outputEl.insertBefore(makeLineFrag(buffer), cursorLine);
     cursor.remove(); cursorLine.remove();
-    state.outputs[widget] = outputEl.innerText;
+    state.outputs[widget] = raw;
+    setStatus(widget, 'done');
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
     if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    setStatus(widget, 'error');
   }
 }
 
@@ -974,8 +1778,21 @@ function buildTextBody(widget) {
 }
 
 function validateInputs() {
-  const hasName = (document.getElementById('f_product_name').value || '').trim();
-  if (!state.fileData || !hasName) { toast(t('needInputs')); return false; }
+  const nameEl = document.getElementById('f_product_name');
+  if (!state.fileData) {
+    toast(t('needPhoto'));
+    document.getElementById('stepUpload').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    dropzone.classList.add('shake');
+    setTimeout(() => dropzone.classList.remove('shake'), 600);
+    return false;
+  }
+  if (!nameEl.value.trim()) {
+    toast(t('needName'));
+    nameEl.classList.add('invalid');
+    nameEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    nameEl.focus({ preventScroll: true });
+    return false;
+  }
   return true;
 }
 
@@ -987,6 +1804,10 @@ async function runWidget(widget) {
 /* ============================================================
    Image generation
    ============================================================ */
+function imagePlaceholder() {
+  return '<div class="img-placeholder" data-i18n="noImage">' + t('noImage') + '</div>';
+}
+
 async function runImage(option) {
   const key = 'image_' + option;
   const spinner = document.querySelector(`[data-spinner="${key}"]`);
@@ -996,14 +1817,16 @@ async function runImage(option) {
   outputEl.innerHTML = '';
 
   if (!isConfiguredUrl(DIAGRAM_API)) {
-    outputEl.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>';
+    outputEl.innerHTML = imagePlaceholder();
     if (errorEl) {
       errorEl.textContent = '⚠️ Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
+    setStatus(key, 'error');
     return;
   }
 
+  setStatus(key, 'running');
   if (spinner) spinner.style.display = 'block';
   try {
     const resp = await fetch(DIAGRAM_API, {
@@ -1018,12 +1841,114 @@ async function runImage(option) {
     img.src = 'data:image/png;base64,' + data.image_base64;
     img.alt = 'Packaging redesign option ' + option;
     outputEl.innerHTML = ''; outputEl.appendChild(img);
+    setStatus(key, 'done');
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
-    outputEl.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>';
+    outputEl.innerHTML = imagePlaceholder();
     if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    setStatus(key, 'error');
   }
 }
+
+/* ============================================================
+   Report view: reveal, tabs, wrong-input banner
+   ============================================================ */
+const reportEl = document.getElementById('report');
+const wrongInputAlert = document.getElementById('wrongInputAlert');
+
+function showReport() {
+  reportEl.hidden = false;
+  document.getElementById('summary').classList.add('report-on');
+  const f = collectFields();
+  document.getElementById('reportProduct').textContent =
+    [f['Product Name and Type'], f['Product Category']].filter(Boolean).join(' · ');
+}
+
+function selectTab(name) {
+  document.querySelectorAll('[data-tab]').forEach(tb => tb.setAttribute('aria-selected', String(tb.dataset.tab === name)));
+  document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== name; });
+  // Keep the active tab visible when the tab bar scrolls sideways on small screens.
+  const sel = document.querySelector(`[data-tab="${name}"]`);
+  const bar = sel.parentElement;
+  bar.scrollTo({ left: sel.offsetLeft - (bar.clientWidth - sel.offsetWidth) / 2, behavior: 'smooth' });
+}
+document.querySelectorAll('[data-tab]').forEach(tb => tb.addEventListener('click', () => selectTab(tb.dataset.tab)));
+document.querySelectorAll('.mods [data-mod]').forEach(li => li.addEventListener('click', () => {
+  if (reportEl.hidden) return;
+  selectTab(li.dataset.mod);
+  reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}));
+
+// The analysis prompts answer with this exact phrase when the photo/inputs don't match a real product.
+function checkWrongInput() {
+  const bad = Object.values(state.outputs).some(v => /Wrong input detected/i.test(v || ''));
+  wrongInputAlert.hidden = !bad;
+  return bad;
+}
+
+/* ============================================================
+   Generate the full report
+   ============================================================ */
+const runAllBtn = document.getElementById('runAllBtn');
+const runAllLabel = document.getElementById('runAllLabel');
+let running = false;
+
+const mobileRunBtn = document.getElementById('mobileRunBtn');
+const mobileRunLabel = document.getElementById('mobileRunLabel');
+
+function setRunning(on) {
+  running = on;
+  [[runAllBtn, runAllLabel], [mobileRunBtn, mobileRunLabel]].forEach(([btn, label]) => {
+    btn.disabled = on;
+    label.dataset.i18n = on ? 'generating' : 'gen';
+    label.textContent = t(label.dataset.i18n);
+  });
+}
+
+function clearOutputs() {
+  document.querySelectorAll('.output-text[data-output]').forEach(el => { el.innerHTML = ''; });
+  document.querySelectorAll('[data-output^="image_"]').forEach(el => { el.innerHTML = imagePlaceholder(); });
+  document.querySelectorAll('.panel-error').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
+  state.outputs = {};
+  wrongInputAlert.hidden = true;
+}
+
+async function runAll() {
+  if (running || !validateInputs()) return;
+  setRunning(true);
+  clearOutputs();
+  Object.keys(MODULES).forEach(k => { modStatus[k] = 'waiting'; });
+  renderStatus();
+  showReport();
+  selectTab('strategies');
+  reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const strategies = runWidget('three_redesign_strategies');
+    const others = Promise.all(['sustainability_problems_identified', 'packaging_audit_and_evidence_classification'].map(runWidget));
+    await strategies;
+    // Images only need the strategies, so start them while the other analyses finish.
+    let images = Promise.resolve();
+    if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
+    else images = Promise.all(['A', 'B', 'C'].map(runImage));
+    await others;
+    await Promise.all([
+      runWidget('best_fit_recommendation_and_supplier_brief'),
+      runWidget('trade_off_comparison'),
+      images,
+    ]);
+    toast(checkWrongInput() ? t('checkInputs') : t('reportReady'));
+  } finally {
+    setRunning(false);
+  }
+}
+runAllBtn.addEventListener('click', runAll);
+mobileRunBtn.addEventListener('click', runAll);
+
+document.querySelectorAll('[data-run]').forEach(btn =>
+  btn.addEventListener('click', () => { if (validateInputs()) runWidget(btn.getAttribute('data-run')); }));
+document.querySelectorAll('[data-image]').forEach(btn =>
+  btn.addEventListener('click', () => { if (validateInputs()) runImage(btn.getAttribute('data-image')); }));
 
 /* ============================================================
    Chat (streaming, with memory)
@@ -1031,6 +1956,7 @@ async function runImage(option) {
 const chatLog = document.getElementById('chatLog');
 const chatInput = document.getElementById('chatInput');
 const chatSend = document.getElementById('chatSend');
+const chatSuggest = document.getElementById('chatSuggest');
 
 // Floating chat open/close
 const chatFab = document.getElementById('chatFab');
@@ -1047,6 +1973,7 @@ function closeChat() {
   chatFab.classList.remove('hidden');
 }
 chatFab.addEventListener('click', openChat);
+document.getElementById('askAdvisorBtn').addEventListener('click', openChat);
 document.getElementById('chatClose').addEventListener('click', closeChat);
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && chatFloat.classList.contains('show')) closeChat();
@@ -1065,6 +1992,7 @@ async function sendChat() {
   const msg = chatInput.value.trim();
   if (!msg) return;
   chatInput.value = '';
+  chatSuggest.hidden = true;
   addBubble('user', msg);
   const botBubble = addBubble('bot', '');
   const errorEl = document.querySelector('[data-error="ecolens_chatai"]');
@@ -1119,10 +2047,21 @@ async function sendChat() {
 }
 chatSend.addEventListener('click', sendChat);
 chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+chatSuggest.querySelectorAll('.chip').forEach(chip =>
+  chip.addEventListener('click', () => { chatInput.value = chip.textContent; sendChat(); }));
 
 /* ============================================================
-   Copy / download supplier brief
+   Copy / download supplier brief and full report
    ============================================================ */
+function downloadText(txt, filename) {
+  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(a.href);
+}
+
 function briefText() { return state.outputs.best_fit_recommendation_and_supplier_brief || ''; }
 document.getElementById('copyBrief').addEventListener('click', () => {
   const txt = briefText();
@@ -1133,31 +2072,27 @@ document.getElementById('copyBrief').addEventListener('click', () => {
 document.getElementById('downloadBrief').addEventListener('click', () => {
   const txt = briefText();
   if (!txt.trim()) { toast(t('nothingCopy')); return; }
-  const blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'ecolens-supplier-brief.txt';
-  document.body.appendChild(a); a.click(); a.remove();
-  URL.revokeObjectURL(a.href);
+  downloadText(txt, 'ecolens-supplier-brief.txt');
 });
 
-/* ============================================================
-   Button wiring
-   ============================================================ */
-document.querySelectorAll('[data-run]').forEach(btn =>
-  btn.addEventListener('click', () => { if (validateInputs()) runWidget(btn.getAttribute('data-run')); }));
-document.querySelectorAll('[data-image]').forEach(btn =>
-  btn.addEventListener('click', () => { if (validateInputs()) runImage(btn.getAttribute('data-image')); }));
-
-async function runAll() {
-  if (!validateInputs()) return;
-  const independent = ['three_redesign_strategies', 'sustainability_problems_identified', 'packaging_audit_and_evidence_classification'];
-  await Promise.all(independent.map(runWidget));
-  await Promise.all(['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'].map(runWidget));
-  await Promise.all(['A','B','C'].map(runImage));
+function fullReportText() {
+  const sections = [
+    ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
+    ['three_redesign_strategies', 'w_strategies'],
+    ['trade_off_comparison', 'w_tradeoff'],
+    ['sustainability_problems_identified', 'w_problems'],
+    ['packaging_audit_and_evidence_classification', 'w_audit'],
+  ].filter(([k]) => (state.outputs[k] || '').trim());
+  if (!sections.length) return '';
+  const product = collectFields()['Product Name and Type'] || '';
+  return `EcoLens — ${product}\n${new Date().toLocaleDateString()}\n` +
+    sections.map(([k, title]) => `\n\n==== ${t(title)} ====\n\n${state.outputs[k].trim()}`).join('') + '\n';
 }
-document.getElementById('runAllBtn').addEventListener('click', runAll);
-document.getElementById('runAllBtn2').addEventListener('click', runAll);
+document.getElementById('downloadAllBtn').addEventListener('click', () => {
+  const txt = fullReportText();
+  if (!txt) { toast(t('nothingDownload')); return; }
+  downloadText(txt, 'ecolens-report.txt');
+});
 
 /* ============================================================
    Example fill — realistic Malaysian SME product
@@ -1180,13 +2115,19 @@ const EXAMPLE = {
   f_market: 'Malaysia and Singapore, planning export to EU later',
   f_machinery: 'Existing flow-wrap sealing machine must remain',
 };
-document.getElementById('exampleBtn').addEventListener('click', () => {
+function fillExample() {
   Object.entries(EXAMPLE).forEach(([id, val]) => {
     const el = document.getElementById(id);
-    if (el) el.value = val;
+    if (el) { el.value = val; el.classList.remove('invalid'); }
   });
   document.querySelector('details.advanced').open = true;
-  toast(lang === 'bm' ? 'Contoh diisi' : 'Example filled');
+  updateReadiness();
+  toast(state.fileData ? t('exampleFilled') : t('exampleNeedsPhoto'));
+}
+document.getElementById('exampleBtn').addEventListener('click', fillExample);
+document.getElementById('heroExampleBtn').addEventListener('click', () => {
+  fillExample();
+  document.getElementById('analyse').scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 /* ============================================================
@@ -1195,8 +2136,10 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
 const themeToggle = document.getElementById('themeToggle');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  const lbl = theme === 'dark' ? (lang==='bm'?'Terang':'Light') : t('dark');
-  themeToggle.innerHTML = (theme === 'dark' ? '☀️ ' : '🌙 ') + lbl;
+  const label = theme === 'dark' ? t('light') : t('dark');
+  themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+  themeToggle.title = label;
+  themeToggle.setAttribute('aria-label', label);
   try { localStorage.setItem('ecolens-theme', theme); } catch(e) {}
 }
 themeToggle.addEventListener('click', () => {
@@ -1216,19 +2159,28 @@ document.getElementById('langToggle').addEventListener('click', () => {
 /* ============================================================
    Reset — clears inputs + outputs, KEEPS chat memory
    ============================================================ */
-document.getElementById('resetBtn').addEventListener('click', () => {
+function resetAll() {
+  if (running) { toast(t('busy')); return false; }
   document.querySelectorAll('[data-field]').forEach(el => {
     if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+    el.classList.remove('invalid');
   });
-  state.fileData = null; state.fileMime = null;
-  filePreview.style.display = 'none';
-  fileInput.value = ''; cameraInput.value = '';
-  document.querySelectorAll('.output-text').forEach(el => el.innerHTML = '');
-  document.querySelectorAll('[data-output^="image_"]').forEach(el =>
-    el.innerHTML = '<div class="img-placeholder">' + t('noImage') + '</div>');
-  document.querySelectorAll('.panel-error').forEach(el => { el.classList.remove('show'); el.textContent=''; });
-  state.outputs = {};
+  clearFile();
+  clearOutputs();
+  Object.keys(modStatus).forEach(k => delete modStatus[k]);
+  renderStatus();
+  reportEl.hidden = true;
+  document.getElementById('summary').classList.remove('report-on');
+  document.querySelector('details.advanced').open = false;
+  updateReadiness();
   // chatHistory intentionally preserved so the chatbot keeps its knowledge
+  return true;
+}
+document.getElementById('resetBtn').addEventListener('click', () => { if (resetAll()) toast(t('resetDone')); });
+document.getElementById('startOverBtn').addEventListener('click', () => {
+  if (!resetAll()) return;
+  document.getElementById('analyse').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  toast(t('resetDone'));
 });
 
 /* ============================================================
@@ -1238,6 +2190,7 @@ document.getElementById('resetBtn').addEventListener('click', () => {
   let savedTheme = 'light', savedLang = 'en';
   try { savedTheme = localStorage.getItem('ecolens-theme') || 'light'; } catch(e) {}
   try { savedLang = localStorage.getItem('ecolens-lang') || 'en'; } catch(e) {}
+  selectTab('strategies');
   applyLang(savedLang);
   applyTheme(savedTheme);
 })();
