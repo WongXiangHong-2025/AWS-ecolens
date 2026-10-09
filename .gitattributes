@@ -1,0 +1,3 @@
+# Keep shell scripts LF so the Lambda shebang works
+*.sh text eol=lf
+*.py text eol=lf

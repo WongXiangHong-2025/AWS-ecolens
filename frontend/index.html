@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🌱 EcoLens — Sustainable Packaging Decision</title>
+<style>
+  :root {
+    --bg: #f4f6f3;
+    --panel: #ffffff;
+    --panel-2: #f0f3ee;
+    --text: #1d2a22;
+    --muted: #5c6b60;
+    --border: #d8e0d6;
+    --accent: #2f8f4e;
+    --accent-2: #1f6e3b;
+    --accent-soft: #e3f2e7;
+    --danger: #c0392b;
+    --shadow: 0 1px 3px rgba(0,0,0,.08), 0 6px 20px rgba(0,0,0,.04);
+    --scroll-thumb: #bcccb8;
+  }
+  [data-theme="dark"] {
+    --bg: #0f1511;
+    --panel: #182019;
+    --panel-2: #121a14;
+    --text: #e4ece3;
+    --muted: #9bab9d;
+    --border: #273227;
+    --accent: #4caf6e;
+    --accent-2: #6fcf8f;
+    --accent-soft: #1c2a20;
+    --danger: #e57366;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 6px 20px rgba(0,0,0,.3);
+    --scroll-thumb: #35483a;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    transition: background .25s ease, color .25s ease;
+  }
+
+  header.topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; padding: .75rem 1.25rem;
+    background: var(--panel); border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .topbar h1 { font-size: 1.1rem; margin: 0; font-weight: 650; }
+  .topbar .actions { display: flex; gap: .5rem; align-items: center; }
+
+  .btn {
+    font: inherit; cursor: pointer; border: 1px solid var(--border);
+    background: var(--panel-2); color: var(--text);
+    padding: .5rem .9rem; border-radius: 8px; transition: all .15s ease;
+    display: inline-flex; align-items: center; gap: .4rem;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-2); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 1.25rem; }
+
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 1.1rem 1.2rem; margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+  .card > .label {
+    font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); font-weight: 700; margin-bottom: .45rem;
+  }
+  .card h2 { font-size: 1.05rem; margin: .1rem 0 .6rem; }
+
+  label.field-label { display: block; font-weight: 600; margin-bottom: .35rem; font-size: .92rem; }
+  .optional-tag { color: var(--muted); font-weight: 400; font-size: .8rem; }
+
+  input[type="text"], textarea, select {
+    width: 100%; font: inherit; color: var(--text);
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 9px; padding: .6rem .7rem; transition: border-color .15s ease;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none; border-color: var(--accent);
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  ::placeholder { color: var(--muted); opacity: .8; }
+
+  .intro h2 { font-size: 1.5rem; }
+  .intro h3 { color: var(--accent-2); margin-top: 1rem; }
+  .intro ul { margin: .4rem 0; }
+  .sdg { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .6rem; }
+  .sdg span {
+    background: var(--accent-soft); color: var(--accent-2);
+    padding: .35rem .7rem; border-radius: 20px; font-size: .85rem; font-weight: 600;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 760px) { .grid-2 { grid-template-columns: 1fr; } }
+
+  /* file dropzone */
+  .dropzone {
+    border: 2px dashed var(--border); border-radius: 12px;
+    padding: 1.6rem; text-align: center; cursor: pointer;
+    color: var(--muted); transition: all .15s ease; background: var(--panel-2);
+  }
+  .dropzone.drag { border-color: var(--accent); background: var(--accent-soft); color: var(--accent-2); }
+  .dropzone .arrow { font-size: 1.8rem; display: block; margin-bottom: .3rem; }
+  .dropzone input { display: none; }
+  .file-preview { margin-top: .8rem; display: none; }
+  .file-preview img { max-width: 100%; max-height: 240px; border-radius: 10px; border: 1px solid var(--border); }
+  .file-preview .meta { font-size: .82rem; color: var(--muted); margin-top: .35rem; }
+
+  /* output panels */
+  .output-panel {
+    position: relative; background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 11px; padding: .9rem 1rem; margin-top: .6rem;
+  }
+  .output-text {
+    height: 340px; overflow-y: auto; font-size: .92rem;
+    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
+  }
+  .output-text::-webkit-scrollbar { width: 7px; }
+  .output-text::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
+  .output-text::-webkit-scrollbar-track { background: transparent; }
+  .output-image, .output-chat { height: auto; }
+
+  .md-line { display: block; opacity: 0; animation: fadeIn .35s ease forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+  .md-line h1 { font-size: 1.3rem; margin: .5rem 0 .3rem; }
+  .md-line h2 { font-size: 1.12rem; margin: .5rem 0 .3rem; }
+  .md-line h3 { font-size: 1rem; margin: .45rem 0 .25rem; color: var(--accent-2); }
+  .md-line code { background: var(--accent-soft); padding: .1rem .35rem; border-radius: 5px; font-size: .88em; }
+  .md-line.hr { border-top: 1px solid var(--border); margin: .6rem 0; height: 0; }
+  .md-line ul, .md-line ol { margin: .1rem 0 .1rem 1.1rem; }
+
+  .cursor { display: inline-block; width: 7px; background: var(--accent);
+    margin-left: 2px; animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .spinner {
+    width: 22px; height: 22px; border: 3px solid var(--border);
+    border-top-color: var(--accent); border-radius: 50%;
+    animation: spin .7s linear infinite; display: none; margin: .3rem auto;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .panel-error { color: var(--danger); font-size: .9rem; margin-top: .4rem; display: none; }
+  .panel-error.show { display: block; }
+
+  .output-image img { max-width: 100%; border-radius: 10px; border: 1px solid var(--border); }
+  .img-placeholder { color: var(--muted); font-size: .9rem; text-align: center; padding: 2rem 0; }
+
+  /* chat */
+  .chat-log {
+    display: flex; flex-direction: column; gap: .6rem;
+    max-height: 420px; overflow-y: auto; padding: .3rem;
+    scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent;
+  }
+  .chat-log::-webkit-scrollbar { width: 7px; }
+  .chat-log::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 10px; }
+  .bubble { padding: .6rem .85rem; border-radius: 14px; max-width: 85%; font-size: .92rem; }
+  .bubble.bot { background: var(--accent-soft); align-self: flex-start; border-bottom-left-radius: 4px; }
+  .bubble.user { background: var(--accent); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .chat-input-row { display: flex; gap: .5rem; margin-top: .7rem; }
+  .chat-input-row input { flex: 1; }
+
+  .run-all-wrap { position: sticky; bottom: 0; z-index: 40; padding: .8rem 0;
+    display: flex; justify-content: center; }
+  .run-all-wrap .btn { box-shadow: var(--shadow); }
+
+  .section-divider { border: none; border-top: 2px solid var(--border); margin: 1.6rem 0 1rem; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <h1>🌱 EcoLens — Sustainable Packaging Decision</h1>
+  <div class="actions">
+    <button class="btn" id="themeToggle" title="Toggle theme">🌙 Dark</button>
+    <button class="btn" id="resetBtn" title="Reset all inputs and outputs">↺ Reset</button>
+    <button class="btn primary" id="runAllBtn">▶ Run All</button>
+  </div>
+</header>
+
+<main>
+  <!-- Widget 1: Welcome (static) -->
+  <section class="card intro">
+    <div class="label">Welcome to EcoLens</div>
+    <h2>🌱 EcoLens</h2>
+    <h3>❗ Problem</h3>
+    <p>SMEs want more sustainable packaging but often don't know what they can change
+      without increasing <strong>cost</strong>, reducing <strong>shelf life</strong>,
+      or affecting <strong>product protection</strong>.</p>
+    <h3>💡 Solution</h3>
+    <p><strong>EcoLens</strong> analyses a packaging image together with business
+      requirements and generates <strong>practical redesign strategies</strong> that
+      balance: sustainability, cost, product protection and production constraints.</p>
+    <ul>
+      <li>EcoLens goes beyond a simple packaging scanner. It also checks environmental
+        claims and produces a <strong>supplier-ready action plan</strong>.</li>
+      <li>EcoLens primarily supports:</li>
+    </ul>
+    <div class="sdg">
+      <span>🏭 SDG 9 — Industry, innovation and infrastructure</span>
+      <span>♻️ SDG 12 — Responsible Consumption and Production</span>
+      <span>🌏 SDG 13 — Climate Action</span>
+    </div>
+  </section>
+
+  <!-- Input widgets 2-18 -->
+  <section class="card">
+    <div class="label">Your Inputs</div>
+    <div class="grid-2">
+      <!-- Widget 2: Upload -->
+      <div style="grid-column: 1 / -1;">
+        <label class="field-label">📸 Upload Your Packaging</label>
+        <div class="dropzone" id="dropzone">
+          <span class="arrow">⬆️</span>
+          Drag &amp; drop an image (JPG, PNG, WEBP) or PDF here, or click to browse.
+          <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
+        </div>
+        <div class="file-preview" id="filePreview">
+          <img id="filePreviewImg" alt="preview" />
+          <div class="meta" id="filePreviewMeta"></div>
+        </div>
+      </div>
+
+      <!-- Widget 3 -->
+      <div>
+        <label class="field-label" for="f_product_name">Product Name and Type</label>
+        <input type="text" id="f_product_name" data-field="Product Name and Type"
+          placeholder="e.g. Chocolate cookies, 150g net weight" />
+      </div>
+      <!-- Widget 4 -->
+      <div>
+        <label class="field-label" for="f_shelf_life">Required Shelf Life</label>
+        <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
+          placeholder="e.g. 6 months, 12 months, 2 years" />
+      </div>
+      <!-- Widget 5 -->
+      <div>
+        <label class="field-label" for="f_category">Product Category</label>
+        <select id="f_category" data-field="Product Category">
+          <option>Food and Beverage</option>
+          <option>Snacks</option>
+          <option>Cosmetics and Personal Care</option>
+          <option>Household Products</option>
+          <option>Electronics</option>
+          <option>Pharmaceuticals</option>
+          <option>Others</option>
+        </select>
+      </div>
+      <!-- Widget 6 -->
+      <div>
+        <label class="field-label" for="f_contains">What the Product Contains</label>
+        <input type="text" id="f_contains" data-field="What the Product Contains"
+          placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
+      </div>
+      <!-- Widget 7 -->
+      <div>
+        <label class="field-label" for="f_sensitivity">Moisture, Light or Oxygen Sensitivity</label>
+        <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
+          <option>Not sensitive</option>
+          <option>Moisture sensitive</option>
+          <option>Light sensitive</option>
+          <option>Oxygen sensitive</option>
+          <option>Moisture and light sensitive</option>
+          <option>Moisture and oxygen sensitive</option>
+          <option>All three - moisture, light and oxygen sensitive</option>
+        </select>
+      </div>
+      <!-- Widget 8 -->
+      <div>
+        <label class="field-label" for="f_current_materials">Current Packaging Materials
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
+          placeholder="e.g. Plastic tray, plastic wrapper and cardboard box. Leave blank if unknown." />
+      </div>
+      <!-- Widget 9 -->
+      <div>
+        <label class="field-label" for="f_sales_channel">Sales Channel</label>
+        <select id="f_sales_channel" data-field="Sales Channel">
+          <option>Retail only</option>
+          <option>E-commerce only</option>
+          <option>Both retail and e-commerce</option>
+        </select>
+      </div>
+      <!-- Widget 10 -->
+      <div>
+        <label class="field-label" for="f_recycled">Current Recycled Content
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_recycled" data-field="Current Recycled Content"
+          placeholder="e.g. Outer box uses 30% recycled fibre. Leave blank if unknown." />
+      </div>
+      <!-- Widget 11 -->
+      <div>
+        <label class="field-label" for="f_protection">Product Protection Requirements</label>
+        <input type="text" id="f_protection" data-field="Product Protection Requirements"
+          placeholder="e.g. Must protect against crushing, moisture and light. Fragile product." />
+      </div>
+      <!-- Widget 12 -->
+      <div>
+        <label class="field-label" for="f_cost_unit">Packaging Cost Per Unit</label>
+        <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
+          placeholder="e.g. RM 0.85 per unit, USD 0.20 per unit." />
+      </div>
+      <!-- Widget 13 -->
+      <div>
+        <label class="field-label" for="f_cost_increase">Maximum Packaging Cost Increase</label>
+        <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
+          placeholder="e.g. No more than 5% increase. Or: Cost must not increase at all." />
+      </div>
+      <!-- Widget 14 -->
+      <div>
+        <label class="field-label" for="f_objective">Main Sustainability Objective</label>
+        <input type="text" id="f_objective" data-field="Main Sustainability Objective"
+          placeholder="e.g. Reduce virgin plastic use. Improve recyclability." />
+      </div>
+      <!-- Widget 15 -->
+      <div>
+        <label class="field-label" for="f_claims">Existing Environmental Claims
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
+          placeholder="e.g. 100% recyclable, biodegradable, carbon neutral. Leave blank if none." />
+      </div>
+      <!-- Widget 16 -->
+      <div>
+        <label class="field-label" for="f_branding">Branding Requirements
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_branding" data-field="Branding Requirements"
+          placeholder="e.g. Must maintain full-colour printing. Brand colours cannot change." />
+      </div>
+      <!-- Widget 17 -->
+      <div>
+        <label class="field-label" for="f_market">Target Market or Country
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_market" data-field="Target Market or Country"
+          placeholder="e.g. Malaysia, Singapore, Southeast Asia, export to EU" />
+      </div>
+      <!-- Widget 18 -->
+      <div>
+        <label class="field-label" for="f_machinery">Packaging Machinery Constraints
+          <span class="optional-tag">(optional)</span></label>
+        <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
+          placeholder="e.g. Existing filling and sealing machinery must remain unchanged." />
+      </div>
+    </div>
+  </section>
+
+  <hr class="section-divider" />
+
+  <!-- Widget 19: Three Redesign Strategies -->
+  <section class="card">
+    <div class="label">AI Analysis</div>
+    <h2>🔀 Three Redesign Strategies</h2>
+    <button class="btn" data-run="three_redesign_strategies">▶ Generate</button>
+    <div class="output-panel">
+      <div class="spinner" data-spinner="three_redesign_strategies"></div>
+      <div class="output-text" data-output="three_redesign_strategies"></div>
+      <div class="panel-error" data-error="three_redesign_strategies"></div>
+    </div>
+  </section>
+
+  <!-- Widgets 20-22: Redesign Visuals A/B/C -->
+  <section class="card">
+    <div class="label">AI Image Generation</div>
+    <h2>🖼️ Packaging Redesign Visuals</h2>
+    <p style="color:var(--muted); font-size:.88rem;">Generated from the Three Redesign
+      Strategies above. Run that first for best results.</p>
+    <div class="grid-2" style="grid-template-columns: repeat(3, 1fr);">
+      <div>
+        <strong>Option A — Quick Win</strong>
+        <button class="btn" data-image="A" style="margin:.4rem 0; width:100%;">▶ Generate A</button>
+        <div class="output-panel output-image">
+          <div class="spinner" data-spinner="image_A"></div>
+          <div data-output="image_A"><div class="img-placeholder">No image yet</div></div>
+          <div class="panel-error" data-error="image_A"></div>
+        </div>
+      </div>
+      <div>
+        <strong>Option B — Balanced</strong>
+        <button class="btn" data-image="B" style="margin:.4rem 0; width:100%;">▶ Generate B</button>
+        <div class="output-panel output-image">
+          <div class="spinner" data-spinner="image_B"></div>
+          <div data-output="image_B"><div class="img-placeholder">No image yet</div></div>
+          <div class="panel-error" data-error="image_B"></div>
+        </div>
+      </div>
+      <div>
+        <strong>Option C — Ambitious</strong>
+        <button class="btn" data-image="C" style="margin:.4rem 0; width:100%;">▶ Generate C</button>
+        <div class="output-panel output-image">
+          <div class="spinner" data-spinner="image_C"></div>
+          <div data-output="image_C"><div class="img-placeholder">No image yet</div></div>
+          <div class="panel-error" data-error="image_C"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Widget 23: Sustainability Problems -->
+  <section class="card">
+    <div class="label">AI Analysis</div>
+    <h2>🔍 Sustainability Problems Identified</h2>
+    <button class="btn" data-run="sustainability_problems_identified">▶ Generate</button>
+    <div class="output-panel">
+      <div class="spinner" data-spinner="sustainability_problems_identified"></div>
+      <div class="output-text" data-output="sustainability_problems_identified"></div>
+      <div class="panel-error" data-error="sustainability_problems_identified"></div>
+    </div>
+  </section>
+
+  <!-- Widget 24: Packaging Audit -->
+  <section class="card">
+    <div class="label">AI Analysis</div>
+    <h2>🧾 Packaging Audit and Evidence Classification</h2>
+    <button class="btn" data-run="packaging_audit_and_evidence_classification">▶ Generate</button>
+    <div class="output-panel">
+      <div class="spinner" data-spinner="packaging_audit_and_evidence_classification"></div>
+      <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
+      <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
+    </div>
+  </section>
+
+  <!-- Widget 25: Best-Fit Recommendation -->
+  <section class="card">
+    <div class="label">AI Analysis</div>
+    <h2>✅ Best-Fit Recommendation and Supplier Brief</h2>
+    <button class="btn" data-run="best_fit_recommendation_and_supplier_brief">▶ Generate</button>
+    <div class="output-panel">
+      <div class="spinner" data-spinner="best_fit_recommendation_and_supplier_brief"></div>
+      <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
+      <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
+    </div>
+  </section>
+
+  <!-- Widget 26: Trade-off Comparison -->
+  <section class="card">
+    <div class="label">AI Analysis</div>
+    <h2>⚖️ Trade-off Comparison</h2>
+    <button class="btn" data-run="trade_off_comparison">▶ Generate</button>
+    <div class="output-panel">
+      <div class="spinner" data-spinner="trade_off_comparison"></div>
+      <div class="output-text" data-output="trade_off_comparison"></div>
+      <div class="panel-error" data-error="trade_off_comparison"></div>
+    </div>
+  </section>
+
+  <!-- Widget 27: Chatbot -->
+  <section class="card">
+    <div class="label">AI Chatbot</div>
+    <h2>💬 EcoLens ChatAI</h2>
+    <div class="output-panel output-chat">
+      <div class="chat-log" id="chatLog">
+        <div class="bubble bot">I am now ready to help you!</div>
+      </div>
+      <div class="panel-error" data-error="ecolens_chatai"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" placeholder="Ask anything!" />
+        <button class="btn primary" id="chatSend">Send</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="run-all-wrap">
+    <button class="btn primary" id="runAllBtn2">▶ Run All AI Analyses</button>
+  </div>
+</main>
+
+<script>
+/* ============================================================
+   URL placeholders — replaced by GitHub Actions sed at deploy
+   ============================================================ */
+const STREAM_URLS = {
+  three_redesign_strategies: '__URL_THREE_REDESIGN_STRATEGIES__',
+  sustainability_problems_identified: '__URL_SUSTAINABILITY_PROBLEMS_IDENTIFIED__',
+  packaging_audit_and_evidence_classification: '__URL_PACKAGING_AUDIT_AND_EVIDENCE_CLASSIFICATION__',
+  best_fit_recommendation_and_supplier_brief: '__URL_BEST_FIT_RECOMMENDATION_AND_SUPPLIER_BRIEF__',
+  trade_off_comparison: '__URL_TRADE_OFF_COMPARISON__',
+  ecolens_chatai: '__URL_ECOLENS_CHATAI__',
+};
+const DIAGRAM_API = '__DIAGRAM_API_URL__';
+
+/* ============================================================
+   State
+   ============================================================ */
+const state = {
+  fileData: null,     // raw base64 (no data: prefix)
+  fileMime: null,
+  outputs: {},        // widget -> full text (used as chat context + upstream)
+  chatHistory: [],    // [{role, content}]
+};
+
+/* ============================================================
+   Field collection
+   ============================================================ */
+function collectFields() {
+  const fields = {};
+  document.querySelectorAll('[data-field]').forEach(el => {
+    const key = el.getAttribute('data-field');
+    const val = (el.value || '').trim();
+    if (val) fields[key] = val;
+  });
+  return fields;
+}
+
+/* ============================================================
+   File upload (drag + drop + browse) → base64
+   ============================================================ */
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const filePreview = document.getElementById('filePreview');
+const filePreviewImg = document.getElementById('filePreviewImg');
+const filePreviewMeta = document.getElementById('filePreviewMeta');
+
+dropzone.addEventListener('click', () => fileInput.click());
+['dragover','dragenter'].forEach(ev =>
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev =>
+  dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag'); }));
+dropzone.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files.length) handleFile(e.target.files[0]);
+});
+
+function handleFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const result = reader.result; // data:<mime>;base64,xxxx
+    const comma = result.indexOf(',');
+    state.fileData = result.slice(comma + 1);
+    state.fileMime = file.type || 'application/octet-stream';
+    filePreview.style.display = 'block';
+    if (state.fileMime.startsWith('image/')) {
+      filePreviewImg.src = result;
+      filePreviewImg.style.display = 'block';
+    } else {
+      filePreviewImg.style.display = 'none';
+    }
+    filePreviewMeta.textContent = `${file.name} · ${state.fileMime} · ${(file.size/1024).toFixed(0)} KB`;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ============================================================
+   Minimal per-line markdown renderer
+   ============================================================ */
+function inlineMd(text) {
+  // escape html first
+  let t = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  t = t.replace(/`([^`]+)`/g, '<code>$1</code>');
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+  t = t.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  return t;
+}
+
+function renderLine(container, rawLine) {
+  const line = rawLine.replace(/\s+$/,'');
+  const span = document.createElement('span');
+  span.className = 'md-line';
+
+  if (/^\s*---\s*$/.test(line) || /^\s*___\s*$/.test(line)) {
+    span.classList.add('hr');
+  } else if (/^###\s+/.test(line)) {
+    span.innerHTML = '<h3>' + inlineMd(line.replace(/^###\s+/,'')) + '</h3>';
+  } else if (/^##\s+/.test(line)) {
+    span.innerHTML = '<h2>' + inlineMd(line.replace(/^##\s+/,'')) + '</h2>';
+  } else if (/^#\s+/.test(line)) {
+    span.innerHTML = '<h1>' + inlineMd(line.replace(/^#\s+/,'')) + '</h1>';
+  } else if (/^\s*[-*]\s+/.test(line)) {
+    span.innerHTML = '<ul><li>' + inlineMd(line.replace(/^\s*[-*]\s+/,'')) + '</li></ul>';
+  } else if (/^\s*\d+\.\s+/.test(line)) {
+    span.innerHTML = '<ol><li>' + inlineMd(line.replace(/^\s*\d+\.\s+/,'')) + '</li></ol>';
+  } else if (line.trim() === '') {
+    span.innerHTML = '<br/>';
+  } else {
+    span.innerHTML = inlineMd(line);
+  }
+  container.appendChild(span);
+}
+
+/* ============================================================
+   Streaming fetch with typing effect (line-buffered)
+   ============================================================ */
+async function streamInto(widget, url, bodyObj, outputEl) {
+  const spinner = document.querySelector(`[data-spinner="${widget}"]`);
+  const errorEl = document.querySelector(`[data-error="${widget}"]`);
+  if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+  outputEl.innerHTML = '';
+  if (spinner) spinner.style.display = 'block';
+
+  // active-line cursor
+  const cursorLine = document.createElement('span');
+  cursorLine.className = 'md-line';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  cursor.innerHTML = '&nbsp;';
+
+  let fullText = '';
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bodyObj),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    if (spinner) spinner.style.display = 'none';
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    outputEl.appendChild(cursorLine);
+    cursorLine.appendChild(cursor);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      fullText += '';
+      let nl;
+      while ((nl = buffer.indexOf('\n')) >= 0) {
+        const line = buffer.slice(0, nl);
+        buffer = buffer.slice(nl + 1);
+        outputEl.insertBefore(makeLineFrag(line), cursorLine);
+        outputEl.scrollTop = outputEl.scrollHeight;
+      }
+      // show in-progress partial line on the cursor line
+      cursorLine.firstChild && (cursorLine.textContent = '');
+      cursorLine.innerHTML = inlineMd(buffer);
+      cursorLine.appendChild(cursor);
+      outputEl.scrollTop = outputEl.scrollHeight;
+    }
+    // flush remaining buffer
+    if (buffer.length) {
+      outputEl.insertBefore(makeLineFrag(buffer), cursorLine);
+    }
+    cursor.remove();
+    cursorLine.remove();
+
+    // reconstruct full text for context (strip html)
+    fullText = outputEl.innerText;
+    state.outputs[widget] = fullText;
+  } catch (err) {
+    if (spinner) spinner.style.display = 'none';
+    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+  }
+}
+
+function makeLineFrag(line) {
+  const tmp = document.createElement('div');
+  renderLine(tmp, line);
+  return tmp.firstChild || document.createTextNode('');
+}
+
+/* ============================================================
+   Build request body for a text widget
+   ============================================================ */
+const PROMPT_HINT = {
+  three_redesign_strategies: 'Generate the three redesign strategies.',
+  sustainability_problems_identified: 'Identify the sustainability problems.',
+  packaging_audit_and_evidence_classification: 'Perform the packaging audit and evidence classification.',
+  best_fit_recommendation_and_supplier_brief: 'Produce the best-fit recommendation and supplier brief.',
+  trade_off_comparison: 'Produce the trade-off comparison table.',
+};
+
+function buildTextBody(widget) {
+  const body = {
+    fields: collectFields(),
+    prompt: PROMPT_HINT[widget] || '',
+  };
+  if (state.fileData && state.fileMime) {
+    body.file_data = state.fileData;
+    body.file_mime = state.fileMime;
+  }
+  // Widgets that depend on upstream analysis.
+  const needsUpstream = ['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'];
+  if (needsUpstream.includes(widget)) {
+    body.upstream = {
+      'Three Redesign Strategies': state.outputs.three_redesign_strategies || '',
+      'Packaging Audit and Evidence Classification': state.outputs.packaging_audit_and_evidence_classification || '',
+      'Sustainability Problems Identified': state.outputs.sustainability_problems_identified || '',
+    };
+  }
+  return body;
+}
+
+async function runWidget(widget) {
+  const outputEl = document.querySelector(`[data-output="${widget}"]`);
+  await streamInto(widget, STREAM_URLS[widget], buildTextBody(widget), outputEl);
+}
+
+/* ============================================================
+   Image generation
+   ============================================================ */
+async function runImage(option) {
+  const key = 'image_' + option;
+  const spinner = document.querySelector(`[data-spinner="${key}"]`);
+  const errorEl = document.querySelector(`[data-error="${key}"]`);
+  const outputEl = document.querySelector(`[data-output="${key}"]`);
+  if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+  outputEl.innerHTML = '';
+  if (spinner) spinner.style.display = 'block';
+  try {
+    const resp = await fetch(DIAGRAM_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        option: option,
+        fields: collectFields(),
+        strategies: state.outputs.three_redesign_strategies || '',
+      }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (spinner) spinner.style.display = 'none';
+    if (data.error) throw new Error(data.error);
+    const img = document.createElement('img');
+    img.src = 'data:image/png;base64,' + data.image_base64;
+    img.alt = 'Packaging redesign option ' + option;
+    outputEl.innerHTML = '';
+    outputEl.appendChild(img);
+  } catch (err) {
+    if (spinner) spinner.style.display = 'none';
+    outputEl.innerHTML = '<div class="img-placeholder">No image</div>';
+    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+  }
+}
+
+/* ============================================================
+   Chat (streaming, with memory)
+   ============================================================ */
+const chatLog = document.getElementById('chatLog');
+const chatInput = document.getElementById('chatInput');
+const chatSend = document.getElementById('chatSend');
+
+function addBubble(role, text) {
+  const b = document.createElement('div');
+  b.className = 'bubble ' + (role === 'user' ? 'user' : 'bot');
+  b.textContent = text;
+  chatLog.appendChild(b);
+  chatLog.scrollTop = chatLog.scrollHeight;
+  return b;
+}
+
+async function sendChat() {
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  chatInput.value = '';
+  addBubble('user', msg);
+
+  const botBubble = addBubble('bot', '');
+  const errorEl = document.querySelector('[data-error="ecolens_chatai"]');
+  if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+
+  const body = {
+    message: msg,
+    history: state.chatHistory.slice(),
+    context: {
+      'Three Redesign Strategies': state.outputs.three_redesign_strategies || '',
+      'Sustainability Problems Identified': state.outputs.sustainability_problems_identified || '',
+      'Packaging Audit and Evidence Classification': state.outputs.packaging_audit_and_evidence_classification || '',
+      'Best-Fit Recommendation and Supplier Brief': state.outputs.best_fit_recommendation_and_supplier_brief || '',
+      'Trade-off Comparison': state.outputs.trade_off_comparison || '',
+    },
+  };
+  if (state.fileData && state.fileMime && state.fileMime.startsWith('image/')) {
+    body.file_data = state.fileData;
+    body.file_mime = state.fileMime;
+  }
+
+  let reply = '';
+  try {
+    const resp = await fetch(STREAM_URLS.ecolens_chatai, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.innerHTML = '&nbsp;';
+    botBubble.appendChild(cursor);
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      reply += decoder.decode(value, { stream: true });
+      botBubble.innerHTML = inlineMd(reply);
+      botBubble.appendChild(cursor);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+    cursor.remove();
+    botBubble.innerHTML = inlineMd(reply);
+
+    // persist memory
+    state.chatHistory.push({ role: 'user', content: msg });
+    state.chatHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    botBubble.textContent = '⚠️ ' + err.message;
+    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+  }
+}
+
+chatSend.addEventListener('click', sendChat);
+chatInput.addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
+/* ============================================================
+   Button wiring
+   ============================================================ */
+document.querySelectorAll('[data-run]').forEach(btn =>
+  btn.addEventListener('click', () => runWidget(btn.getAttribute('data-run'))));
+document.querySelectorAll('[data-image]').forEach(btn =>
+  btn.addEventListener('click', () => runImage(btn.getAttribute('data-image'))));
+
+async function runAll() {
+  const textWidgets = Object.keys(STREAM_URLS).filter(w => w !== 'ecolens_chatai');
+  // fire the three independent analyses in parallel first
+  const independent = ['three_redesign_strategies', 'sustainability_problems_identified', 'packaging_audit_and_evidence_classification'];
+  await Promise.all(independent.map(runWidget));
+  // then dependent widgets that build on the above
+  await Promise.all(['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'].map(runWidget));
+  // then images (depend on strategies)
+  await Promise.all(['A','B','C'].map(runImage));
+}
+document.getElementById('runAllBtn').addEventListener('click', runAll);
+document.getElementById('runAllBtn2').addEventListener('click', runAll);
+
+/* ============================================================
+   Theme toggle (persisted)
+   ============================================================ */
+const themeToggle = document.getElementById('themeToggle');
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  themeToggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+  try { localStorage.setItem('ecolens-theme', theme); } catch(e) {}
+}
+themeToggle.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  applyTheme(current === 'dark' ? 'light' : 'dark');
+});
+(function initTheme(){
+  let saved = 'light';
+  try { saved = localStorage.getItem('ecolens-theme') || 'light'; } catch(e) {}
+  applyTheme(saved);
+})();
+
+/* ============================================================
+   Reset — clears inputs + outputs but KEEPS chat memory,
+   per requirement "the chatbox can still remember the knowledge".
+   ============================================================ */
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.querySelectorAll('[data-field]').forEach(el => {
+    if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+  });
+  state.fileData = null; state.fileMime = null;
+  filePreview.style.display = 'none';
+  fileInput.value = '';
+  document.querySelectorAll('.output-text').forEach(el => el.innerHTML = '');
+  document.querySelectorAll('[data-output^="image_"]').forEach(el =>
+    el.innerHTML = '<div class="img-placeholder">No image yet</div>');
+  document.querySelectorAll('.panel-error').forEach(el => { el.classList.remove('show'); el.textContent=''; });
+  state.outputs = {};
+  // chatHistory intentionally preserved so the chatbot keeps its knowledge
+});
+</script>
+</body>
+</html>

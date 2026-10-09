@@ -1,0 +1,270 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: EcoLens - Sustainable Packaging Decision assistant (Bedrock + Lambda + API Gateway + S3)
+
+Globals:
+  Function:
+    Timeout: 25
+    MemorySize: 256
+    Runtime: python3.12
+
+Resources:
+
+  # ------------------------------------------------------------------
+  # IAM role shared by every Lambda. Grants Bedrock invoke + basic logs.
+  # ------------------------------------------------------------------
+  AppBedrockRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${AWS::StackName}-bedrock-role"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: BedrockInvoke
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource:
+                  - !Sub "arn:aws:bedrock:ap-southeast-5:${AWS::AccountId}:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0"
+                  - "arn:aws:bedrock:ap-southeast-5::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+                  - "arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/amazon.nova-canvas-v1:0"
+
+  # ------------------------------------------------------------------
+  # HTTP API for all streaming text/chat widgets.
+  # (Lambda Function URLs are unavailable in ap-southeast-5, so every
+  #  text endpoint routes through this HTTP API.)
+  # ------------------------------------------------------------------
+  AppHttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: "$default"
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - POST
+          - OPTIONS
+
+  # ------------------------------------------------------------------
+  # REST API for the buffered image-generation widget only.
+  # ------------------------------------------------------------------
+  AppApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowOrigin: "'*'"
+        AllowHeaders: "'Content-Type'"
+        AllowMethods: "'POST,OPTIONS'"
+
+  # ------------------------------------------------------------------
+  # Text / chat Lambdas (Flask + Lambda Web Adapter)
+  # ------------------------------------------------------------------
+  ThreeRedesignStrategiesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/three-redesign-strategies/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /three-redesign-strategies
+            Method: POST
+
+  SustainabilityProblemsIdentifiedFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/sustainability-problems-identified/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /sustainability-problems-identified
+            Method: POST
+
+  PackagingAuditFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/packaging-audit-and-evidence-classification/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /packaging-audit-and-evidence-classification
+            Method: POST
+
+  BestFitRecommendationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/best-fit-recommendation-and-supplier-brief/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /best-fit-recommendation-and-supplier-brief
+            Method: POST
+
+  TradeOffComparisonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/trade-off-comparison/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /trade-off-comparison
+            Method: POST
+
+  EcoLensChatAIFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/ecolens-chatai/
+      Handler: run.sh
+      Role: !GetAtt AppBedrockRole.Arn
+      Layers:
+        - !Sub "arn:aws:lambda:${AWS::Region}:753240598075:layer:LambdaAdapterLayerX86:27"
+      Environment:
+        Variables:
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/bootstrap
+          PORT: "8080"
+      Events:
+        Post:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AppHttpApi
+            Path: /ecolens-chatai
+            Method: POST
+
+  # ------------------------------------------------------------------
+  # Image Lambda (standard handler, buffered, via REST API)
+  # ------------------------------------------------------------------
+  ImageGeneratorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../backend/image-generator/
+      Handler: app.handler
+      Role: !GetAtt AppBedrockRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Events:
+        Post:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AppApi
+            Path: /
+            Method: POST
+        Options:
+          Type: Api
+          Properties:
+            RestApiId: !Ref AppApi
+            Path: /
+            Method: OPTIONS
+
+  # ------------------------------------------------------------------
+  # S3 static website hosting bucket
+  # ------------------------------------------------------------------
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${AWS::StackName}-frontend-${AWS::AccountId}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicReadForWebsite
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${FrontendBucket.Arn}/*"
+
+Outputs:
+  DiagramApiUrl:
+    Value: !Sub "https://${AppApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  ThreeRedesignStrategiesUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/three-redesign-strategies"
+  SustainabilityProblemsIdentifiedUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/sustainability-problems-identified"
+  PackagingAuditandEvidenceClassificationUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/packaging-audit-and-evidence-classification"
+  Best-FitRecommendationandSupplierBriefUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/best-fit-recommendation-and-supplier-brief"
+  Trade-offComparisonUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/trade-off-comparison"
+  EcoLensChatAIUrl:
+    Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ecolens-chatai"
+  WebsiteUrl:
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  BucketName:
+    Value: !Ref FrontendBucket

@@ -1,0 +1,92 @@
+name: Deploy EcoLens
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-southeast-5
+      STACK_NAME: ecolens
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up SAM CLI
+        uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: SAM build
+        run: sam build --template infra/template.yaml
+
+      - name: SAM deploy
+        run: |
+          sam deploy \
+            --stack-name "$STACK_NAME" \
+            --s3-bucket "${{ secrets.SAM_DEPLOY_BUCKET }}" \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --region "$AWS_REGION" \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
+
+      - name: Read stack outputs and inject URLs
+        run: |
+          get_output() {
+            aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+              --query "Stacks[0].Outputs[?OutputKey=='$1'].OutputValue" --output text
+          }
+
+          DIAGRAM_URL=$(get_output DiagramApiUrl)
+          sed -i "s|__DIAGRAM_API_URL__|$DIAGRAM_URL|g" frontend/index.html
+
+          URL=$(get_output ThreeRedesignStrategiesUrl)
+          sed -i "s|__URL_THREE_REDESIGN_STRATEGIES__|$URL|g" frontend/index.html
+
+          URL=$(get_output SustainabilityProblemsIdentifiedUrl)
+          sed -i "s|__URL_SUSTAINABILITY_PROBLEMS_IDENTIFIED__|$URL|g" frontend/index.html
+
+          URL=$(get_output PackagingAuditandEvidenceClassificationUrl)
+          sed -i "s|__URL_PACKAGING_AUDIT_AND_EVIDENCE_CLASSIFICATION__|$URL|g" frontend/index.html
+
+          URL=$(get_output Best-FitRecommendationandSupplierBriefUrl)
+          sed -i "s|__URL_BEST_FIT_RECOMMENDATION_AND_SUPPLIER_BRIEF__|$URL|g" frontend/index.html
+
+          URL=$(get_output Trade-offComparisonUrl)
+          sed -i "s|__URL_TRADE_OFF_COMPARISON__|$URL|g" frontend/index.html
+
+          URL=$(get_output EcoLensChatAIUrl)
+          sed -i "s|__URL_ECOLENS_CHATAI__|$URL|g" frontend/index.html
+
+          echo "Injected URLs:"
+          grep -E "__URL_|__DIAGRAM_API_URL__" frontend/index.html && echo "WARNING: placeholders remain" || echo "All placeholders replaced."
+
+      - name: Sync frontend to S3
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
+          aws s3 sync frontend/ "s3://$BUCKET" --cache-control no-cache --delete
+
+      - name: Print website URL
+        run: |
+          aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='WebsiteUrl'].OutputValue" --output text
