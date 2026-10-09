@@ -591,14 +591,14 @@
    URL placeholders — replaced by GitHub Actions sed at deploy
    ============================================================ */
 const STREAM_URLS = {
-  three_redesign_strategies: '__URL_THREE_REDESIGN_STRATEGIES__',
-  sustainability_problems_identified: '__URL_SUSTAINABILITY_PROBLEMS_IDENTIFIED__',
-  packaging_audit_and_evidence_classification: '__URL_PACKAGING_AUDIT_AND_EVIDENCE_CLASSIFICATION__',
-  best_fit_recommendation_and_supplier_brief: '__URL_BEST_FIT_RECOMMENDATION_AND_SUPPLIER_BRIEF__',
-  trade_off_comparison: '__URL_TRADE_OFF_COMPARISON__',
-  ecolens_chatai: '__URL_ECOLENS_CHATAI__',
+  three_redesign_strategies: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/three-redesign-strategies',
+  sustainability_problems_identified: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/sustainability-problems-identified',
+  packaging_audit_and_evidence_classification: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/packaging-audit-and-evidence-classification',
+  best_fit_recommendation_and_supplier_brief: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/best-fit-recommendation-and-supplier-brief',
+  trade_off_comparison: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/trade-off-comparison',
+  ecolens_chatai: 'https://u7l2hnho3f.execute-api.ap-southeast-5.amazonaws.com/ecolens-chatai',
 };
-const DIAGRAM_API = '__DIAGRAM_API_URL__';
+const DIAGRAM_API = 'https://ebyw9wi6pb.execute-api.ap-southeast-5.amazonaws.com/prod';
 
 /* True when a URL is still an unreplaced deploy placeholder (e.g. running
    locally via Live Preview before GitHub Actions injects the real URLs). */
