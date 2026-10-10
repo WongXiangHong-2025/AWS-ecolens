@@ -3,17 +3,29 @@ EcoLens — Packaging Redesign Visual (image generation widget).
 
 Standard Lambda handler (no Flask). Serves Options A, B and C: the frontend
 POSTs {"option": "A"|"B"|"C", "fields": {...}, "strategies": "<text>"} and
-receives {"image_base64": "..."} back. Calls amazon.nova-canvas-v1:0 via
-invoke_model and returns the base64 PNG as JSON.
+receives {"image_base64": "..."} back.
+
+Tries Bedrock's amazon.nova-canvas-v1:0 via invoke_model first. If that call
+fails (quota, access, region, etc.) and GEMINI_API_KEY is set, falls back to
+Gemini's Nano Banana Pro image model. Either way the handler returns the
+base64 PNG as JSON.
 """
 import base64
 import json
 import os
+import urllib.error
+import urllib.request
 
 import boto3
 
 REGION = os.environ.get("BEDROCK_REGION", os.environ.get("AWS_REGION", "ap-southeast-5"))
 IMAGE_MODEL_ID = "amazon.nova-canvas-v1:0"
+
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3-pro-image-preview")
+GEMINI_ENDPOINT = (
+    f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_IMAGE_MODEL}:generateContent"
+)
 
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
 
@@ -92,8 +104,37 @@ def build_prompt(option, fields, strategies):
     return prompt[:1024]
 
 
-def generate_image(option, fields, strategies):
-    prompt = build_prompt(option, fields, strategies)
+def generate_image_gemini(prompt):
+    request_body = {
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"responseModalities": ["IMAGE"]},
+    }
+    req = urllib.request.Request(
+        GEMINI_ENDPOINT,
+        data=json.dumps(request_body).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY,
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            payload = json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Gemini image request failed ({exc.code})") from exc
+
+    candidates = payload.get("candidates") or []
+    for candidate in candidates:
+        parts = (candidate.get("content") or {}).get("parts") or []
+        for part in parts:
+            inline_data = part.get("inlineData")
+            if inline_data and inline_data.get("data"):
+                return inline_data["data"]
+    raise RuntimeError("Gemini returned no image")
+
+
+def generate_image_bedrock(prompt):
     request_body = {
         "taskType": "TEXT_IMAGE",
         "textToImageParams": {"text": prompt},
@@ -111,6 +152,17 @@ def generate_image(option, fields, strategies):
     if not images:
         raise RuntimeError("Nova Canvas returned no images")
     return images[0]
+
+
+def generate_image(option, fields, strategies):
+    prompt = build_prompt(option, fields, strategies)
+    try:
+        return generate_image_bedrock(prompt)
+    except Exception as exc:
+        if not GEMINI_API_KEY:
+            raise
+        print(f"Bedrock image generation failed, falling back to Gemini: {exc}")
+        return generate_image_gemini(prompt)
 
 
 def _response(status, body_dict):
