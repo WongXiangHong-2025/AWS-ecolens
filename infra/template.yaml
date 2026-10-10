@@ -2,6 +2,16 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: EcoLens - Sustainable Packaging Decision assistant (Bedrock + Lambda + API Gateway + S3)
 
+Parameters:
+  GeminiApiKey:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      Optional Google Gemini API key for the Nano Banana Pro image model.
+      Leave empty to keep using Bedrock Nova Canvas. Pass at deploy time with
+      --parameter-overrides GeminiApiKey=... ; never commit a real key here.
+
 Globals:
   Function:
     Timeout: 25
@@ -209,8 +219,10 @@ Resources:
       Environment:
         Variables:
           # Nova Canvas is NOT available in ap-southeast-5. Call it in a region
-          # that offers it (us-east-1 / eu-west-1 / ap-northeast-2).
+          # that offers it (us-east-1 / eu-west-1 / ap-northeast-2). Only used
+          # as the fallback when GEMINI_API_KEY is empty.
           BEDROCK_REGION: us-east-1
+          GEMINI_API_KEY: !Ref GeminiApiKey
       Events:
         Post:
           Type: Api
