@@ -13,6 +13,8 @@ base64 PNG as JSON.
 import base64
 import json
 import os
+import random
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -142,21 +144,35 @@ def generate_image_gemini(prompt):
 
 
 def generate_image_pollinations(prompt):
-    """Free, key-less last resort. Returns base64 of the JPEG it serves."""
-    url = (
-        "https://image.pollinations.ai/prompt/"
-        + urllib.parse.quote(prompt[:800])
-        + "?width=1024&height=1024&nologo=true&model=flux"
-    )
-    req = urllib.request.Request(url, headers={"User-Agent": "EcoLens/1.0"})
-    try:
-        with urllib.request.urlopen(req, timeout=22) as resp:
-            data = resp.read()
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"Pollinations image request failed ({exc.code})") from exc
-    if not data:
-        raise RuntimeError("Pollinations returned no image")
-    return base64.b64encode(data).decode("ascii")
+    """Free, key-less last resort. Returns base64 of the JPEG it serves.
+
+    The service sheds load with 5xx/429 when several images are requested at
+    once, so retry a few times within the Lambda's time budget.
+    """
+    deadline = time.monotonic() + 22
+    last_error = "no attempt made"
+    for attempt in range(4):
+        url = (
+            "https://image.pollinations.ai/prompt/"
+            + urllib.parse.quote(prompt[:800])
+            + f"?width=1024&height=1024&nologo=true&model=flux&seed={random.randint(1, 999999)}"
+        )
+        req = urllib.request.Request(url, headers={"User-Agent": "EcoLens/1.0"})
+        remaining = deadline - time.monotonic()
+        if remaining < 4:
+            break
+        try:
+            with urllib.request.urlopen(req, timeout=min(remaining, 15)) as resp:
+                data = resp.read()
+            if data:
+                return base64.b64encode(data).decode("ascii")
+            last_error = "returned no image"
+        except urllib.error.HTTPError as exc:
+            last_error = f"failed ({exc.code})"
+        except Exception as exc:
+            last_error = f"failed ({exc})"
+        time.sleep(1.5 + attempt)
+    raise RuntimeError(f"Pollinations image request {last_error}")
 
 
 def generate_image_bedrock(model_id, prompt):
