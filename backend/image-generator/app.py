@@ -14,6 +14,7 @@ import base64
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import boto3
@@ -140,6 +141,24 @@ def generate_image_gemini(prompt):
     raise RuntimeError("Gemini returned no image")
 
 
+def generate_image_pollinations(prompt):
+    """Free, key-less last resort. Returns base64 of the JPEG it serves."""
+    url = (
+        "https://image.pollinations.ai/prompt/"
+        + urllib.parse.quote(prompt[:800])
+        + "?width=1024&height=1024&nologo=true&model=flux"
+    )
+    req = urllib.request.Request(url, headers={"User-Agent": "EcoLens/1.0"})
+    try:
+        with urllib.request.urlopen(req, timeout=22) as resp:
+            data = resp.read()
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Pollinations image request failed ({exc.code})") from exc
+    if not data:
+        raise RuntimeError("Pollinations returned no image")
+    return base64.b64encode(data).decode("ascii")
+
+
 def generate_image_bedrock(model_id, prompt):
     request_body = {
         "taskType": "TEXT_IMAGE",
@@ -174,6 +193,10 @@ def generate_image(option, fields, strategies):
             return generate_image_gemini(prompt)
         except Exception as exc:
             errors.append(str(exc))
+    try:
+        return generate_image_pollinations(prompt)
+    except Exception as exc:
+        errors.append(str(exc))
     raise RuntimeError(" | ".join(errors))
 
 
