@@ -58,6 +58,7 @@ jobs:
       - name: SAM deploy
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
           sam deploy \
             --stack-name "$STACK_NAME" \
@@ -66,7 +67,7 @@ jobs:
             --region "$AWS_REGION" \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --parameter-overrides "GeminiApiKey=${GEMINI_API_KEY}"
+            --parameter-overrides "GeminiApiKey=${GEMINI_API_KEY}" "HfToken=${HF_TOKEN}"
 
       - name: Read stack outputs and inject URLs
         run: |

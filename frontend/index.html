@@ -1930,7 +1930,10 @@ async function runAll() {
     // Images only need the strategies, so start them while the other analyses finish.
     let images = Promise.resolve();
     if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
-    else images = Promise.all(['A', 'B', 'C'].map(runImage));
+    else images = (async () => {
+      // One at a time: the free image fallback rejects parallel requests.
+      for (const o of ['A', 'B', 'C']) await runImage(o);
+    })();
     await others;
     await Promise.all([
       runWidget('best_fit_recommendation_and_supplier_brief'),
@@ -2098,22 +2101,22 @@ document.getElementById('downloadAllBtn').addEventListener('click', () => {
    Example fill — realistic Malaysian SME product
    ============================================================ */
 const EXAMPLE = {
-  f_product_name: 'Kuih bangkit coklat, 150g, isi 12 keping',
-  f_category: 'Snacks',
-  f_objective: 'Reduce virgin plastic and improve local recyclability',
-  f_shelf_life: '9 months',
-  f_contains: 'Coconut-based crumbly cookies with cocoa, sensitive to humidity',
-  f_sensitivity: 'Moisture sensitive',
-  f_current_materials: 'Clear plastic clamshell tray + printed flow-wrap film + outer paper sleeve',
-  f_sales_channel: 'Both retail and e-commerce',
-  f_recycled: '',
-  f_protection: 'Must stop crushing and keep out humidity in a hot climate',
-  f_cost_unit: '0.90 per unit',
-  f_cost_increase: 'No more than 8% increase',
-  f_claims: 'Recyclable (not verified)',
-  f_branding: 'Keep brand colours (red/gold) and logo on the front panel',
-  f_market: 'Malaysia and Singapore, planning export to EU later',
-  f_machinery: 'Existing flow-wrap sealing machine must remain',
+  f_product_name: 'Crumbs Chocolate Chip Cookies (Classic, Double Chocolate, and Almond variants), approx. 250g net weight',
+  f_category: 'Food and Beverage',
+  f_objective: 'Reduce virgin plastic use by transitioning to highly recyclable or compostable materials while maintaining product visibility and freshness.',
+  f_shelf_life: '6 months',
+  f_contains: 'Baked artisanal chocolate chip cookies. Ingredients: butter, wheat flour, caster sugar, brown sugar, eggs, chocolate chips, vanilla essence, baking soda (and almond/cocoa for variants).',
+  f_sensitivity: 'All three - moisture, light and oxygen sensitive',
+  f_current_materials: 'Rigid clear plastic (likely PET) cylindrical jar, metallic gold screw-on lid, and adhesive paper labels.',
+  f_sales_channel: 'Retail only',
+  f_recycled: '0% (Standard virgin PET plastic)',
+  f_protection: 'Protect against physical crushing during transit, moisture ingress, and oxygen exposure.',
+  f_cost_unit: 'RM 0.85 per unit',
+  f_cost_increase: 'No more than 10%',
+  f_claims: 'None',
+  f_branding: 'Minimalist design, distinct color-coded labels for different flavors (dark brown, light grey, beige), prominent display of the "crumbs" logo, and the "@crumbs_kl" social handle. Must allow consumers to see the cookies inside.',
+  f_market: 'Singapore and Malaysia',
+  f_machinery: 'Must be compatible with semi-automated volumetric filling.',
 };
 function fillExample() {
   Object.entries(EXAMPLE).forEach(([id, val]) => {

@@ -31,6 +31,8 @@ IMAGE_MODELS = [
 ]
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+HF_TOKEN = os.environ.get("HF_TOKEN", "")
+HF_IMAGE_MODEL = os.environ.get("HF_IMAGE_MODEL", "black-forest-labs/FLUX.1-schnell")
 GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image")
 GEMINI_ENDPOINT = (
     f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_IMAGE_MODEL}:generateContent"
@@ -143,6 +145,28 @@ def generate_image_gemini(prompt):
     raise RuntimeError("Gemini returned no image")
 
 
+def generate_image_huggingface(prompt):
+    """Hugging Face Inference (free monthly credits with a free account token)."""
+    req = urllib.request.Request(
+        f"https://router.huggingface.co/hf-inference/models/{HF_IMAGE_MODEL}",
+        data=json.dumps({"inputs": prompt[:1000]}).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {HF_TOKEN}",
+            "Content-Type": "application/json",
+            "Accept": "image/png",
+        },
+        method="POST",
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=25) as resp:
+            data = resp.read()
+    except urllib.error.HTTPError as exc:
+        raise RuntimeError(f"Hugging Face image request failed ({exc.code})") from exc
+    if not data:
+        raise RuntimeError("Hugging Face returned no image")
+    return base64.b64encode(data).decode("ascii")
+
+
 def generate_image_pollinations(prompt):
     """Free, key-less last resort. Returns base64 of the JPEG it serves.
 
@@ -207,6 +231,11 @@ def generate_image(option, fields, strategies):
     if GEMINI_API_KEY:
         try:
             return generate_image_gemini(prompt)
+        except Exception as exc:
+            errors.append(str(exc))
+    if HF_TOKEN:
+        try:
+            return generate_image_huggingface(prompt)
         except Exception as exc:
             errors.append(str(exc))
     try:

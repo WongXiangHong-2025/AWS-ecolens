@@ -12,6 +12,14 @@ Parameters:
       Leave empty to keep using Bedrock Nova Canvas. Pass at deploy time with
       --parameter-overrides GeminiApiKey=... ; never commit a real key here.
 
+  HfToken:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: >
+      Optional Hugging Face access token for free FLUX image generation.
+      Pass at deploy time with --parameter-overrides HfToken=... ; never commit it.
+
 Globals:
   Function:
     Timeout: 29
@@ -224,6 +232,7 @@ Resources:
           # as the fallback when GEMINI_API_KEY is empty.
           BEDROCK_REGION: us-east-1
           GEMINI_API_KEY: !Ref GeminiApiKey
+          HF_TOKEN: !Ref HfToken
       Events:
         Post:
           Type: Api
