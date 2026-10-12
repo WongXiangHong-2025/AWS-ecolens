@@ -6,6 +6,7 @@ with invoke_model_with_response_stream and streams collected text as text/plain.
 """
 import json
 import os
+import time
 
 import boto3
 from flask import Flask, Response, request, stream_with_context
@@ -14,6 +15,12 @@ app = Flask(__name__)
 
 REGION = os.environ.get("BEDROCK_REGION", os.environ.get("AWS_REGION", "ap-southeast-5"))
 MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+# API Gateway HTTP API cuts requests off at 30s and the Lambda timeout is 29s.
+# The response is buffered, so stop generating before then and return what we
+# have instead of letting the function time out with an HTTP 500.
+DEADLINE_SECONDS = float(os.environ.get("GENERATION_DEADLINE_SECONDS", "24"))
+TRUNCATED_NOTE = "\n\n_(Response shortened to fit the time limit. Click Regenerate for a fresh version.)_"
 
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
 
@@ -34,6 +41,10 @@ MY_SME_CONTEXT = """
 - TONE: Practical and encouraging for a small business owner who may be doing this alone and watching every ringgit. Avoid jargon; explain any technical term in one short phrase."""
 
 SYSTEM_PROMPT = SYSTEM_PROMPT + MY_SME_CONTEXT
+SYSTEM_PROMPT += (
+    "\n\nLENGTH LIMIT: Keep the whole response under about 700 words. "
+    "Prefer short bullet points over long paragraphs."
+)
 
 CORS_HEADERS = {
     "Access-Control-Allow-Origin": "*",
@@ -82,9 +93,10 @@ def build_messages(body):
 
 
 def generate(body):
+    started = time.monotonic()
     req = {
         "anthropic_version": "bedrock-2023-05-31",
-        "max_tokens": 4096,
+        "max_tokens": 2500,
         "temperature": 0.4,
         "system": SYSTEM_PROMPT,
         "messages": build_messages(body),
@@ -95,10 +107,15 @@ def generate(body):
         yield f"\n\n⚠️ Error contacting the model: {exc}"
         return
     for event in response["body"]:
+        if time.monotonic() - started > DEADLINE_SECONDS:
+            yield TRUNCATED_NOTE
+            return
         chunk = event.get("chunk")
         if not chunk:
             continue
         payload = json.loads(chunk["bytes"].decode("utf-8"))
+        if payload.get("delta", {}).get("stop_reason") == "max_tokens":
+            yield TRUNCATED_NOTE
         if payload.get("type") == "content_block_delta":
             text = payload.get("delta", {}).get("text")
             if text:

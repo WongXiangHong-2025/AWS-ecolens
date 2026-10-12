@@ -16,6 +16,7 @@ Request body:
 """
 import json
 import os
+import time
 
 import boto3
 from flask import Flask, Response, request, stream_with_context
@@ -24,6 +25,12 @@ app = Flask(__name__)
 
 REGION = os.environ.get("BEDROCK_REGION", os.environ.get("AWS_REGION", "ap-southeast-5"))
 MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
+
+# API Gateway HTTP API cuts requests off at 30s and the Lambda timeout is 29s.
+# The response is buffered, so stop generating before then and return what we
+# have instead of letting the function time out with an HTTP 500.
+DEADLINE_SECONDS = float(os.environ.get("GENERATION_DEADLINE_SECONDS", "24"))
+TRUNCATED_NOTE = "\n\n_(Response shortened to fit the time limit. Click Regenerate for a fresh version.)_"
 
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
 
@@ -99,6 +106,7 @@ def build_request(body):
 
 
 def generate(body):
+    started = time.monotonic()
     req = build_request(body)
     try:
         response = bedrock.invoke_model_with_response_stream(
@@ -108,10 +116,15 @@ def generate(body):
         yield f"\n\n⚠️ Error contacting the model: {exc}"
         return
     for event in response["body"]:
+        if time.monotonic() - started > DEADLINE_SECONDS:
+            yield TRUNCATED_NOTE
+            return
         chunk = event.get("chunk")
         if not chunk:
             continue
         payload = json.loads(chunk["bytes"].decode("utf-8"))
+        if payload.get("delta", {}).get("stop_reason") == "max_tokens":
+            yield TRUNCATED_NOTE
         if payload.get("type") == "content_block_delta":
             text = payload.get("delta", {}).get("text")
             if text:

@@ -127,7 +127,8 @@ Push to `main` (or run the **Deploy EcoLens** workflow manually). The workflow:
 - Each text Lambda is a standalone Flask app; `run.sh` (`python app.py`) is the
   Lambda handler, started by the Lambda Web Adapter layer. A `GET /` health route
   returns 200 for the adapter readiness check.
-- `Timeout` is 25s for text functions (the HTTP API hard-limits requests at 30s)
+- `Timeout` is 29s for text functions (the HTTP API hard-limits requests at 30s;
+  generation stops at ~24s and returns what it has, noting it was shortened)
   and 30s for the image function.
 - `sam validate` was **not** run locally during authoring (no SAM CLI in the
   build environment); the GitHub Actions `sam build` step is the first full

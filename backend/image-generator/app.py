@@ -162,7 +162,10 @@ def generate_image(option, fields, strategies):
         if not GEMINI_API_KEY:
             raise
         print(f"Bedrock image generation failed, falling back to Gemini: {exc}")
-        return generate_image_gemini(prompt)
+        try:
+            return generate_image_gemini(prompt)
+        except Exception as gemini_exc:
+            raise RuntimeError(f"Nova Canvas: {exc} | {gemini_exc}") from gemini_exc
 
 
 def _response(status, body_dict):
