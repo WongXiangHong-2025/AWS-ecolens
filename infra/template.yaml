@@ -51,6 +51,7 @@ Resources:
                   - "arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/amazon.nova-canvas-v1:0"
+                  - "arn:aws:bedrock:*::foundation-model/amazon.titan-image-generator-v2:0"
 
   # ------------------------------------------------------------------
   # HTTP API for all streaming text/chat widgets.

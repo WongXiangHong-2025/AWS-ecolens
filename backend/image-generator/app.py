@@ -19,10 +19,16 @@ import urllib.request
 import boto3
 
 REGION = os.environ.get("BEDROCK_REGION", os.environ.get("AWS_REGION", "ap-southeast-5"))
-IMAGE_MODEL_ID = "amazon.nova-canvas-v1:0"
+# Bedrock image models tried in order, with each one's prompt length limit.
+# Titan Image Generator v2 takes the same request format as Nova Canvas and is
+# the fallback for accounts (e.g. hackathon sandboxes) where Nova is blocked.
+IMAGE_MODELS = [
+    ("amazon.nova-canvas-v1:0", 1024),
+    ("amazon.titan-image-generator-v2:0", 512),
+]
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3-pro-image-preview")
+GEMINI_IMAGE_MODEL = os.environ.get("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image")
 GEMINI_ENDPOINT = (
     f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_IMAGE_MODEL}:generateContent"
 )
@@ -134,7 +140,7 @@ def generate_image_gemini(prompt):
     raise RuntimeError("Gemini returned no image")
 
 
-def generate_image_bedrock(prompt):
+def generate_image_bedrock(model_id, prompt):
     request_body = {
         "taskType": "TEXT_IMAGE",
         "textToImageParams": {"text": prompt},
@@ -146,26 +152,29 @@ def generate_image_bedrock(prompt):
             "quality": "standard",
         },
     }
-    response = bedrock.invoke_model(modelId=IMAGE_MODEL_ID, body=json.dumps(request_body))
+    response = bedrock.invoke_model(modelId=model_id, body=json.dumps(request_body))
     payload = json.loads(response["body"].read())
     images = payload.get("images") or []
     if not images:
-        raise RuntimeError("Nova Canvas returned no images")
+        raise RuntimeError(f"{model_id} returned no images")
     return images[0]
 
 
 def generate_image(option, fields, strategies):
     prompt = build_prompt(option, fields, strategies)
-    try:
-        return generate_image_bedrock(prompt)
-    except Exception as exc:
-        if not GEMINI_API_KEY:
-            raise
-        print(f"Bedrock image generation failed, falling back to Gemini: {exc}")
+    errors = []
+    for model_id, max_chars in IMAGE_MODELS:
+        try:
+            return generate_image_bedrock(model_id, prompt[:max_chars])
+        except Exception as exc:
+            print(f"{model_id} image generation failed: {exc}")
+            errors.append(f"{model_id}: {exc}")
+    if GEMINI_API_KEY:
         try:
             return generate_image_gemini(prompt)
-        except Exception as gemini_exc:
-            raise RuntimeError(f"Nova Canvas: {exc} | {gemini_exc}") from gemini_exc
+        except Exception as exc:
+            errors.append(str(exc))
+    raise RuntimeError(" | ".join(errors))
 
 
 def _response(status, body_dict):
