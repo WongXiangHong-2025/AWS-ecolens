@@ -145,26 +145,62 @@ def generate_image_gemini(prompt):
     raise RuntimeError("Gemini returned no image")
 
 
-def generate_image_huggingface(prompt):
-    """Hugging Face Inference (free monthly credits with a free account token)."""
+HF_PROVIDERS = ["together", "nscale", "fal-ai"]
+
+
+def _hf_request(url, payload, token, accept="application/json"):
     req = urllib.request.Request(
-        f"https://router.huggingface.co/hf-inference/models/{HF_IMAGE_MODEL}",
-        data=json.dumps({"inputs": prompt[:1000]}).encode("utf-8"),
+        url,
+        data=json.dumps(payload).encode("utf-8"),
         headers={
-            "Authorization": f"Bearer {HF_TOKEN}",
+            "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
-            "Accept": "image/png",
+            "Accept": accept,
         },
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            data = resp.read()
-    except urllib.error.HTTPError as exc:
-        raise RuntimeError(f"Hugging Face image request failed ({exc.code})") from exc
-    if not data:
-        raise RuntimeError("Hugging Face returned no image")
-    return base64.b64encode(data).decode("ascii")
+    with urllib.request.urlopen(req, timeout=20) as resp:
+        return resp.read()
+
+
+def generate_image_huggingface(prompt):
+    """Hugging Face Inference Providers (OpenAI-style images API, billed to the
+    free monthly HF credits). Tries each provider until one returns an image."""
+    errors = []
+    for provider in HF_PROVIDERS:
+        try:
+            if provider == "fal-ai":
+                raw = _hf_request(
+                    f"https://router.huggingface.co/fal-ai/{HF_IMAGE_MODEL}",
+                    {"prompt": prompt[:1000]},
+                    HF_TOKEN,
+                )
+                payload = json.loads(raw)
+                images = payload.get("images") or []
+                if images and images[0].get("url"):
+                    with urllib.request.urlopen(images[0]["url"], timeout=15) as img:
+                        return base64.b64encode(img.read()).decode("ascii")
+            else:
+                raw = _hf_request(
+                    f"https://router.huggingface.co/{provider}/v1/images/generations",
+                    {
+                        "model": HF_IMAGE_MODEL,
+                        "prompt": prompt[:1000],
+                        "response_format": "b64_json",
+                        "n": 1,
+                    },
+                    HF_TOKEN,
+                )
+                data = (json.loads(raw).get("data") or [{}])[0]
+                if data.get("b64_json"):
+                    return data["b64_json"]
+            errors.append(f"{provider}: no image")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read()[:120].decode("utf-8", "ignore").replace(chr(10), " ")
+            errors.append(f"{provider} {exc.code} {detail}")
+        except Exception as exc:
+            errors.append(f"{provider}: {exc}")
+    raise RuntimeError("Hugging Face failed (" + "; ".join(errors) + ")")
 
 
 def generate_image_pollinations(prompt):
