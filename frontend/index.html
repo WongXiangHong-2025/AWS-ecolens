@@ -469,18 +469,15 @@
   .strategy-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr); gap: 1.6rem; align-items: start; }
   .strategy-visuals h4 { font-size: .95rem; font-weight: 800; }
   .vis-note { color: var(--muted); font-size: .82rem; margin: .2rem 0 .9rem; }
-  .strategy-visuals .img-grid { grid-template-columns: 1fr; gap: .9rem; }
   @media (max-width: 960px) {
     .strategy-layout { grid-template-columns: 1fr; }
     .strategy-visuals { padding-top: 1.1rem; border-top: 1px solid var(--border); }
-    .strategy-visuals .img-grid { grid-template-columns: repeat(3, 1fr); }
   }
-  @media (max-width: 600px) { .strategy-visuals .img-grid { grid-template-columns: 1fr; } }
-  .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
+  .img-grid { display: grid; grid-template-columns: 1fr; gap: 1.1rem; }
   .img-card { border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: var(--panel-2); }
   .img-card-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .75rem .9rem; }
   .img-card-head strong { font-size: .9rem; }
-  .img-frame { position: relative; aspect-ratio: 1 / 1; background: var(--panel); border-top: 1px solid var(--border); }
+  .img-frame { position: relative; aspect-ratio: 7 / 4; background: var(--panel); border-top: 1px solid var(--border); }
   .img-frame [data-output] { width: 100%; height: 100%; display: grid; place-items: center; }
   .img-frame img { width: 100%; height: 100%; object-fit: cover; }
   .img-frame .skeleton { position: absolute; inset: 0; padding: 0; }
@@ -1100,28 +1097,12 @@
                 <p class="vis-note" data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p>
                 <div class="img-grid">
                   <div class="img-card">
-                    <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A" data-i18n="regen">↻ Regenerate</button></div>
+                    <div class="img-card-head"><strong data-i18n="optAll">Options A · B · C</strong><button type="button" class="btn btn-ghost btn-sm" data-image="combined" data-i18n="regen">↻ Regenerate</button></div>
                     <div class="img-frame">
-                      <div class="skeleton" data-spinner="image_A"><i></i></div>
-                      <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                      <div class="skeleton" data-spinner="image_combined"><i></i></div>
+                      <div data-output="image_combined"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
                     </div>
-                    <div class="panel-error" data-error="image_A"></div>
-                  </div>
-                  <div class="img-card">
-                    <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B" data-i18n="regen">↻ Regenerate</button></div>
-                    <div class="img-frame">
-                      <div class="skeleton" data-spinner="image_B"><i></i></div>
-                      <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-                    </div>
-                    <div class="panel-error" data-error="image_B"></div>
-                  </div>
-                  <div class="img-card">
-                    <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C" data-i18n="regen">↻ Regenerate</button></div>
-                    <div class="img-frame">
-                      <div class="skeleton" data-spinner="image_C"><i></i></div>
-                      <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-                    </div>
-                    <div class="panel-error" data-error="image_C"></div>
+                    <div class="panel-error" data-error="image_combined"></div>
                   </div>
                 </div>
               </aside>
@@ -1331,12 +1312,12 @@ const I18N = {
     w_problems: 'Sustainability problems identified', w_audit: 'Packaging audit & evidence classification',
     d_rec: 'The option that best fits your constraints, plus a brief to send to your supplier.',
     d_str: 'Three improvement paths: a quick win, a balanced redesign and an ambitious option.',
-    d_vis: 'AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.',
+    d_vis: 'One AI concept image showing all three options side by side, labelled A, B and C. Treat it as inspiration, not final artwork.',
     d_trd: 'How each option compares with your current packaging.',
     d_prb: 'Sustainability issues in your current packaging, by priority.',
     d_aud: 'What EcoLens can see in your packaging, and how sure it is.',
     copy: 'Copy brief', download: 'Download', regen: '↻ Regenerate',
-    optA: 'Option A — Quick win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
+    optAll: 'Options A · B · C',
     noImage: 'No image yet',
     emptyPanel: 'This section appears here once you generate your report.',
     panelWaiting: 'Waiting for earlier sections to finish…',
@@ -1443,12 +1424,12 @@ const I18N = {
     w_problems: 'Masalah kelestarian dikenal pasti', w_audit: 'Audit pembungkusan & klasifikasi bukti',
     d_rec: 'Pilihan paling sesuai dengan kekangan anda, berserta ringkasan untuk dihantar kepada pembekal.',
     d_str: 'Tiga laluan penambahbaikan: menang cepat, reka bentuk seimbang dan pilihan bercita-cita tinggi.',
-    d_vis: 'Konsep AI bagi setiap pilihan, dijana daripada strategi. Anggap sebagai inspirasi, bukan reka bentuk muktamad.',
+    d_vis: 'Satu imej konsep AI menunjukkan ketiga-tiga pilihan sebelah-menyebelah, berlabel A, B dan C. Anggap sebagai inspirasi, bukan reka bentuk muktamad.',
     d_trd: 'Perbandingan setiap pilihan dengan pembungkusan semasa anda.',
     d_prb: 'Isu kelestarian dalam pembungkusan semasa anda, mengikut keutamaan.',
     d_aud: 'Apa yang EcoLens nampak pada pembungkusan anda, dan sejauh mana ia pasti.',
     copy: 'Salin ringkasan', download: 'Muat turun', regen: '↻ Jana semula',
-    optA: 'Pilihan A — Menang cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
+    optAll: 'Pilihan A · B · C',
     noImage: 'Tiada imej lagi',
     emptyPanel: 'Bahagian ini akan dipaparkan selepas anda menjana laporan.',
     panelWaiting: 'Menunggu bahagian sebelumnya siap…',
@@ -1524,7 +1505,7 @@ const MODULES = {
   packaging_audit_and_evidence_classification: 'audit',
   best_fit_recommendation_and_supplier_brief: 'recommendation',
   trade_off_comparison: 'tradeoff',
-  image_A: 'strategies', image_B: 'strategies', image_C: 'strategies',
+  image_combined: 'strategies',
 };
 const modStatus = {};
 
@@ -1565,7 +1546,7 @@ function renderStatus() {
 const FLOW = {
   audit: ['packaging_audit_and_evidence_classification'],
   problems: ['sustainability_problems_identified'],
-  strategies: ['three_redesign_strategies', 'image_A', 'image_B', 'image_C'],
+  strategies: ['three_redesign_strategies', 'image_combined'],
   tradeoff: ['trade_off_comparison'],
   recommendation: ['best_fit_recommendation_and_supplier_brief'],
 };
@@ -1959,8 +1940,8 @@ function imagePlaceholder() {
   return '<div class="img-placeholder" data-i18n="noImage">' + t('noImage') + '</div>';
 }
 
-async function runImage(option) {
-  const key = 'image_' + option;
+async function runImage() {
+  const key = 'image_combined';
   const spinner = document.querySelector(`[data-spinner="${key}"]`);
   const errorEl = document.querySelector(`[data-error="${key}"]`);
   const outputEl = document.querySelector(`[data-output="${key}"]`);
@@ -1982,7 +1963,7 @@ async function runImage(option) {
   try {
     const resp = await fetch(DIAGRAM_API, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ option, fields: collectFields(), strategies: state.outputs.three_redesign_strategies || '' }),
+      body: JSON.stringify({ fields: collectFields(), strategies: state.outputs.three_redesign_strategies || '' }),
     });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     const data = await resp.json();
@@ -1990,7 +1971,7 @@ async function runImage(option) {
     if (data.error) throw new Error(data.error);
     const img = document.createElement('img');
     img.src = 'data:image/png;base64,' + data.image_base64;
-    img.alt = 'Packaging redesign option ' + option;
+    img.alt = 'Packaging redesign options A, B and C';
     outputEl.innerHTML = ''; outputEl.appendChild(img);
     setStatus(key, 'done');
   } catch (err) {
@@ -2107,9 +2088,9 @@ const RUN_STEPS = [
   ['problems', () => runWidget('sustainability_problems_identified')],
   ['strategies', async () => {
     await runWidget('three_redesign_strategies');
-    // The concept images are drawn from the strategies; skip them when the inputs were rejected.
-    if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
-    else await Promise.all(['A', 'B', 'C'].map(runImage));
+    // The concept image is drawn from the strategies; skip it when the inputs were rejected.
+    if (checkWrongInput()) setStatus('image_combined', 'idle');
+    else await runImage();
   }],
   ['tradeoff', () => runWidget('trade_off_comparison')],
   ['recommendation', () => runWidget('best_fit_recommendation_and_supplier_brief')],
@@ -2144,7 +2125,7 @@ mobileRunBtn.addEventListener('click', runAll);
 document.querySelectorAll('[data-run]').forEach(btn =>
   btn.addEventListener('click', () => { if (validateInputs()) runWidget(btn.getAttribute('data-run')); }));
 document.querySelectorAll('[data-image]').forEach(btn =>
-  btn.addEventListener('click', () => { if (validateInputs()) runImage(btn.getAttribute('data-image')); }));
+  btn.addEventListener('click', () => { if (validateInputs()) runImage(); }));
 
 /* ============================================================
    Chat (streaming, with memory)

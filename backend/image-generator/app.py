@@ -1,10 +1,11 @@
 """
 EcoLens — Packaging Redesign Visual (image generation widget).
 
-Standard Lambda handler (no Flask). Serves Options A, B and C: the frontend
-POSTs {"option": "A"|"B"|"C", "fields": {...}, "strategies": "<text>"} and
-receives {"image_base64": "..."} back. Calls amazon.nova-canvas-v1:0 via
-invoke_model and returns the base64 PNG as JSON.
+Standard Lambda handler (no Flask). Generates ONE combined concept image that
+shows all three redesign options (A, B and C) side by side, each labelled:
+the frontend POSTs {"fields": {...}, "strategies": "<text>"} and receives
+{"image_base64": "..."} back. Calls amazon.nova-canvas-v1:0 via invoke_model
+and returns the base64 PNG as JSON.
 """
 import base64
 import json
@@ -24,82 +25,55 @@ CORS_HEADERS = {
     "Content-Type": "application/json",
 }
 
-COMMON_RULES = """
+# The essential instructions come first so the 1024-character Nova Canvas
+# prompt limit only ever truncates the trailing context, never the rules.
+HEADER = (
+    "ONE photorealistic product photo: THREE redesigned versions of the SAME package "
+    "side by side in one frame, each labelled with a large letter A, B or C below it. "
+    "A=Quick Win: same format, barely noticeable changes (thinner material, recycling "
+    "symbol, slightly smaller). "
+    "B=Balanced: same format, noticeable practical changes (material substitution, "
+    "recyclability markings, modest structural change). "
+    "C=Ambitious: bold transformation (mono-material, paper or kraft structure), still "
+    "retail-ready. "
+    "All three: keep brand colours, logo and identity; studio lighting, clean neutral "
+    "background; closed sealed packaging only; no hands, people or diagrams; no text "
+    "except the A, B, C labels."
+)
 
---- STRICT RULES ---
-
-2. BRANDING: Strictly follow the branding requirements stated above. Preserve all brand colours, logo placement, typography style, and overall visual identity. Do not alter or remove any brand elements.
-
-5. PHOTO STYLE: Photorealistic commercial product photograph. Studio lighting, clean neutral background, realistic material textures, professional retail quality. Same camera angle and perspective as a standard retail shelf product shot.
-
-6. SHOW ONLY: The closed sealed finished external packaging. No open packaging, no exposed product contents, no hands, no people, no diagrams, no comparison graphics, no text callouts outside the package."""
-
-OPTION_RULES = {
-    "A": (
-        "You are generating a photorealistic commercial product photograph of a SUBTLY "
-        "REDESIGNED version of an existing product package.",
-        """
-1. PACKAGING FORMAT: Keep the EXACT same packaging format and structure as the current packaging described above — same shape, same format type (flow-wrap pouch, stand-up pouch, folding carton box, bottle, tray, sachet). Do NOT change the packaging format or structure.
-
-3. MACHINERY: Respect the packaging machinery constraints stated above. Do not propose a packaging format that would require new machinery.
-
-4. CHANGES: Apply ONLY the subtle Option A Quick Win changes described in the redesign strategy — slightly reduced dimensions, thinner material, added recycling symbol, or minor structural simplification. Changes must be minimal and barely noticeable."""
-        + COMMON_RULES
-        + "\n\nThe result must be immediately recognisable as the same product and brand, with only a very subtle sustainable improvement visible.",
-    ),
-    "B": (
-        "You are generating a photorealistic commercial product photograph of a MODERATELY "
-        "REDESIGNED version of an existing product package.",
-        """
-1. PACKAGING FORMAT: Keep the EXACT same packaging format and structure as the current packaging unless Option B explicitly states a format change.
-
-3. MACHINERY: Respect the packaging machinery constraints stated above unless Option B explicitly allows a change.
-
-4. CHANGES: Apply the Option B Balanced Redesign changes — material substitution, improved recyclability markings, modest structural changes, or recycled content integration. Changes should be noticeable but not radical."""
-        + COMMON_RULES
-        + "\n\nThe result must be recognisable as the same product and brand, with a clear but practical sustainable improvement visible.",
-    ),
-    "C": (
-        "You are generating a photorealistic commercial product photograph of an AMBITIOUSLY "
-        "REDESIGNED version of an existing product package.",
-        """
-1. PACKAGING FORMAT: Apply the significant format or material transformation described in Option C — mono-material structure, paper-based format, reusable packaging, or alternative structure. If Option C does not specify a new format, keep the original format but apply a major material change.
-
-3. MACHINERY: Note any machinery changes implied by Option C. The packaging should look commercially manufacturable even if it represents a future investment.
-
-4. CHANGES: Apply the bold Option C Ambitious Redesign changes — significant material transformation, new structure, or alternative format. Forward-looking and aspirational but still commercially plausible and retail-ready. Use natural sustainable material aesthetics (kraft paper, matte film, recycled board) where relevant."""
-        + COMMON_RULES
-        + "\n\nThe result should feel like a bold but real next-generation version of the same brand and product.",
-    ),
-}
+# Nova Canvas text prompt limit.
+MAX_PROMPT = 1024
 
 
-def build_prompt(option, fields, strategies):
-    header, rules = OPTION_RULES.get(option.upper(), OPTION_RULES["A"])
+def _clip(value, limit):
+    return (value or "")[:limit]
+
+
+def build_prompt(fields, strategies):
     f = fields or {}
     context = (
-        f"\n\nProduct: {f.get('Product Name and Type', '')}"
-        f"\nProduct category: {f.get('Product Category', '')}"
-        f"\nCurrent packaging materials: {f.get('Current Packaging Materials', '')}"
-        f"\nBranding requirements: {f.get('Branding Requirements', '')}"
-        f"\nPackaging machinery constraints: {f.get('Packaging Machinery Constraints', '')}"
+        f" Product: {_clip(f.get('Product Name and Type'), 50)}."
+        f" Category: {_clip(f.get('Product Category'), 30)}."
+        f" Materials: {_clip(f.get('Current Packaging Materials'), 70)}."
+        f" Branding: {_clip(f.get('Branding Requirements'), 70)}."
     )
-    strategy_block = ""
-    if strategies:
-        strategy_block = f"\n\nRedesign strategy to apply (Option {option.upper()}):\n{strategies[:1500]}"
-    prompt = header + context + strategy_block + rules
-    # Nova Canvas text prompt limit is 1024 characters.
-    return prompt[:1024]
+    prompt = HEADER + context
+    # Fill whatever room is left with the strategies text.
+    remaining = MAX_PROMPT - len(prompt) - len(" Strategies: ")
+    if strategies and remaining > 40:
+        prompt += f" Strategies: {_clip(strategies, remaining)}"
+    return prompt[:MAX_PROMPT]
 
 
-def generate_image(option, fields, strategies):
-    prompt = build_prompt(option, fields, strategies)
+def generate_image(fields, strategies):
+    prompt = build_prompt(fields, strategies)
     request_body = {
         "taskType": "TEXT_IMAGE",
         "textToImageParams": {"text": prompt},
         "imageGenerationConfig": {
             "numberOfImages": 1,
-            "width": 1024,
+            # Wide frame so the three labelled options sit side by side.
+            "width": 1792,
             "height": 1024,
             "cfgScale": 7.5,
             "quality": "standard",
@@ -138,12 +112,11 @@ def handler(event, context):
     except Exception:
         body = {}
 
-    option = body.get("option", "A")
     fields = body.get("fields") or {}
     strategies = body.get("strategies") or ""
 
     try:
-        image_b64 = generate_image(option, fields, strategies)
+        image_b64 = generate_image(fields, strategies)
     except Exception as exc:
         return _response(500, {"error": str(exc)})
 

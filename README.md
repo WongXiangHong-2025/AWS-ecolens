@@ -43,7 +43,7 @@ backend/
   best-fit-recommendation-and-supplier-brief/
   trade-off-comparison/
   ecolens-chatai/
-  image-generator/                  app.py  requirements.txt   (serves Option A/B/C)
+  image-generator/                  app.py  requirements.txt   (one image: Options A/B/C labelled)
 frontend/
   index.html                        all 27 widgets, themes, streaming UI
 infra/
@@ -112,8 +112,9 @@ Push to `main` (or run the **Deploy EcoLens** workflow manually). The workflow:
 - **File upload**: the dropzone reads the file with `FileReader.readAsDataURL()`,
   strips the `data:<mime>;base64,` prefix, and sends `file_data` (raw base64) +
   `file_mime` in the POST body. Optional uploads are omitted when no file is set.
-- **Image widgets** POST `{ option, fields, strategies }` to the REST API and
-  render the returned base64 PNG.
+- **Image widget** POSTs `{ fields, strategies }` to the REST API and renders
+  the returned base64 PNG — one wide image showing Options A, B and C side by
+  side, each labelled.
 - **Chat** sends the full `history` plus a `context` object containing every
   analysis output, so the assistant answers with knowledge of the whole report.
   The **Reset** button clears inputs and outputs but deliberately **keeps the chat
