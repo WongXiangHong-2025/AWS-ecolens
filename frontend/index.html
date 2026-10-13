@@ -223,11 +223,13 @@
      ============================================================ */
   .section { padding: 5.5rem 0; }
   .section.alt { background: var(--bg-alt); border-block: 1px solid var(--border); }
+  .section.alt + .section.alt { border-top: none; padding-top: 0; }
   .section-head { max-width: 680px; margin: 0 auto 3rem; text-align: center; }
   .eyebrow { display: inline-block; font-size: .78rem; font-weight: 800; letter-spacing: .12em;
     text-transform: uppercase; color: var(--accent); margin-bottom: .8rem; }
   .section-head h2 { font-size: clamp(1.75rem, 3.4vw, 2.6rem); font-weight: 800; letter-spacing: -.03em; }
   .section-head p { margin-top: 1rem; color: var(--muted); font-size: 1.06rem; }
+  .an-example { margin-top: 1.3rem; }
   @media (max-width: 700px) { .section { padding: 3.8rem 0; } .section-head { margin-bottom: 2.2rem; } }
 
   .card { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow); }
@@ -236,8 +238,6 @@
   .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
   .feature { padding: 1.7rem; transition: transform .2s ease, border-color .2s ease; }
   .feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
-  .f-icon { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center;
-    font-size: 1.45rem; background: var(--accent-soft); margin-bottom: 1.1rem; }
   .feature h3 { font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: .45rem; }
   .feature p { color: var(--muted); font-size: .95rem; }
   @media (max-width: 960px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -299,7 +299,7 @@
   .field label { display: flex; align-items: center; gap: .45rem; font-weight: 700; font-size: .9rem; margin-bottom: .4rem; }
   .req { color: var(--danger); }
   .tag { font-size: .7rem; font-weight: 700; padding: .1rem .5rem; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
-  input[type="text"], select {
+  input[type="text"], select, textarea.autogrow {
     width: 100%; font: inherit; font-size: .95rem; color: var(--text); background: var(--panel);
     border: 1.5px solid var(--border); border-radius: 12px; padding: .72rem .85rem;
     transition: border-color .15s ease, box-shadow .15s ease;
@@ -309,8 +309,9 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%236b8a7e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat; background-position: right .9rem center;
   }
-  input[type="text"]:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
-  input.invalid { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
+  input[type="text"]:focus, select:focus, textarea.autogrow:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+  textarea.autogrow { display: block; resize: none; overflow: hidden; }
+  input.invalid, textarea.invalid { border-color: var(--danger); box-shadow: 0 0 0 4px var(--danger-soft); }
   ::placeholder { color: var(--muted); opacity: .75; }
   .cost-wrap { position: relative; }
   .cost-wrap .prefix { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%);
@@ -366,7 +367,52 @@
   /* ============================================================
      Report
      ============================================================ */
-  .report { margin-top: 3.5rem; scroll-margin-top: 84px; }
+  .subpage .section { padding-top: 2rem; min-height: calc(100vh - 68px); }
+  .back-link { display: inline-flex; align-items: center; gap: .4rem; margin-bottom: 1.4rem;
+    font-weight: 700; font-size: .92rem; color: var(--accent); text-decoration: none; }
+  .back-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .report-empty { padding: 3rem 1.5rem; text-align: center; display: grid; justify-items: center; gap: .8rem; }
+  .report-empty h2 { font-size: 1.5rem; font-weight: 800; }
+  .report-empty p { color: var(--muted); max-width: 44ch; margin-bottom: .4rem; }
+  .view-report { display: none; }
+  .report-ready .view-report { display: flex; margin-top: .6rem; }
+
+  /* Analysis process flow: done → processing → pending */
+  .flow-card { padding: 1.3rem 1.5rem 1.1rem; margin-bottom: 1.2rem; }
+  .flow-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; margin-bottom: 1.1rem; }
+  .flow-head h3 { font-size: 1rem; font-weight: 800; }
+  .flow-count { font-size: .85rem; font-weight: 700; color: var(--muted); }
+  .flow { list-style: none; margin: 0 -1.2rem 1.1rem; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); column-gap: .3rem; }
+  .flow-step { position: relative; display: flex; flex-direction: column; align-items: center; gap: .45rem;
+    text-align: center; padding: 0 .4rem; cursor: pointer; }
+  .flow-step::before { content: ""; position: absolute; top: 19px; left: calc(-50% - .3rem + 26px); right: calc(50% + 26px);
+    height: 3px; border-radius: 3px; background: var(--border); transition: background .3s ease; }
+  .flow-step:first-child::before { display: none; }
+  .flow-step:not([data-status="waiting"])::before { background: var(--accent); }
+  .flow-num { position: relative; width: 40px; height: 40px; border-radius: 50%; flex: none; display: grid; place-items: center;
+    font-weight: 800; font-size: .95rem; background: var(--panel-2); color: var(--muted); border: 2px solid var(--border);
+    transition: background .2s ease, border-color .2s ease, color .2s ease; }
+  .flow-title { font-weight: 700; font-size: .88rem; line-height: 1.3; }
+  .flow-step:hover .flow-title { color: var(--accent); }
+  .flow-step .pill { margin-left: 0; }
+  .flow-step[data-status="waiting"] .flow-title { color: var(--muted); }
+  .flow-step[data-status="done"] .flow-num { background: var(--accent); border-color: var(--accent); color: var(--on-accent); font-size: 0; }
+  .flow-step[data-status="done"] .flow-num::after { content: "✓"; font-size: 1.05rem; }
+  .flow-step[data-status="running"] .flow-num { background: var(--mid-bg); border-color: transparent; color: var(--mid-fg); }
+  .flow-step[data-status="running"] .flow-num::after { content: ""; position: absolute; inset: -5px; border-radius: 50%;
+    border: 3px solid transparent; border-top-color: #e5a50a; border-right-color: #e5a50a; animation: spin .9s linear infinite; }
+  .flow-step[data-status="error"] .flow-num { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+  .flow-step[data-status="skipped"] .flow-num { border-style: dashed; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .flow-card .progress { margin-bottom: 0; }
+  @media (max-width: 700px) {
+    .flow { grid-template-columns: 1fr; margin-inline: 0; }
+    .flow-step { flex-direction: row; text-align: left; gap: .8rem; padding: .45rem 0; }
+    .flow-step::before { top: calc(-50% + 20px); bottom: calc(50% + 20px); left: 18.5px; right: auto; width: 3px; height: auto; }
+    .flow-step .pill { margin-left: auto; }
+  }
+
+  .report { scroll-margin-top: 84px; }
   .report-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.2rem; }
   .report-head .eyebrow { margin-bottom: .4rem; }
   .report-head h2 { font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: 800; letter-spacing: -.025em; }
@@ -389,6 +435,10 @@
   .tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
   .tab[aria-selected="true"][data-status="done"] .dot { background: var(--lime); }
   .tab[aria-selected="true"][data-status="idle"] .dot { background: rgba(255,255,255,.4); }
+  @media (min-width: 701px) {
+    .tabs { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); width: 100%; }
+    .tab { justify-content: center; text-align: center; white-space: normal; line-height: 1.25; padding: .6rem .7rem; }
+  }
 
   .tab-panels { padding: 1.6rem 1.8rem; }
   .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;
@@ -415,6 +465,17 @@
   .skeleton i:nth-child(4) { width: 72%; } .skeleton i:nth-child(5) { width: 90%; }
   @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
+  /* Strategies text with the redesign visuals beside it */
+  .strategy-layout { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(240px, 1fr); gap: 1.6rem; align-items: start; }
+  .strategy-visuals h4 { font-size: .95rem; font-weight: 800; }
+  .vis-note { color: var(--muted); font-size: .82rem; margin: .2rem 0 .9rem; }
+  .strategy-visuals .img-grid { grid-template-columns: 1fr; gap: .9rem; }
+  @media (max-width: 960px) {
+    .strategy-layout { grid-template-columns: 1fr; }
+    .strategy-visuals { padding-top: 1.1rem; border-top: 1px solid var(--border); }
+    .strategy-visuals .img-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  @media (max-width: 600px) { .strategy-visuals .img-grid { grid-template-columns: 1fr; } }
   .img-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; }
   .img-card { border: 1px solid var(--border); border-radius: 18px; overflow: hidden; background: var(--panel-2); }
   .img-card-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; padding: .75rem .9rem; }
@@ -591,13 +652,13 @@
     </nav>
     <div class="nav-actions">
       <button type="button" class="icon-btn" id="langToggle">BM</button>
-      <button type="button" class="icon-btn" id="themeToggle">🌙</button>
+      <button type="button" class="icon-btn" id="themeToggle"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg></button>
       <a href="#analyse" class="btn btn-primary btn-sm nav-cta" data-i18n="nav_cta">Start analysis</a>
     </div>
   </div>
 </header>
 
-<main>
+<main id="homePage">
   <!-- ============================================================
        Hero
        ============================================================ -->
@@ -637,8 +698,8 @@
           <div class="mock-row"><span data-i18n="mock_r3">Shelf-life risk</span><span class="lvl good" data-i18n="lvl_low">Low</span></div>
           <div class="mock-foot" data-i18n="mock_foot">✓ Supplier brief ready to send</div>
         </div>
-        <div class="float-chip c1" data-i18n="chip1">🧾 Every finding evidence-labelled</div>
-        <div class="float-chip c2" data-i18n="chip2">🖼️ 3 redesign visuals</div>
+        <div class="float-chip c1" data-i18n="chip1">Every finding evidence-labelled</div>
+        <div class="float-chip c2" data-i18n="chip2">3 redesign visuals</div>
       </div>
     </div>
   </section>
@@ -666,12 +727,12 @@
         <p data-i18n="feat_sub">SMEs want greener packaging but worry about cost, shelf life and product protection. EcoLens weighs all of them together, so every recommendation is one you can actually make.</p>
       </div>
       <div class="feature-grid">
-        <article class="card feature"><div class="f-icon">🔀</div><h3 data-i18n="f1_t">Three redesign paths</h3><p data-i18n="f1_d">A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.</p></article>
-        <article class="card feature"><div class="f-icon">🧾</div><h3 data-i18n="f2_t">Evidence-checked audit</h3><p data-i18n="f2_d">Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.</p></article>
-        <article class="card feature"><div class="f-icon">🔍</div><h3 data-i18n="f3_t">Problems, prioritised</h3><p data-i18n="f3_d">See which issues matter most (high, medium or low) and why they matter for your product.</p></article>
-        <article class="card feature"><div class="f-icon">⚖️</div><h3 data-i18n="f4_t">Side-by-side trade-offs</h3><p data-i18n="f4_d">Compare your current packaging with each option on cost, protection, shelf life and more.</p></article>
-        <article class="card feature"><div class="f-icon">✅</div><h3 data-i18n="f5_t">Supplier-ready brief</h3><p data-i18n="f5_d">Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.</p></article>
-        <article class="card feature"><div class="f-icon">💬</div><h3 data-i18n="f6_t">Visuals and an AI advisor</h3><p data-i18n="f6_d">Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.</p></article>
+        <article class="card feature"><h3 data-i18n="f1_t">Three redesign paths</h3><p data-i18n="f1_d">A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.</p></article>
+        <article class="card feature"><h3 data-i18n="f2_t">Evidence-checked audit</h3><p data-i18n="f2_d">Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.</p></article>
+        <article class="card feature"><h3 data-i18n="f3_t">Problems, prioritised</h3><p data-i18n="f3_d">See which issues matter most (high, medium or low) and why they matter for your product.</p></article>
+        <article class="card feature"><h3 data-i18n="f4_t">Side-by-side trade-offs</h3><p data-i18n="f4_d">Compare your current packaging with each option on cost, protection, shelf life and more.</p></article>
+        <article class="card feature"><h3 data-i18n="f5_t">Supplier-ready brief</h3><p data-i18n="f5_d">Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.</p></article>
+        <article class="card feature"><h3 data-i18n="f6_t">Visuals and an AI advisor</h3><p data-i18n="f6_d">Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.</p></article>
       </div>
     </div>
   </section>
@@ -689,346 +750,6 @@
         <div class="step"><div class="step-badge">1</div><h3 data-i18n="s1_t">Snap or upload</h3><p data-i18n="s1_d">Take a photo of your current packaging, or upload an image or PDF.</p></div>
         <div class="step"><div class="step-badge">2</div><h3 data-i18n="s2_t">Tell us the basics</h3><p data-i18n="s2_d">Product name, category and goal are enough. Add more details for a sharper result.</p></div>
         <div class="step"><div class="step-badge">3</div><h3 data-i18n="s3_t">Get your report</h3><p data-i18n="s3_d">Strategies, audit, trade-offs, visuals and a supplier brief. Then ask the advisor anything.</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       Analyser
-       ============================================================ -->
-  <section class="section" id="analyse">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow" data-i18n="an_eyebrow">Start here</span>
-        <h2 data-i18n="an_title">Analyse your packaging</h2>
-        <p data-i18n="an_sub">Only a photo and a product name are required. Everything else is optional.</p>
-      </div>
-
-      <div class="app">
-        <div class="card app-main">
-          <!-- Step 1: upload -->
-          <div class="step-block" id="stepUpload">
-            <div class="step-head">
-              <span class="step-num" id="num1">1</span>
-              <div><h3 data-i18n="w_upload">Upload your packaging</h3><p data-i18n="step1_d">A clear photo of the front works best.</p></div>
-            </div>
-            <div class="dropzone" id="dropzone" role="button" tabindex="0">
-              <span class="dz-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
-              <span class="dz-title" data-i18n="dropTitle">Drop your photo here</span>
-              <span class="dz-hint" data-i18n="dropHint">JPG, PNG, WEBP or PDF · or click to browse</span>
-            </div>
-            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
-            <input type="file" id="cameraInput" accept="image/*" capture="environment" />
-            <div class="upload-actions" id="uploadActions">
-              <button type="button" class="btn btn-secondary btn-sm" id="browseBtn" data-i18n="browse">📁 Browse files</button>
-              <button type="button" class="btn btn-secondary btn-sm" id="cameraBtn" data-i18n="camera">📷 Take photo</button>
-            </div>
-            <div class="file-preview" id="filePreview" hidden>
-              <img id="filePreviewImg" alt="Packaging preview" />
-              <div class="fp-pdf" id="filePreviewPdf" hidden>PDF</div>
-              <div class="fp-body">
-                <div class="fp-title" data-i18n="photoAdded">✓ Packaging added</div>
-                <div class="fp-meta" id="filePreviewMeta"></div>
-                <div class="fp-actions">
-                  <button type="button" class="link-btn" id="changeFileBtn" data-i18n="change">Change</button>
-                  <button type="button" class="link-btn" id="removeFileBtn" data-i18n="remove">Remove</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Live camera modal -->
-          <div class="cam-modal" id="camModal" aria-hidden="true">
-            <div class="cam-box">
-              <video id="camVideo" autoplay playsinline muted></video>
-              <canvas id="camCanvas" style="display:none;"></canvas>
-              <div class="cam-error" id="camError"></div>
-              <div class="cam-controls">
-                <button type="button" class="btn btn-secondary" id="camSwitch" data-i18n="camSwitch">🔄 Switch</button>
-                <button type="button" class="btn btn-primary" id="camCapture" data-i18n="camCapture">📸 Capture</button>
-                <button type="button" class="btn btn-secondary" id="camCancel" data-i18n="camCancel">✖ Cancel</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 2: details -->
-          <div class="step-block">
-            <div class="step-head">
-              <span class="step-num" id="num2">2</span>
-              <div><h3 data-i18n="step2_t">About your product</h3><p data-i18n="step2_d">Three quick questions.</p></div>
-            </div>
-            <div class="field-grid">
-              <div class="field span-2">
-                <label for="f_product_name"><span data-i18n="w_product">Product name and type</span> <span class="req">*</span></label>
-                <input type="text" id="f_product_name" data-field="Product Name and Type"
-                  data-ph="ph_product" placeholder="e.g. Chocolate cookies, 150g net weight" />
-              </div>
-              <div class="field">
-                <label for="f_category" data-i18n="w_category">Product category</label>
-                <select id="f_category" data-field="Product Category">
-                  <option>Food and Beverage</option>
-                  <option>Snacks</option>
-                  <option>Cosmetics and Personal Care</option>
-                  <option>Household Products</option>
-                  <option>Electronics</option>
-                  <option>Pharmaceuticals</option>
-                  <option>Others</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="f_objective"><span data-i18n="w_objective">Main sustainability goal</span> <span class="tag" data-i18n="recommended">Recommended</span></label>
-                <input type="text" id="f_objective" data-field="Main Sustainability Objective"
-                  data-ph="ph_objective" placeholder="e.g. Reduce virgin plastic use" />
-              </div>
-            </div>
-
-            <details class="advanced">
-              <summary><span data-i18n="moreDetails">Add more details (optional, sharper results)</span><span class="count" id="detailCount">0/13</span></summary>
-              <div class="adv-body">
-                <div class="group">
-                  <h4 data-i18n="g_product">Product &amp; protection</h4>
-                  <div class="field-grid">
-                    <div class="field">
-                      <label for="f_contains" data-i18n="w_contains">What the product contains</label>
-                      <input type="text" id="f_contains" data-field="What the Product Contains"
-                        data-ph="ph_contains" placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling" />
-                    </div>
-                    <div class="field">
-                      <label for="f_shelf_life" data-i18n="w_shelf">Required shelf life</label>
-                      <input type="text" id="f_shelf_life" data-field="Required Shelf Life"
-                        data-ph="ph_shelf" placeholder="e.g. 6 months, 12 months, 2 years" />
-                    </div>
-                    <div class="field">
-                      <label for="f_sensitivity" data-i18n="w_sensitivity">Moisture, light or oxygen sensitivity</label>
-                      <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
-                        <option>Not sensitive</option>
-                        <option>Moisture sensitive</option>
-                        <option>Light sensitive</option>
-                        <option>Oxygen sensitive</option>
-                        <option>Moisture and light sensitive</option>
-                        <option>Moisture and oxygen sensitive</option>
-                        <option>All three - moisture, light and oxygen sensitive</option>
-                      </select>
-                    </div>
-                    <div class="field">
-                      <label for="f_protection" data-i18n="w_protection">Product protection requirements</label>
-                      <input type="text" id="f_protection" data-field="Product Protection Requirements"
-                        data-ph="ph_protection" placeholder="e.g. Protect against crushing, moisture and light." />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="group">
-                  <h4 data-i18n="g_packaging">Current packaging</h4>
-                  <div class="field-grid">
-                    <div class="field span-2">
-                      <label for="f_current_materials" data-i18n="w_materials">Current packaging materials</label>
-                      <input type="text" id="f_current_materials" data-field="Current Packaging Materials"
-                        data-ph="ph_materials" placeholder="e.g. Plastic tray, plastic wrapper and cardboard box." />
-                    </div>
-                    <div class="field">
-                      <label for="f_recycled" data-i18n="w_recycled">Current recycled content</label>
-                      <input type="text" id="f_recycled" data-field="Current Recycled Content"
-                        data-ph="ph_recycled" placeholder="e.g. Outer box uses 30% recycled fibre." />
-                    </div>
-                    <div class="field">
-                      <label for="f_claims" data-i18n="w_claims">Existing environmental claims</label>
-                      <input type="text" id="f_claims" data-field="Existing Environmental Claims on Packaging"
-                        data-ph="ph_claims" placeholder="e.g. 100% recyclable, biodegradable. Leave blank if none." />
-                    </div>
-                    <div class="field">
-                      <label for="f_branding" data-i18n="w_branding">Branding requirements</label>
-                      <input type="text" id="f_branding" data-field="Branding Requirements"
-                        data-ph="ph_branding" placeholder="e.g. Keep full-colour printing, brand colours and logo." />
-                    </div>
-                    <div class="field">
-                      <label for="f_machinery" data-i18n="w_machinery">Packaging machinery constraints</label>
-                      <input type="text" id="f_machinery" data-field="Packaging Machinery Constraints"
-                        data-ph="ph_machinery" placeholder="e.g. Existing filling/sealing machinery must stay." />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="group">
-                  <h4 data-i18n="g_business">Business &amp; market</h4>
-                  <div class="field-grid">
-                    <div class="field">
-                      <label for="f_sales_channel" data-i18n="w_channel">Sales channel</label>
-                      <select id="f_sales_channel" data-field="Sales Channel">
-                        <option>Retail only</option>
-                        <option>E-commerce only</option>
-                        <option>Both retail and e-commerce</option>
-                      </select>
-                    </div>
-                    <div class="field">
-                      <label for="f_market" data-i18n="w_market">Target market or country</label>
-                      <input type="text" id="f_market" data-field="Target Market or Country"
-                        data-ph="ph_market" placeholder="e.g. Malaysia, Singapore, export to EU" />
-                    </div>
-                    <div class="field">
-                      <label for="f_cost_unit" data-i18n="w_cost">Packaging cost per unit</label>
-                      <div class="cost-wrap">
-                        <span class="prefix">RM</span>
-                        <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
-                          data-ph="ph_cost" placeholder="0.85 per unit" />
-                      </div>
-                    </div>
-                    <div class="field">
-                      <label for="f_cost_increase" data-i18n="w_costmax">Maximum cost increase</label>
-                      <input type="text" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
-                        data-ph="ph_costmax" placeholder="e.g. No more than 5%, or none at all." />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </details>
-          </div>
-        </div>
-
-        <!-- Summary / progress -->
-        <aside class="app-side">
-          <div class="card summary" id="summary">
-            <h3 data-i18n="sum_title">Your report</h3>
-            <ul class="ready">
-              <li id="rdPhoto"><span class="tick"></span><span data-i18n="sum_photo">Packaging photo</span><span class="aside" data-i18n="required">Required</span></li>
-              <li id="rdName"><span class="tick"></span><span data-i18n="sum_name">Product name</span><span class="aside" data-i18n="required">Required</span></li>
-              <li id="rdMore"><span class="tick"></span><span data-i18n="sum_more">Extra details</span><span class="aside" id="rdMoreCount">0/13</span></li>
-            </ul>
-            <div class="sum-label" data-i18n="sum_includes">What's included</div>
-            <ul class="mods">
-              <li data-mod="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span><span class="pill"></span></li>
-              <li data-mod="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span><span class="pill"></span></li>
-              <li data-mod="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span><span class="pill"></span></li>
-              <li data-mod="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span><span class="pill"></span></li>
-              <li data-mod="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span><span class="pill"></span></li>
-              <li data-mod="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span><span class="pill"></span></li>
-            </ul>
-            <button type="button" class="btn btn-primary btn-lg btn-block" id="runAllBtn"><span id="runAllLabel" data-i18n="gen">Generate my report</span> <span aria-hidden="true">→</span></button>
-            <p class="sum-time" data-i18n="sum_time">Usually ready in 1–2 minutes.</p>
-            <div class="sum-links">
-              <button type="button" class="link-btn" id="exampleBtn" data-i18n="example">Fill example</button>
-              <span aria-hidden="true">·</span>
-              <button type="button" class="link-btn" id="resetBtn" data-i18n="reset">Reset</button>
-            </div>
-          </div>
-        </aside>
-      </div>
-
-      <!-- ============================================================
-           Report (revealed after the first run)
-           ============================================================ -->
-      <div class="report" id="report" hidden>
-        <div class="report-head">
-          <div>
-            <span class="eyebrow" data-i18n="rep_eyebrow">Report</span>
-            <h2 data-i18n="rep_title">Your packaging report</h2>
-            <p class="report-product" id="reportProduct"></p>
-          </div>
-          <div class="report-actions">
-            <button type="button" class="btn btn-secondary btn-sm" id="askAdvisorBtn" data-i18n="askAdvisor">💬 Ask the advisor</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="downloadAllBtn" data-i18n="downloadAll">⬇️ Full report</button>
-            <button type="button" class="btn btn-ghost btn-sm" id="startOverBtn" data-i18n="startOver">Start over</button>
-          </div>
-        </div>
-        <div class="progress"><div class="progress-bar"><span id="progressFill"></span></div><span class="progress-text" id="progressText"></span></div>
-        <div class="alert" id="wrongInputAlert" role="alert" hidden><span aria-hidden="true">⚠️</span><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
-
-        <div class="tabs" role="tablist">
-          <button type="button" class="tab" role="tab" data-tab="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span></button>
-          <button type="button" class="tab" role="tab" data-tab="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span></button>
-          <button type="button" class="tab" role="tab" data-tab="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span></button>
-          <button type="button" class="tab" role="tab" data-tab="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span></button>
-          <button type="button" class="tab" role="tab" data-tab="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span></button>
-          <button type="button" class="tab" role="tab" data-tab="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span></button>
-        </div>
-
-        <div class="card tab-panels">
-          <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
-            <div class="panel-head">
-              <div><h3>✅ <span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
-              <div class="panel-actions">
-                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">⬇️ Download</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief" data-i18n="regen">↻ Regenerate</button>
-              </div>
-            </div>
-            <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
-            <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="strategies" hidden>
-            <div class="panel-head">
-              <div><h3>🔀 <span data-i18n="w_strategies">Three redesign strategies</span></h3><p data-i18n="d_str">Three improvement paths: a quick win, a balanced redesign and an ambitious option.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="three_redesign_strategies" data-i18n="regen">↻ Regenerate</button></div>
-            </div>
-            <div class="skeleton" data-spinner="three_redesign_strategies"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="three_redesign_strategies"></div>
-            <div class="panel-error" data-error="three_redesign_strategies"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="visuals" hidden>
-            <div class="panel-head">
-              <div><h3>🖼️ <span data-i18n="w_visuals">Packaging redesign visuals</span></h3><p data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p></div>
-            </div>
-            <div class="img-grid">
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A" data-i18n="regen">↻ Regenerate</button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_A"><i></i></div>
-                  <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-                </div>
-                <div class="panel-error" data-error="image_A"></div>
-              </div>
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B" data-i18n="regen">↻ Regenerate</button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_B"><i></i></div>
-                  <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-                </div>
-                <div class="panel-error" data-error="image_B"></div>
-              </div>
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C" data-i18n="regen">↻ Regenerate</button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_C"><i></i></div>
-                  <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
-                </div>
-                <div class="panel-error" data-error="image_C"></div>
-              </div>
-            </div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="tradeoff" hidden>
-            <div class="panel-head">
-              <div><h3>⚖️ <span data-i18n="w_tradeoff">Trade-off comparison</span></h3><p data-i18n="d_trd">How each option compares with your current packaging.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="trade_off_comparison" data-i18n="regen">↻ Regenerate</button></div>
-            </div>
-            <div class="skeleton" data-spinner="trade_off_comparison"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="trade_off_comparison"></div>
-            <div class="panel-error" data-error="trade_off_comparison"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
-            <div class="panel-head">
-              <div><h3>🔍 <span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified" data-i18n="regen">↻ Regenerate</button></div>
-            </div>
-            <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="sustainability_problems_identified"></div>
-            <div class="panel-error" data-error="sustainability_problems_identified"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
-            <div class="panel-head">
-              <div><h3>🧾 <span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification" data-i18n="regen">↻ Regenerate</button></div>
-            </div>
-            <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
-            <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
-          </div>
-        </div>
       </div>
     </div>
   </section>
@@ -1061,6 +782,376 @@
           <p data-i18n="cta_sub">All it takes is a photo and a minute of your time.</p>
         </div>
         <a href="#analyse" class="btn btn-primary btn-lg"><span data-i18n="hero_cta">Analyse my packaging</span> <span aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<main id="analysePage" class="subpage" hidden>
+  <!-- ============================================================
+       Input page (separate view, shown at #analyse)
+       ============================================================ -->
+  <section class="section" id="analyse">
+    <div class="container">
+      <a href="#top" class="back-link" data-i18n="backHome">← Back to home</a>
+      <div class="section-head">
+        <span class="eyebrow" data-i18n="an_eyebrow">Start here</span>
+        <h2 data-i18n="an_title">Analyse your packaging</h2>
+        <p data-i18n="an_sub">Only a photo and a product name are required. Everything else is optional.</p>
+        <button type="button" class="btn btn-secondary an-example" id="exampleBtn" data-i18n="hero_cta2">Try an example</button>
+      </div>
+
+      <div class="app">
+        <div class="card app-main">
+          <!-- Step 1: upload -->
+          <div class="step-block" id="stepUpload">
+            <div class="step-head">
+              <span class="step-num" id="num1">1</span>
+              <div><h3 data-i18n="w_upload">Upload your packaging</h3><p data-i18n="step1_d">A clear photo of the front works best.</p></div>
+            </div>
+            <div class="dropzone" id="dropzone" role="button" tabindex="0">
+              <span class="dz-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg></span>
+              <span class="dz-title" data-i18n="dropTitle">Drop your photo here</span>
+              <span class="dz-hint" data-i18n="dropHint">JPG, PNG, WEBP or PDF · or click to browse</span>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
+            <input type="file" id="cameraInput" accept="image/*" capture="environment" />
+            <div class="upload-actions" id="uploadActions">
+              <button type="button" class="btn btn-secondary btn-sm" id="browseBtn" data-i18n="browse">Browse files</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="cameraBtn" data-i18n="camera">Take photo</button>
+            </div>
+            <div class="file-preview" id="filePreview" hidden>
+              <img id="filePreviewImg" alt="Packaging preview" />
+              <div class="fp-pdf" id="filePreviewPdf" hidden>PDF</div>
+              <div class="fp-body">
+                <div class="fp-title" data-i18n="photoAdded">✓ Packaging added</div>
+                <div class="fp-meta" id="filePreviewMeta"></div>
+                <div class="fp-actions">
+                  <button type="button" class="link-btn" id="changeFileBtn" data-i18n="change">Change</button>
+                  <button type="button" class="link-btn" id="removeFileBtn" data-i18n="remove">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Live camera modal -->
+          <div class="cam-modal" id="camModal" aria-hidden="true">
+            <div class="cam-box">
+              <video id="camVideo" autoplay playsinline muted></video>
+              <canvas id="camCanvas" style="display:none;"></canvas>
+              <div class="cam-error" id="camError"></div>
+              <div class="cam-controls">
+                <button type="button" class="btn btn-secondary" id="camSwitch" data-i18n="camSwitch">Switch</button>
+                <button type="button" class="btn btn-primary" id="camCapture" data-i18n="camCapture">Capture</button>
+                <button type="button" class="btn btn-secondary" id="camCancel" data-i18n="camCancel">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: details -->
+          <div class="step-block">
+            <div class="step-head">
+              <span class="step-num" id="num2">2</span>
+              <div><h3 data-i18n="step2_t">About your product</h3><p data-i18n="step2_d">Three quick questions.</p></div>
+            </div>
+            <div class="field-grid">
+              <div class="field span-2">
+                <label for="f_product_name"><span data-i18n="w_product">Product name and type</span> <span class="req">*</span></label>
+                <textarea rows="1" class="autogrow" id="f_product_name" data-field="Product Name and Type"
+                  data-ph="ph_product" placeholder="e.g. Chocolate cookies, 150g net weight"></textarea>
+              </div>
+              <div class="field">
+                <label for="f_category" data-i18n="w_category">Product category</label>
+                <select id="f_category" data-field="Product Category">
+                  <option>Food and Beverage</option>
+                  <option>Snacks</option>
+                  <option>Cosmetics and Personal Care</option>
+                  <option>Household Products</option>
+                  <option>Electronics</option>
+                  <option>Pharmaceuticals</option>
+                  <option>Others</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="f_objective"><span data-i18n="w_objective">Main sustainability goal</span> <span class="tag" data-i18n="recommended">Recommended</span></label>
+                <textarea rows="1" class="autogrow" id="f_objective" data-field="Main Sustainability Objective"
+                  data-ph="ph_objective" placeholder="e.g. Reduce virgin plastic use"></textarea>
+              </div>
+            </div>
+
+            <details class="advanced">
+              <summary><span data-i18n="moreDetails">Add more details (optional, sharper results)</span><span class="count" id="detailCount">0/13</span></summary>
+              <div class="adv-body">
+                <div class="group">
+                  <h4 data-i18n="g_product">Product &amp; protection</h4>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="f_contains" data-i18n="w_contains">What the product contains</label>
+                      <textarea rows="1" class="autogrow" id="f_contains" data-field="What the Product Contains"
+                        data-ph="ph_contains" placeholder="e.g. Chocolate-coated butter cookies with hazelnut filling"></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_shelf_life" data-i18n="w_shelf">Required shelf life</label>
+                      <textarea rows="1" class="autogrow" id="f_shelf_life" data-field="Required Shelf Life"
+                        data-ph="ph_shelf" placeholder="e.g. 6 months, 12 months, 2 years"></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_sensitivity" data-i18n="w_sensitivity">Moisture, light or oxygen sensitivity</label>
+                      <select id="f_sensitivity" data-field="Moisture Light or Oxygen Sensitivity">
+                        <option>Not sensitive</option>
+                        <option>Moisture sensitive</option>
+                        <option>Light sensitive</option>
+                        <option>Oxygen sensitive</option>
+                        <option>Moisture and light sensitive</option>
+                        <option>Moisture and oxygen sensitive</option>
+                        <option>All three - moisture, light and oxygen sensitive</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="f_protection" data-i18n="w_protection">Product protection requirements</label>
+                      <textarea rows="1" class="autogrow" id="f_protection" data-field="Product Protection Requirements"
+                        data-ph="ph_protection" placeholder="e.g. Protect against crushing, moisture and light."></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="group">
+                  <h4 data-i18n="g_packaging">Current packaging</h4>
+                  <div class="field-grid">
+                    <div class="field span-2">
+                      <label for="f_current_materials" data-i18n="w_materials">Current packaging materials</label>
+                      <textarea rows="1" class="autogrow" id="f_current_materials" data-field="Current Packaging Materials"
+                        data-ph="ph_materials" placeholder="e.g. Plastic tray, plastic wrapper and cardboard box."></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_recycled" data-i18n="w_recycled">Current recycled content</label>
+                      <textarea rows="1" class="autogrow" id="f_recycled" data-field="Current Recycled Content"
+                        data-ph="ph_recycled" placeholder="e.g. Outer box uses 30% recycled fibre."></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_claims" data-i18n="w_claims">Existing environmental claims</label>
+                      <textarea rows="1" class="autogrow" id="f_claims" data-field="Existing Environmental Claims on Packaging"
+                        data-ph="ph_claims" placeholder="e.g. 100% recyclable, biodegradable. Leave blank if none."></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_branding" data-i18n="w_branding">Branding requirements</label>
+                      <textarea rows="1" class="autogrow" id="f_branding" data-field="Branding Requirements"
+                        data-ph="ph_branding" placeholder="e.g. Keep full-colour printing, brand colours and logo."></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_machinery" data-i18n="w_machinery">Packaging machinery constraints</label>
+                      <textarea rows="1" class="autogrow" id="f_machinery" data-field="Packaging Machinery Constraints"
+                        data-ph="ph_machinery" placeholder="e.g. Existing filling/sealing machinery must stay."></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="group">
+                  <h4 data-i18n="g_business">Business &amp; market</h4>
+                  <div class="field-grid">
+                    <div class="field">
+                      <label for="f_sales_channel" data-i18n="w_channel">Sales channel</label>
+                      <select id="f_sales_channel" data-field="Sales Channel">
+                        <option>Retail only</option>
+                        <option>E-commerce only</option>
+                        <option>Both retail and e-commerce</option>
+                      </select>
+                    </div>
+                    <div class="field">
+                      <label for="f_market" data-i18n="w_market">Target market or country</label>
+                      <textarea rows="1" class="autogrow" id="f_market" data-field="Target Market or Country"
+                        data-ph="ph_market" placeholder="e.g. Malaysia, Singapore, export to EU"></textarea>
+                    </div>
+                    <div class="field">
+                      <label for="f_cost_unit" data-i18n="w_cost">Packaging cost per unit</label>
+                      <div class="cost-wrap">
+                        <span class="prefix">RM</span>
+                        <input type="text" id="f_cost_unit" data-field="Packaging Cost Per Unit"
+                          data-ph="ph_cost" placeholder="0.85 per unit" />
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label for="f_cost_increase" data-i18n="w_costmax">Maximum cost increase</label>
+                      <textarea rows="1" class="autogrow" id="f_cost_increase" data-field="Maximum Packaging Cost Increase"
+                        data-ph="ph_costmax" placeholder="e.g. No more than 5%, or none at all."></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </div>
+        </div>
+
+        <!-- Summary / progress -->
+        <aside class="app-side">
+          <div class="card summary" id="summary">
+            <h3 data-i18n="sum_title">Your report</h3>
+            <ul class="ready">
+              <li id="rdPhoto"><span class="tick"></span><span data-i18n="sum_photo">Packaging photo</span><span class="aside" data-i18n="required">Required</span></li>
+              <li id="rdName"><span class="tick"></span><span data-i18n="sum_name">Product name</span><span class="aside" data-i18n="required">Required</span></li>
+              <li id="rdMore"><span class="tick"></span><span data-i18n="sum_more">Extra details</span><span class="aside" id="rdMoreCount">0/13</span></li>
+            </ul>
+            <div class="sum-label" data-i18n="sum_includes">What's included</div>
+            <ul class="mods">
+              <li data-mod="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span><span class="pill"></span></li>
+              <li data-mod="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span><span class="pill"></span></li>
+              <li data-mod="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span><span class="pill"></span></li>
+              <li data-mod="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span><span class="pill"></span></li>
+              <li data-mod="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span><span class="pill"></span></li>
+            </ul>
+            <button type="button" class="btn btn-primary btn-lg btn-block" id="runAllBtn"><span id="runAllLabel" data-i18n="gen">Generate my report</span> <span aria-hidden="true">→</span></button>
+            <a href="#report" class="btn btn-secondary btn-block view-report" data-i18n="viewReport">View my report →</a>
+            <p class="sum-time" data-i18n="sum_time">Usually ready in 1–2 minutes.</p>
+            <div class="sum-links">
+              <button type="button" class="link-btn" id="resetBtn" data-i18n="reset">Reset</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============================================================
+     Report page (separate view, shown at #report)
+     ============================================================ -->
+<main id="reportPage" class="subpage" hidden>
+  <section class="section">
+    <div class="container">
+      <a href="#analyse" class="back-link" data-i18n="back">← Back to my inputs</a>
+
+      <div class="card report-empty" id="reportEmpty">
+        <h2 data-i18n="noReport">No report yet</h2>
+        <p data-i18n="noReport_d">Upload a packaging photo and add your product name to generate a report.</p>
+        <a href="#analyse" class="btn btn-primary" data-i18n="noReport_cta">Start analysis</a>
+      </div>
+
+      <div class="report" id="report" hidden>
+        <div class="report-head">
+          <div>
+            <span class="eyebrow" data-i18n="rep_eyebrow">Report</span>
+            <h2 data-i18n="rep_title">Your packaging report</h2>
+            <p class="report-product" id="reportProduct"></p>
+          </div>
+          <div class="report-actions">
+            <button type="button" class="btn btn-secondary btn-sm" id="askAdvisorBtn" data-i18n="askAdvisor">Ask the advisor</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="downloadAllBtn" data-i18n="downloadAll">Full report</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="startOverBtn" data-i18n="startOver">Start over</button>
+          </div>
+        </div>
+        <div class="card flow-card">
+          <div class="flow-head">
+            <h3 data-i18n="flow_title">Analysis progress</h3>
+            <span class="flow-count" id="flowCount"></span>
+          </div>
+          <ol class="flow" id="flow">
+            <li class="flow-step" data-flow="audit" data-flow-tab="audit"><span class="flow-num">1</span><span class="flow-title" data-i18n="m_aud">Packaging audit</span><span class="pill"></span></li>
+            <li class="flow-step" data-flow="problems" data-flow-tab="problems"><span class="flow-num">2</span><span class="flow-title" data-i18n="m_prb">Problems found</span><span class="pill"></span></li>
+            <li class="flow-step" data-flow="strategies" data-flow-tab="strategies"><span class="flow-num">3</span><span class="flow-title" data-i18n="m_str">Redesign strategies</span><span class="pill"></span></li>
+            <li class="flow-step" data-flow="tradeoff" data-flow-tab="tradeoff"><span class="flow-num">4</span><span class="flow-title" data-i18n="m_trd">Trade-off table</span><span class="pill"></span></li>
+            <li class="flow-step" data-flow="recommendation" data-flow-tab="recommendation"><span class="flow-num">5</span><span class="flow-title" data-i18n="m_rec">Recommendation &amp; brief</span><span class="pill"></span></li>
+          </ol>
+          <div class="progress"><div class="progress-bar"><span id="progressFill"></span></div><span class="progress-text" id="progressText"></span></div>
+        </div>
+        <div class="alert" id="wrongInputAlert" role="alert" hidden><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
+
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab" role="tab" data-tab="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span></button>
+          <button type="button" class="tab" role="tab" data-tab="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span></button>
+          <button type="button" class="tab" role="tab" data-tab="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span></button>
+          <button type="button" class="tab" role="tab" data-tab="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span></button>
+          <button type="button" class="tab" role="tab" data-tab="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span></button>
+        </div>
+
+        <div class="card tab-panels">
+          <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
+            <div class="panel-head">
+              <div><h3><span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
+            <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
+            <div class="panel-head">
+              <div><h3><span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="sustainability_problems_identified"></div>
+            <div class="panel-error" data-error="sustainability_problems_identified"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="strategies" hidden>
+            <div class="panel-head">
+              <div><h3><span data-i18n="w_strategies">Three redesign strategies</span></h3><p data-i18n="d_str">Three improvement paths: a quick win, a balanced redesign and an ambitious option.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="three_redesign_strategies" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="strategy-layout">
+              <div class="strategy-text">
+                <div class="skeleton" data-spinner="three_redesign_strategies"><i></i><i></i><i></i><i></i><i></i></div>
+                <div class="output-text" data-output="three_redesign_strategies"></div>
+                <div class="panel-error" data-error="three_redesign_strategies"></div>
+              </div>
+              <aside class="strategy-visuals">
+                <h4 data-i18n="w_visuals">Packaging redesign visuals</h4>
+                <p class="vis-note" data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p>
+                <div class="img-grid">
+                  <div class="img-card">
+                    <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A" data-i18n="regen">↻ Regenerate</button></div>
+                    <div class="img-frame">
+                      <div class="skeleton" data-spinner="image_A"><i></i></div>
+                      <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                    </div>
+                    <div class="panel-error" data-error="image_A"></div>
+                  </div>
+                  <div class="img-card">
+                    <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B" data-i18n="regen">↻ Regenerate</button></div>
+                    <div class="img-frame">
+                      <div class="skeleton" data-spinner="image_B"><i></i></div>
+                      <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                    </div>
+                    <div class="panel-error" data-error="image_B"></div>
+                  </div>
+                  <div class="img-card">
+                    <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C" data-i18n="regen">↻ Regenerate</button></div>
+                    <div class="img-frame">
+                      <div class="skeleton" data-spinner="image_C"><i></i></div>
+                      <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                    </div>
+                    <div class="panel-error" data-error="image_C"></div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="tradeoff" hidden>
+            <div class="panel-head">
+              <div><h3><span data-i18n="w_tradeoff">Trade-off comparison</span></h3><p data-i18n="d_trd">How each option compares with your current packaging.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="trade_off_comparison" data-i18n="regen">↻ Regenerate</button></div>
+            </div>
+            <div class="skeleton" data-spinner="trade_off_comparison"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="trade_off_comparison"></div>
+            <div class="panel-error" data-error="trade_off_comparison"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
+            <div class="panel-head">
+              <div><h3><span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief" data-i18n="copy">Copy brief</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">Download</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief" data-i18n="regen">↻ Regenerate</button>
+              </div>
+            </div>
+            <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
+            <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1105,7 +1196,7 @@
      EcoLens advisor (floating chat)
      ============================================================ -->
 <button type="button" class="chat-fab" id="chatFab" aria-label="Open chat">
-  💬 <span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> <span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
 </button>
 
 <div class="chat-float" id="chatFloat" aria-hidden="true">
@@ -1173,7 +1264,7 @@ const I18N = {
     mock_r1: 'Plastic reduction', mock_r2: 'Cost impact', mock_r3: 'Shelf-life risk',
     lvl_high: 'High', lvl_med: 'Medium', lvl_low: 'Low',
     mock_foot: '✓ Supplier brief ready to send',
-    chip1: '🧾 Every finding evidence-labelled', chip2: '🖼️ 3 redesign visuals',
+    chip1: 'Every finding evidence-labelled', chip2: '3 redesign visuals',
     sdg_label: 'Aligned with the UN Sustainable Development Goals',
     sdg9: 'Industry & innovation', sdg12: 'Responsible production', sdg13: 'Climate action',
     feat_eyebrow: 'Why EcoLens', feat_title: 'Greener packaging without risking cost or quality',
@@ -1192,9 +1283,9 @@ const I18N = {
     an_sub: 'Only a photo and a product name are required. Everything else is optional.',
     w_upload: 'Upload your packaging', step1_d: 'A clear photo of the front works best.',
     dropTitle: 'Drop your photo here', dropHint: 'JPG, PNG, WEBP or PDF · or click to browse',
-    browse: '📁 Browse files', camera: '📷 Take photo',
+    browse: 'Browse files', camera: 'Take photo',
     photoAdded: '✓ Packaging added', change: 'Change', remove: 'Remove',
-    camSwitch: '🔄 Switch', camCapture: '📸 Capture', camCancel: '✖ Cancel',
+    camSwitch: 'Switch', camCapture: 'Capture', camCancel: 'Cancel',
     step2_t: 'About your product', step2_d: 'Three quick questions.',
     w_product: 'Product name and type', w_category: 'Product category', w_objective: 'Main sustainability goal',
     recommended: 'Recommended', required: 'Required',
@@ -1222,14 +1313,18 @@ const I18N = {
     ph_chat: 'Ask about your packaging…',
     sum_title: 'Your report', sum_photo: 'Packaging photo', sum_name: 'Product name', sum_more: 'Extra details',
     sum_includes: "What's included",
-    m_rec: 'Recommendation & brief', m_str: 'Redesign strategies', m_vis: 'Redesign visuals',
+    m_rec: 'Recommendation & brief', m_str: 'Redesign strategies',
     m_trd: 'Trade-off table', m_prb: 'Problems found', m_aud: 'Packaging audit',
     st_idle: 'Included', st_waiting: 'Queued', st_running: 'In progress', st_done: 'Ready', st_error: 'Failed',
     gen: 'Generate my report', generating: 'Generating…', sum_time: 'Usually ready in 1–2 minutes.',
     mb_photo: 'Step 1: add a photo', mb_name: 'Step 2: add your product name', mb_ready: '✓ Ready to generate',
-    example: 'Fill example', reset: 'Reset',
+    reset: 'Reset',
     rep_eyebrow: 'Report', rep_title: 'Your packaging report', rep_progress: '{n} of {total} sections ready',
-    askAdvisor: '💬 Ask the advisor', downloadAll: '⬇️ Full report', startOver: 'Start over',
+    back: '← Back to my inputs', backHome: '← Back to home', viewReport: 'View my report →',
+    noReport: 'No report yet', noReport_d: 'Upload a packaging photo and add your product name to generate a report.', noReport_cta: 'Start analysis',
+    flow_title: 'Analysis progress', flow_count: 'Step {n} of {total} done', flow_all: 'All steps complete',
+    fs_waiting: 'Pending', fs_running: 'Processing', fs_done: 'Done', fs_error: 'Failed', fs_skipped: 'Skipped',
+    askAdvisor: 'Ask the advisor', downloadAll: 'Full report', startOver: 'Start over',
     wrongInput: "EcoLens couldn't match your photo to the product details. Check that the photo shows your packaging and the product name is correct, then generate again.",
     w_brief: 'Best-fit recommendation & supplier brief', w_strategies: 'Three redesign strategies',
     w_visuals: 'Packaging redesign visuals', w_tradeoff: 'Trade-off comparison',
@@ -1240,7 +1335,7 @@ const I18N = {
     d_trd: 'How each option compares with your current packaging.',
     d_prb: 'Sustainability issues in your current packaging, by priority.',
     d_aud: 'What EcoLens can see in your packaging, and how sure it is.',
-    copy: '📋 Copy brief', download: '⬇️ Download', regen: '↻ Regenerate',
+    copy: 'Copy brief', download: 'Download', regen: '↻ Regenerate',
     optA: 'Option A — Quick win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
     noImage: 'No image yet',
     emptyPanel: 'This section appears here once you generate your report.',
@@ -1281,7 +1376,7 @@ const I18N = {
     mock_r1: 'Pengurangan plastik', mock_r2: 'Kesan kos', mock_r3: 'Risiko jangka hayat',
     lvl_high: 'Tinggi', lvl_med: 'Sederhana', lvl_low: 'Rendah',
     mock_foot: '✓ Ringkasan pembekal sedia dihantar',
-    chip1: '🧾 Setiap dapatan dilabel bukti', chip2: '🖼️ 3 visual reka bentuk semula',
+    chip1: 'Setiap dapatan dilabel bukti', chip2: '3 visual reka bentuk semula',
     sdg_label: 'Sejajar dengan Matlamat Pembangunan Mampan PBB',
     sdg9: 'Industri & inovasi', sdg12: 'Pengeluaran bertanggungjawab', sdg13: 'Tindakan iklim',
     feat_eyebrow: 'Kenapa EcoLens', feat_title: 'Pembungkusan lebih hijau tanpa menjejaskan kos atau kualiti',
@@ -1300,9 +1395,9 @@ const I18N = {
     an_sub: 'Hanya gambar dan nama produk diperlukan. Selebihnya adalah pilihan.',
     w_upload: 'Muat naik pembungkusan anda', step1_d: 'Gambar bahagian hadapan yang jelas adalah terbaik.',
     dropTitle: 'Lepaskan gambar anda di sini', dropHint: 'JPG, PNG, WEBP atau PDF · atau klik untuk pilih',
-    browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
+    browse: 'Pilih fail', camera: 'Ambil gambar',
     photoAdded: '✓ Pembungkusan ditambah', change: 'Tukar', remove: 'Buang',
-    camSwitch: '🔄 Tukar', camCapture: '📸 Tangkap', camCancel: '✖ Batal',
+    camSwitch: 'Tukar', camCapture: 'Tangkap', camCancel: 'Batal',
     step2_t: 'Tentang produk anda', step2_d: 'Tiga soalan ringkas.',
     w_product: 'Nama dan jenis produk', w_category: 'Kategori produk', w_objective: 'Matlamat kelestarian utama',
     recommended: 'Disyorkan', required: 'Wajib',
@@ -1330,14 +1425,18 @@ const I18N = {
     ph_chat: 'Tanya tentang pembungkusan anda…',
     sum_title: 'Laporan anda', sum_photo: 'Gambar pembungkusan', sum_name: 'Nama produk', sum_more: 'Butiran tambahan',
     sum_includes: 'Kandungan laporan',
-    m_rec: 'Cadangan & ringkasan', m_str: 'Strategi reka bentuk semula', m_vis: 'Visual reka bentuk semula',
+    m_rec: 'Cadangan & ringkasan', m_str: 'Strategi reka bentuk semula',
     m_trd: 'Jadual perbandingan', m_prb: 'Masalah dikenal pasti', m_aud: 'Audit pembungkusan',
     st_idle: 'Termasuk', st_waiting: 'Menunggu', st_running: 'Sedang diproses', st_done: 'Siap', st_error: 'Gagal',
     gen: 'Jana laporan saya', generating: 'Sedang menjana…', sum_time: 'Biasanya siap dalam 1–2 minit.',
     mb_photo: 'Langkah 1: tambah gambar', mb_name: 'Langkah 2: isi nama produk', mb_ready: '✓ Sedia untuk dijana',
-    example: 'Isi contoh', reset: 'Set semula',
+    reset: 'Set semula',
     rep_eyebrow: 'Laporan', rep_title: 'Laporan pembungkusan anda', rep_progress: '{n} daripada {total} bahagian siap',
-    askAdvisor: '💬 Tanya penasihat', downloadAll: '⬇️ Laporan penuh', startOver: 'Mula semula',
+    back: '← Kembali ke input saya', backHome: '← Kembali ke laman utama', viewReport: 'Lihat laporan saya →',
+    noReport: 'Belum ada laporan', noReport_d: 'Muat naik gambar pembungkusan dan masukkan nama produk untuk menjana laporan.', noReport_cta: 'Mula analisis',
+    flow_title: 'Kemajuan analisis', flow_count: 'Langkah {n} daripada {total} selesai', flow_all: 'Semua langkah selesai',
+    fs_waiting: 'Belum mula', fs_running: 'Sedang diproses', fs_done: 'Selesai', fs_error: 'Gagal', fs_skipped: 'Dilangkau',
+    askAdvisor: 'Tanya penasihat', downloadAll: 'Laporan penuh', startOver: 'Mula semula',
     wrongInput: 'EcoLens tidak dapat memadankan gambar dengan butiran produk. Pastikan gambar menunjukkan pembungkusan anda dan nama produk betul, kemudian jana semula.',
     w_brief: 'Cadangan terbaik & ringkasan pembekal', w_strategies: 'Tiga strategi reka bentuk semula',
     w_visuals: 'Visual reka bentuk semula', w_tradeoff: 'Perbandingan pertukaran',
@@ -1348,7 +1447,7 @@ const I18N = {
     d_trd: 'Perbandingan setiap pilihan dengan pembungkusan semasa anda.',
     d_prb: 'Isu kelestarian dalam pembungkusan semasa anda, mengikut keutamaan.',
     d_aud: 'Apa yang EcoLens nampak pada pembungkusan anda, dan sejauh mana ia pasti.',
-    copy: '📋 Salin ringkasan', download: '⬇️ Muat turun', regen: '↻ Jana semula',
+    copy: 'Salin ringkasan', download: 'Muat turun', regen: '↻ Jana semula',
     optA: 'Pilihan A — Menang cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
     noImage: 'Tiada imej lagi',
     emptyPanel: 'Bahagian ini akan dipaparkan selepas anda menjana laporan.',
@@ -1425,7 +1524,7 @@ const MODULES = {
   packaging_audit_and_evidence_classification: 'audit',
   best_fit_recommendation_and_supplier_brief: 'recommendation',
   trade_off_comparison: 'tradeoff',
-  image_A: 'visuals', image_B: 'visuals', image_C: 'visuals',
+  image_A: 'strategies', image_B: 'strategies', image_C: 'strategies',
 };
 const modStatus = {};
 
@@ -1457,6 +1556,43 @@ function renderStatus() {
   document.getElementById('progressFill').style.width = (done / keys.length * 100) + '%';
   document.getElementById('progressText').textContent =
     t('rep_progress').replace('{n}', done).replace('{total}', keys.length);
+  renderFlow();
+}
+
+/* ============================================================
+   Analysis process flow (report page stepper)
+   ============================================================ */
+const FLOW = {
+  audit: ['packaging_audit_and_evidence_classification'],
+  problems: ['sustainability_problems_identified'],
+  strategies: ['three_redesign_strategies', 'image_A', 'image_B', 'image_C'],
+  tradeoff: ['trade_off_comparison'],
+  recommendation: ['best_fit_recommendation_and_supplier_brief'],
+};
+
+function flowStatus(keys, started) {
+  const list = keys.map(k => modStatus[k] || 'idle');
+  if (!started) return 'waiting';
+  if (list.includes('running')) return 'running';
+  if (list.every(s => s === 'done')) return 'done';
+  if (list.includes('error') && !list.includes('waiting')) return 'error';
+  if (list.every(s => s === 'idle')) return 'skipped';
+  if (list.includes('done')) return 'running';
+  return 'waiting';
+}
+
+function renderFlow() {
+  const started = !document.getElementById('report').hidden;
+  const steps = document.querySelectorAll('[data-flow]');
+  let done = 0;
+  steps.forEach(el => {
+    const s = flowStatus(FLOW[el.dataset.flow], started);
+    el.dataset.status = s;
+    el.querySelector('.pill').textContent = t('fs_' + s);
+    if (s === 'done' || s === 'skipped') done++;
+  });
+  document.getElementById('flowCount').textContent = done === steps.length
+    ? t('flow_all') : t('flow_count').replace('{n}', done).replace('{total}', steps.length);
 }
 
 /* ============================================================
@@ -1512,9 +1648,23 @@ function updateReadiness() {
 })();
 
 document.querySelectorAll('[data-field]').forEach(el => {
-  el.addEventListener('input', () => { el.classList.remove('invalid'); updateReadiness(); });
+  el.addEventListener('input', () => { el.classList.remove('invalid'); autoGrow(el); updateReadiness(); });
   el.addEventListener('change', updateReadiness);
 });
+
+/* Text fields wrap onto more lines and grow as the text gets longer.
+   They stay single-paragraph: Enter does not add a line break. */
+function autoGrow(el) {
+  if (!el.offsetParent) return; // hidden (closed details or another page): measure when shown
+  if (el.value.includes('\n')) el.value = el.value.replace(/\s*\n\s*/g, ' ');
+  el.style.height = 'auto';
+  el.style.height = (el.scrollHeight + el.offsetHeight - el.clientHeight) + 'px';
+}
+function growAll() { document.querySelectorAll('textarea.autogrow').forEach(autoGrow); }
+document.querySelectorAll('textarea.autogrow').forEach(el =>
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') e.preventDefault(); }));
+document.querySelector('details.advanced').addEventListener('toggle', growAll);
+window.addEventListener('resize', growAll);
 
 /* ============================================================
    File upload (drag + drop + browse + camera) → base64
@@ -1702,7 +1852,7 @@ async function streamInto(widget, url, bodyObj, outputEl) {
 
   if (!isConfiguredUrl(url)) {
     if (errorEl) {
-      errorEl.textContent = '⚠️ API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.textContent = 'API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
     setStatus(widget, 'error');
@@ -1750,7 +1900,7 @@ async function streamInto(widget, url, bodyObj, outputEl) {
     setStatus(widget, 'done');
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
-    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    if (errorEl) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
     setStatus(widget, 'error');
   }
 }
@@ -1779,6 +1929,7 @@ function buildTextBody(widget) {
 
 function validateInputs() {
   const nameEl = document.getElementById('f_product_name');
+  if ((!state.fileData || !nameEl.value.trim()) && location.hash !== '#analyse') goTo('#analyse');
   if (!state.fileData) {
     toast(t('needPhoto'));
     document.getElementById('stepUpload').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1819,7 +1970,7 @@ async function runImage(option) {
   if (!isConfiguredUrl(DIAGRAM_API)) {
     outputEl.innerHTML = imagePlaceholder();
     if (errorEl) {
-      errorEl.textContent = '⚠️ Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.textContent = 'Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
     setStatus(key, 'error');
@@ -1845,7 +1996,7 @@ async function runImage(option) {
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
     outputEl.innerHTML = imagePlaceholder();
-    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    if (errorEl) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
     setStatus(key, 'error');
   }
 }
@@ -1854,14 +2005,45 @@ async function runImage(option) {
    Report view: reveal, tabs, wrong-input banner
    ============================================================ */
 const reportEl = document.getElementById('report');
+const reportEmpty = document.getElementById('reportEmpty');
 const wrongInputAlert = document.getElementById('wrongInputAlert');
+const homePage = document.getElementById('homePage');
+const PAGES = { '#analyse': document.getElementById('analysePage'), '#report': document.getElementById('reportPage') };
+
+// Three views in one document (so in-flight streams keep running): the home page,
+// the input page at #analyse and the report page at #report.
+function route() {
+  const page = PAGES[location.hash];
+  homePage.hidden = !!page;
+  Object.values(PAGES).forEach(p => { p.hidden = p !== page; });
+  reportEmpty.hidden = !reportEl.hidden;
+  if (page) {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    growAll();
+    // Re-centre the selected tab: it may have been picked while the report page was hidden.
+    const sel = document.querySelector('.tab[aria-selected="true"]');
+    if (page === PAGES['#report'] && sel) selectTab(sel.dataset.tab);
+    return;
+  }
+  // The anchor target was hidden when the hash changed, so scroll to it now that home is visible.
+  let target = null;
+  try { target = location.hash && document.querySelector(location.hash); } catch (e) {}
+  if (target) target.scrollIntoView({ behavior: 'instant', block: 'start' });
+}
+window.addEventListener('hashchange', route);
+
+function goTo(hash) {
+  if (location.hash === hash) route(); else location.hash = hash;
+}
 
 function showReport() {
   reportEl.hidden = false;
+  reportEmpty.hidden = true;
   document.getElementById('summary').classList.add('report-on');
   const f = collectFields();
   document.getElementById('reportProduct').textContent =
     [f['Product Name and Type'], f['Product Category']].filter(Boolean).join(' · ');
+  renderFlow();
 }
 
 function selectTab(name) {
@@ -1872,11 +2054,15 @@ function selectTab(name) {
   const bar = sel.parentElement;
   bar.scrollTo({ left: sel.offsetLeft - (bar.clientWidth - sel.offsetWidth) / 2, behavior: 'smooth' });
 }
-document.querySelectorAll('[data-tab]').forEach(tb => tb.addEventListener('click', () => selectTab(tb.dataset.tab)));
+document.querySelectorAll('[data-tab]').forEach(tb => tb.addEventListener('click', () => { followRun = false; selectTab(tb.dataset.tab); }));
 document.querySelectorAll('.mods [data-mod]').forEach(li => li.addEventListener('click', () => {
   if (reportEl.hidden) return;
+  followRun = false;
   selectTab(li.dataset.mod);
-  reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  goTo('#report');
+}));
+document.querySelectorAll('[data-flow-tab]').forEach(el => el.addEventListener('click', () => {
+  if (!reportEl.hidden) { followRun = false; selectTab(el.dataset.flowTab); }
 }));
 
 // The analysis prompts answer with this exact phrase when the photo/inputs don't match a real product.
@@ -1913,6 +2099,22 @@ function clearOutputs() {
   wrongInputAlert.hidden = true;
 }
 
+// The report tab follows the running step until the person picks a tab themselves.
+let followRun = false;
+
+const RUN_STEPS = [
+  ['audit', () => runWidget('packaging_audit_and_evidence_classification')],
+  ['problems', () => runWidget('sustainability_problems_identified')],
+  ['strategies', async () => {
+    await runWidget('three_redesign_strategies');
+    // The concept images are drawn from the strategies; skip them when the inputs were rejected.
+    if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
+    else await Promise.all(['A', 'B', 'C'].map(runImage));
+  }],
+  ['tradeoff', () => runWidget('trade_off_comparison')],
+  ['recommendation', () => runWidget('best_fit_recommendation_and_supplier_brief')],
+];
+
 async function runAll() {
   if (running || !validateInputs()) return;
   setRunning(true);
@@ -1920,23 +2122,17 @@ async function runAll() {
   Object.keys(MODULES).forEach(k => { modStatus[k] = 'waiting'; });
   renderStatus();
   showReport();
-  selectTab('strategies');
-  reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('summary').classList.remove('report-ready');
+  followRun = true;
+  goTo('#report');
 
   try {
-    const strategies = runWidget('three_redesign_strategies');
-    const others = Promise.all(['sustainability_problems_identified', 'packaging_audit_and_evidence_classification'].map(runWidget));
-    await strategies;
-    // Images only need the strategies, so start them while the other analyses finish.
-    let images = Promise.resolve();
-    if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
-    else images = Promise.all(['A', 'B', 'C'].map(runImage));
-    await others;
-    await Promise.all([
-      runWidget('best_fit_recommendation_and_supplier_brief'),
-      runWidget('trade_off_comparison'),
-      images,
-    ]);
+    // One step at a time, in report order; later steps build on the earlier outputs.
+    for (const [tab, run] of RUN_STEPS) {
+      if (followRun) selectTab(tab);
+      await run();
+    }
+    if (Object.keys(state.outputs).length) document.getElementById('summary').classList.add('report-ready');
     toast(checkWrongInput() ? t('checkInputs') : t('reportReady'));
   } finally {
     setRunning(false);
@@ -1999,7 +2195,7 @@ async function sendChat() {
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
 
   if (!isConfiguredUrl(STREAM_URLS.ecolens_chatai)) {
-    botBubble.textContent = '⚠️ Chat API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+    botBubble.textContent = 'Chat API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
     return;
   }
 
@@ -2041,8 +2237,8 @@ async function sendChat() {
     state.chatHistory.push({ role: 'user', content: msg });
     state.chatHistory.push({ role: 'assistant', content: reply });
   } catch (err) {
-    botBubble.textContent = '⚠️ ' + err.message;
-    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    botBubble.textContent = err.message;
+    if (errorEl) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
   }
 }
 chatSend.addEventListener('click', sendChat);
@@ -2077,11 +2273,11 @@ document.getElementById('downloadBrief').addEventListener('click', () => {
 
 function fullReportText() {
   const sections = [
-    ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
+    ['packaging_audit_and_evidence_classification', 'w_audit'],
+    ['sustainability_problems_identified', 'w_problems'],
     ['three_redesign_strategies', 'w_strategies'],
     ['trade_off_comparison', 'w_tradeoff'],
-    ['sustainability_problems_identified', 'w_problems'],
-    ['packaging_audit_and_evidence_classification', 'w_audit'],
+    ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
   ].filter(([k]) => (state.outputs[k] || '').trim());
   if (!sections.length) return '';
   const product = collectFields()['Product Name and Type'] || '';
@@ -2122,22 +2318,25 @@ function fillExample() {
   });
   document.querySelector('details.advanced').open = true;
   updateReadiness();
+  growAll();
   toast(state.fileData ? t('exampleFilled') : t('exampleNeedsPhoto'));
 }
 document.getElementById('exampleBtn').addEventListener('click', fillExample);
 document.getElementById('heroExampleBtn').addEventListener('click', () => {
   fillExample();
-  document.getElementById('analyse').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  goTo('#analyse');
 });
 
 /* ============================================================
    Theme toggle (persisted)
    ============================================================ */
 const themeToggle = document.getElementById('themeToggle');
+const MOON_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>';
+const SUN_ICON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const label = theme === 'dark' ? t('light') : t('dark');
-  themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+  themeToggle.innerHTML = theme === 'dark' ? SUN_ICON : MOON_ICON;
   themeToggle.title = label;
   themeToggle.setAttribute('aria-label', label);
   try { localStorage.setItem('ecolens-theme', theme); } catch(e) {}
@@ -2170,16 +2369,20 @@ function resetAll() {
   Object.keys(modStatus).forEach(k => delete modStatus[k]);
   renderStatus();
   reportEl.hidden = true;
+  reportEmpty.hidden = false;
+  document.getElementById('summary').classList.remove('report-ready');
+  renderFlow();
   document.getElementById('summary').classList.remove('report-on');
   document.querySelector('details.advanced').open = false;
   updateReadiness();
+  growAll();
   // chatHistory intentionally preserved so the chatbot keeps its knowledge
   return true;
 }
 document.getElementById('resetBtn').addEventListener('click', () => { if (resetAll()) toast(t('resetDone')); });
 document.getElementById('startOverBtn').addEventListener('click', () => {
   if (!resetAll()) return;
-  document.getElementById('analyse').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  goTo('#analyse');
   toast(t('resetDone'));
 });
 
@@ -2190,9 +2393,10 @@ document.getElementById('startOverBtn').addEventListener('click', () => {
   let savedTheme = 'light', savedLang = 'en';
   try { savedTheme = localStorage.getItem('ecolens-theme') || 'light'; } catch(e) {}
   try { savedLang = localStorage.getItem('ecolens-lang') || 'en'; } catch(e) {}
-  selectTab('strategies');
+  selectTab('audit');
   applyLang(savedLang);
   applyTheme(savedTheme);
+  route();
 })();
 </script>
 </body>
