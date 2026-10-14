@@ -39,8 +39,9 @@ Browser
 **Image provider chain (first that succeeds wins):**
 1. Amazon Bedrock **Nova Canvas** (`amazon.nova-canvas-v1:0`) in **us-east-1**
 2. Amazon Bedrock **Titan Image Generator v2** (`amazon.titan-image-generator-v2:0`) — fallback for accounts where Nova is blocked
-3. **Google Gemini** "Nano Banana Pro" — only if `GeminiApiKey` is provided
+3. **Google Gemini** image model — only if `GeminiApiKey` is provided
 4. **Hugging Face FLUX** — only if `HfToken` is provided
+5. **Pollinations** (`image.pollinations.ai`, FLUX) — a free, key-less last resort so an image is always returned even if every provider above fails. Note: this calls an external third-party service with no key; remove this tier from `backend/image-generator/app.py` if that is not acceptable for your use.
 
 > Nova Canvas is **not** available in `ap-southeast-5`, so the image Lambda is
 > pinned to `us-east-1` via the `BEDROCK_REGION` environment variable. The text
