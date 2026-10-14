@@ -1313,6 +1313,7 @@ const I18N = {
     exampleFilled: 'Example filled', exampleNeedsPhoto: 'Example filled. Now add a photo of your packaging.',
     copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet. Generate the brief first.',
     nothingDownload: 'Nothing to download yet. Generate your report first.',
+    pdfFellBack: 'PDF unavailable right now — downloaded a text version instead.',
     reportReady: 'Your report is ready', checkInputs: 'Please check your photo and product details.',
     resetDone: 'Form cleared. Chat memory kept.', busy: 'Please wait until the report finishes.',
   },
@@ -1424,6 +1425,7 @@ const I18N = {
     exampleFilled: 'Contoh diisi', exampleNeedsPhoto: 'Contoh diisi. Sekarang tambah gambar pembungkusan anda.',
     copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin. Jana ringkasan dahulu.',
     nothingDownload: 'Tiada apa untuk dimuat turun. Jana laporan dahulu.',
+    pdfFellBack: 'PDF tidak tersedia buat masa ini — versi teks dimuat turun sebagai ganti.',
     reportReady: 'Laporan anda sudah siap', checkInputs: 'Sila semak gambar dan butiran produk anda.',
     resetDone: 'Borang dikosongkan. Memori sembang dikekalkan.', busy: 'Sila tunggu sehingga laporan siap.',
   },
@@ -2428,15 +2430,51 @@ function buildReportPdf() {
   return true;
 }
 
-document.getElementById('downloadAllBtn').addEventListener('click', () => {
+// Lazy-load jsPDF on demand so the PDF export never depends on the CDN
+// <script> having finished before the click. Tries a couple of CDNs.
+let _jspdfPromise = null;
+function ensureJsPDF() {
+  if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(true);
+  if (_jspdfPromise) return _jspdfPromise;
+  const urls = [
+    'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.2/jspdf.umd.min.js',
+    'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js',
+    'https://unpkg.com/jspdf@2.5.2/dist/jspdf.umd.min.js',
+  ];
+  _jspdfPromise = new Promise((resolve) => {
+    let i = 0;
+    const tryNext = () => {
+      if (window.jspdf && window.jspdf.jsPDF) return resolve(true);
+      if (i >= urls.length) return resolve(false);
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = () => resolve(!!(window.jspdf && window.jspdf.jsPDF));
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    };
+    tryNext();
+  });
+  return _jspdfPromise;
+}
+
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+downloadAllBtn.addEventListener('click', async () => {
   if (!reportSections().length) { toast(t('nothingDownload')); return; }
+  const original = downloadAllBtn.innerHTML;
+  downloadAllBtn.disabled = true;
+  downloadAllBtn.innerHTML = '⏳ PDF…';
   try {
-    if (buildReportPdf()) return; // PDF path succeeded
+    const ready = await ensureJsPDF();
+    if (ready && buildReportPdf()) return; // PDF produced
+    throw new Error('pdf-unavailable');
   } catch (e) {
-    // fall through to text
+    // Only reach here if jsPDF genuinely could not load or failed.
+    const txt = fullReportText();
+    if (txt) { downloadText(txt, 'ecolens-report.txt'); toast(t('pdfFellBack')); }
+  } finally {
+    downloadAllBtn.disabled = false;
+    downloadAllBtn.innerHTML = original;
   }
-  const txt = fullReportText();
-  if (txt) downloadText(txt, 'ecolens-report.txt');
 });
 
 /* ============================================================
