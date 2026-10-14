@@ -106,7 +106,17 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='BucketName'].OutputValue" --output text)
           aws s3 sync frontend/ "s3://$BUCKET" --cache-control no-cache --delete
 
-      - name: Print website URL
+      - name: Invalidate CloudFront cache
         run: |
-          aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
-            --query "Stacks[0].Outputs[?OutputKey=='WebsiteUrl'].OutputValue" --output text
+          DIST_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          if [ -n "$DIST_ID" ] && [ "$DIST_ID" != "None" ]; then
+            aws cloudfront create-invalidation --distribution-id "$DIST_ID" --paths "/*"
+          fi
+
+      - name: Print website URLs
+        run: |
+          echo "S3 (HTTP):   $(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='WebsiteUrl'].OutputValue" --output text)"
+          echo "HTTPS (use): $(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query "Stacks[0].Outputs[?OutputKey=='HttpsWebsiteUrl'].OutputValue" --output text)"

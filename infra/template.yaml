@@ -276,6 +276,47 @@ Resources:
             Action: s3:GetObject
             Resource: !Sub "${FrontendBucket.Arn}/*"
 
+  # ------------------------------------------------------------------
+  # CloudFront distribution — serves the S3 website over HTTPS.
+  # Uses the S3 *website* endpoint as a custom origin (HTTP only between
+  # CloudFront and S3, HTTPS for the public). This also enables the live
+  # camera (getUserMedia requires a secure context).
+  # ------------------------------------------------------------------
+  FrontendDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${AWS::StackName} static site over HTTPS"
+        DefaultRootObject: index.html
+        PriceClass: PriceClass_All
+        Origins:
+          - Id: S3WebsiteOrigin
+            # S3 website endpoints are custom (HTTP) origins, not S3 REST origins.
+            DomainName: !Select [2, !Split ["/", !GetAtt FrontendBucket.WebsiteURL]]
+            CustomOriginConfig:
+              OriginProtocolPolicy: http-only
+              HTTPPort: 80
+              HTTPSPort: 443
+              OriginSSLProtocols:
+                - TLSv1.2
+        DefaultCacheBehavior:
+          TargetOriginId: S3WebsiteOrigin
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          # Managed CachingDisabled policy — the frontend is deployed with
+          # no-cache; this avoids serving a stale index.html after redeploys.
+          CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+
 Outputs:
   DiagramApiUrl:
     Value: !Sub "https://${AppApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
@@ -293,5 +334,11 @@ Outputs:
     Value: !Sub "https://${AppHttpApi}.execute-api.${AWS::Region}.amazonaws.com/ecolens-chatai"
   WebsiteUrl:
     Value: !GetAtt FrontendBucket.WebsiteURL
+  HttpsWebsiteUrl:
+    Description: HTTPS URL for the app (served via CloudFront) — use this one.
+    Value: !Sub "https://${FrontendDistribution.DomainName}"
+  CloudFrontDistributionId:
+    Description: CloudFront distribution ID (for cache invalidation after redeploys).
+    Value: !Ref FrontendDistribution
   BucketName:
     Value: !Ref FrontendBucket
