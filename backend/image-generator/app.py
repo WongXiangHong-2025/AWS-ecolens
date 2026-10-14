@@ -235,6 +235,24 @@ def generate_image_pollinations(prompt):
     raise RuntimeError(f"Pollinations image request {last_error}")
 
 
+# Error names Bedrock raises when it is shedding load. Running Option A/B/C at
+# once (Run All) can trip these, so we back off and retry rather than failing.
+_THROTTLE_MARKERS = (
+    "throttl",
+    "toomanyrequests",
+    "serviceunavailable",
+    "service unavailable",
+    "slow down",
+    "rate exceeded",
+    "429",
+    "503",
+)
+
+
+def _is_throttle(exc):
+    return any(m in f"{type(exc).__name__} {exc}".lower() for m in _THROTTLE_MARKERS)
+
+
 def generate_image_bedrock(model_id, prompt):
     request_body = {
         "taskType": "TEXT_IMAGE",
@@ -247,12 +265,23 @@ def generate_image_bedrock(model_id, prompt):
             "quality": "standard",
         },
     }
-    response = bedrock.invoke_model(modelId=model_id, body=json.dumps(request_body))
-    payload = json.loads(response["body"].read())
-    images = payload.get("images") or []
-    if not images:
-        raise RuntimeError(f"{model_id} returned no images")
-    return images[0]
+    # Retry with exponential backoff + jitter on throttling. Non-throttle
+    # errors (e.g. access denied, content filter) raise immediately so the
+    # caller can fall through to the next provider without wasting time.
+    attempts = 4
+    for attempt in range(attempts):
+        try:
+            response = bedrock.invoke_model(modelId=model_id, body=json.dumps(request_body))
+            payload = json.loads(response["body"].read())
+            images = payload.get("images") or []
+            if not images:
+                raise RuntimeError(f"{model_id} returned no images")
+            return images[0]
+        except Exception as exc:
+            if _is_throttle(exc) and attempt < attempts - 1:
+                time.sleep(1.5 * (2 ** attempt) + random.uniform(0, 1))
+                continue
+            raise
 
 
 def generate_image(option, fields, strategies):
