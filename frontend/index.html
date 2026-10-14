@@ -292,6 +292,10 @@
   .fp-body { flex: 1; min-width: 0; }
   .fp-title { font-weight: 800; color: var(--accent); }
   .fp-meta { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fp-detect { font-size: .82rem; margin-top: .25rem; line-height: 1.4; }
+  .fp-detect.detecting { color: var(--muted); }
+  .fp-detect.ok { color: var(--accent); }
+  .fp-detect.warn { color: var(--danger); font-weight: 600; }
   .fp-actions { display: flex; gap: .8rem; margin-top: .3rem; }
 
   .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem; }
@@ -766,6 +770,7 @@
               <div class="fp-body">
                 <div class="fp-title" data-i18n="photoAdded">✓ Packaging added</div>
                 <div class="fp-meta" id="filePreviewMeta"></div>
+                <div class="fp-detect" id="detectStatus" hidden></div>
                 <div class="fp-actions">
                   <button type="button" class="link-btn" id="changeFileBtn" data-i18n="change">Change</button>
                   <button type="button" class="link-btn" id="removeFileBtn" data-i18n="remove">Remove</button>
@@ -1231,6 +1236,9 @@ const I18N = {
     dropTitle: 'Drop your photo here', dropHint: 'JPG, PNG, WEBP or PDF · or click to browse',
     browse: '📁 Browse files', camera: '📷 Take photo',
     photoAdded: '✓ Packaging added', change: 'Change', remove: 'Remove',
+    detecting: '🔍 Reading your photo…',
+    detectedPrefix: '✓ Detected: ',
+    detectWrong: '⚠️ This doesn\'t look like product packaging. You can still fill the details in manually.',
     camSwitch: '🔄 Switch', camCapture: '📸 Capture', camCancel: '✖ Cancel',
     step2_t: 'About your product', step2_d: 'Three quick questions.',
     w_product: 'Product name and type', w_category: 'Product category', w_objective: 'Main sustainability goal',
@@ -1339,6 +1347,9 @@ const I18N = {
     dropTitle: 'Lepaskan gambar anda di sini', dropHint: 'JPG, PNG, WEBP atau PDF · atau klik untuk pilih',
     browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
     photoAdded: '✓ Pembungkusan ditambah', change: 'Tukar', remove: 'Buang',
+    detecting: '🔍 Membaca gambar anda…',
+    detectedPrefix: '✓ Dikesan: ',
+    detectWrong: '⚠️ Ini tidak kelihatan seperti pembungkusan produk. Anda masih boleh isi butiran secara manual.',
     camSwitch: '🔄 Tukar', camCapture: '📸 Tangkap', camCancel: '✖ Batal',
     step2_t: 'Tentang produk anda', step2_d: 'Tiga soalan ringkas.',
     w_product: 'Nama dan jenis produk', w_category: 'Kategori produk', w_objective: 'Matlamat kelestarian utama',
@@ -1605,6 +1616,9 @@ function setImage(base64, mime, name, bytes) {
   dropzone.hidden = true;
   uploadActions.hidden = true;
   updateReadiness();
+  // Additive: try to auto-fill product fields from the photo. Non-blocking —
+  // the manual form stays fully usable whether or not this succeeds.
+  if (isImage) autoDetectFromPhoto(base64, state.fileMime);
 }
 
 function clearFile() {
@@ -1614,7 +1628,120 @@ function clearFile() {
   dropzone.hidden = false;
   uploadActions.hidden = false;
   fileInput.value = ''; cameraInput.value = '';
+  const ds = document.getElementById('detectStatus');
+  if (ds) { ds.hidden = true; ds.textContent = ''; ds.className = 'fp-detect'; }
   updateReadiness();
+}
+
+/* ============================================================
+   Auto-detect product from the uploaded photo (additive helper).
+   Calls the chat Lambda for ONE line: "name | materials | category",
+   or NOT_PACKAGING. Fills empty fields only — never overwrites what the
+   user already typed — and fails silently so the manual flow is unaffected.
+   ============================================================ */
+let detectToken = 0;
+
+const DETECT_CATEGORIES = [
+  'Food and Beverage', 'Snacks', 'Cosmetics and Personal Care',
+  'Household Products', 'Electronics', 'Pharmaceuticals', 'Others',
+];
+
+function matchCategory(raw) {
+  if (!raw) return null;
+  const s = raw.toLowerCase();
+  // Exact-ish match against the dropdown options first.
+  for (const opt of DETECT_CATEGORIES) {
+    if (s.includes(opt.toLowerCase())) return opt;
+  }
+  // Loose keyword mapping.
+  if (/food|beverage|drink|biscuit|cookie|snack|coffee|tea|sauce|kuih/.test(s)) {
+    return /snack|biscuit|cookie|kuih|chip/.test(s) ? 'Snacks' : 'Food and Beverage';
+  }
+  if (/cosmetic|beauty|skincare|personal care|shampoo|lotion|soap/.test(s)) return 'Cosmetics and Personal Care';
+  if (/household|cleaner|detergent|home/.test(s)) return 'Household Products';
+  if (/electronic|device|gadget|charger|cable/.test(s)) return 'Electronics';
+  if (/pharma|medicine|supplement|tablet|capsule|drug/.test(s)) return 'Pharmaceuticals';
+  return null;
+}
+
+function setDetect(cls, text) {
+  const ds = document.getElementById('detectStatus');
+  if (!ds) return;
+  ds.hidden = false;
+  ds.className = 'fp-detect ' + cls;
+  ds.textContent = text;
+}
+
+async function autoDetectFromPhoto(base64, mime) {
+  const url = STREAM_URLS.ecolens_chatai;
+  if (!isConfiguredUrl(url)) return; // not deployed yet — skip quietly
+  const myToken = ++detectToken; // ignore stale results if the photo changes
+  setDetect('detecting', t('detecting'));
+
+  const prompt =
+    'Look at the attached packaging photo and identify the product. ' +
+    'Reply with ONE line only, no other text, in exactly this format:\n' +
+    'Product name and type | Current packaging materials | Product category\n' +
+    'Example: Chocolate kuih bangkit cookies, 150 g | Clear PET tray in a metallised flow-wrap | Food and Beverage\n' +
+    'If the photo does not show a product or its packaging, reply with exactly: NOT_PACKAGING\n' +
+    (lang === 'bm' ? 'Write the product name and materials in Bahasa Malaysia.' : 'Write the values in English.');
+
+  let raw = '';
+  try {
+    const resp = await fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: prompt, history: [], context: {}, file_data: base64, file_mime: mime }),
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      raw += decoder.decode(value, { stream: true });
+    }
+  } catch (e) {
+    if (myToken === detectToken) { const ds = document.getElementById('detectStatus'); if (ds) ds.hidden = true; }
+    return; // silent: manual entry still works
+  }
+  if (myToken !== detectToken) return; // a newer photo superseded this
+
+  // Robust parse: tolerate markdown, preamble, and extra lines.
+  const cleaned = raw.replace(/[*`#>]/g, '').trim();
+  if (/NOT[_\s]?PACKAGING/i.test(cleaned)) {
+    setDetect('warn', t('detectWrong'));
+    return;
+  }
+  const line = cleaned.split('\n').map(l => l.trim()).find(l => l.includes('|'));
+  if (!line) { const ds = document.getElementById('detectStatus'); if (ds) ds.hidden = true; return; }
+
+  const parts = line.split('|').map(s => s.trim()).filter(Boolean);
+  const product = parts[0] || '';
+  const materials = parts[1] || '';
+  const category = matchCategory(parts[2] || product);
+
+  const fillIfEmpty = (id, val) => {
+    if (!val) return false;
+    const el = document.getElementById(id);
+    if (el && !el.value.trim()) { el.value = val; return true; }
+    return false;
+  };
+  const a = fillIfEmpty('f_product_name', product);
+  const b = fillIfEmpty('f_current_materials', materials);
+  let c = false;
+  if (category) {
+    const sel = document.getElementById('f_category');
+    // Only set the category if the user hasn't moved it off the default.
+    if (sel && sel.selectedIndex === 0) { sel.value = category; c = true; }
+  }
+
+  if (a || b || c) {
+    setDetect('ok', t('detectedPrefix') + (product || category || materials));
+    updateReadiness();
+  } else {
+    const ds = document.getElementById('detectStatus');
+    if (ds) ds.hidden = true; // nothing to fill (user already typed everything)
+  }
 }
 
 /* ============================================================
