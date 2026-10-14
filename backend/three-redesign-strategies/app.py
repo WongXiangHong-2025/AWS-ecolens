@@ -9,6 +9,7 @@ import base64
 import json
 import os
 import time
+import traceback
 
 import boto3
 from flask import Flask, Response, request, stream_with_context
@@ -189,7 +190,8 @@ def generate(body):
             body=json.dumps(anthropic_request),
         )
     except Exception as exc:  # surface a readable error to the panel
-        yield f"\n\n⚠️ Error contacting the model: {exc}"
+        traceback.print_exc()  # full traceback goes to CloudWatch
+        yield f"\n\n⚠️ Error contacting the model: {type(exc).__name__}: {exc}"
         return
 
     for event in response["body"]:
@@ -222,9 +224,33 @@ def options(path=None):
 @app.route("/", methods=["POST"])
 @app.route("/<path:path>", methods=["POST"])
 def handle(path=None):
-    body = request.get_json(force=True, silent=True) or {}
+    # Never return a bare 500. If anything throws before/while building the
+    # request, send a readable text message (and log the traceback) so the
+    # panel shows the real reason instead of a blank server error.
+    try:
+        body = request.get_json(force=True, silent=True) or {}
+        return Response(
+            stream_with_context(generate(body)),
+            content_type="text/plain; charset=utf-8",
+            headers=CORS_HEADERS,
+        )
+    except Exception as exc:
+        traceback.print_exc()
+        return Response(
+            f"\u26a0\ufe0f Server error: {type(exc).__name__}: {exc}",
+            status=200,
+            content_type="text/plain; charset=utf-8",
+            headers=CORS_HEADERS,
+        )
+
+
+@app.errorhandler(Exception)
+def on_error(exc):
+    # Catch-all so Flask returns readable text + CORS instead of an opaque 500.
+    traceback.print_exc()
     return Response(
-        stream_with_context(generate(body)),
+        f"\u26a0\ufe0f Unexpected error: {type(exc).__name__}: {exc}",
+        status=200,
         content_type="text/plain; charset=utf-8",
         headers=CORS_HEADERS,
     )

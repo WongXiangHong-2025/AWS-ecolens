@@ -17,6 +17,7 @@ Request body:
 import json
 import os
 import time
+import traceback
 
 import boto3
 from flask import Flask, Response, request, stream_with_context
@@ -113,7 +114,8 @@ def generate(body):
             modelId=MODEL_ID, body=json.dumps(req)
         )
     except Exception as exc:
-        yield f"\n\n⚠️ Error contacting the model: {exc}"
+        traceback.print_exc()
+        yield f"\n\n⚠️ Error contacting the model: {type(exc).__name__}: {exc}"
         return
     for event in response["body"]:
         if time.monotonic() - started > DEADLINE_SECONDS:
@@ -145,11 +147,27 @@ def options(path=None):
 @app.route("/", methods=["POST"])
 @app.route("/<path:path>", methods=["POST"])
 def handle(path=None):
-    body = request.get_json(force=True, silent=True) or {}
+    try:
+        body = request.get_json(force=True, silent=True) or {}
+        return Response(
+            stream_with_context(generate(body)),
+            content_type="text/plain; charset=utf-8",
+            headers=CORS_HEADERS,
+        )
+    except Exception as exc:
+        traceback.print_exc()
+        return Response(
+            f"\u26a0\ufe0f Server error: {type(exc).__name__}: {exc}",
+            status=200, content_type="text/plain; charset=utf-8", headers=CORS_HEADERS,
+        )
+
+
+@app.errorhandler(Exception)
+def on_error(exc):
+    traceback.print_exc()
     return Response(
-        stream_with_context(generate(body)),
-        content_type="text/plain; charset=utf-8",
-        headers=CORS_HEADERS,
+        f"\u26a0\ufe0f Unexpected error: {type(exc).__name__}: {exc}",
+        status=200, content_type="text/plain; charset=utf-8", headers=CORS_HEADERS,
     )
 
 
