@@ -571,6 +571,43 @@
     html { scroll-behavior: auto; }
     *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   }
+
+  /* ============================================================
+     Mobile refinements (phone Chrome / Safari)
+     ============================================================ */
+  /* Never allow sideways scrolling on small screens. */
+  html, body { max-width: 100%; overflow-x: hidden; }
+  /* Long words, URLs and tokens in outputs/bubbles wrap instead of overflowing. */
+  .output-text, .md-line, .bubble { overflow-wrap: anywhere; word-break: break-word; }
+
+  /* Use the dynamic viewport unit so Chrome's address bar doesn't clip the chat. */
+  @supports (height: 100dvh) {
+    @media (max-width: 480px) {
+      .chat-float { height: calc(100dvh - 1rem); max-height: calc(100dvh - 1rem); }
+    }
+  }
+
+  @media (max-width: 640px) {
+    /* 16px inputs stop iOS/Chrome from auto-zooming on focus. */
+    input[type="text"], select, .chat-input-row input { font-size: 16px; }
+    /* A touch more breathing room on narrow phones. */
+    .container { padding: 0 1rem; }
+    .nav-inner { gap: .6rem; }
+    .nav-actions { gap: .35rem; }
+    .icon-btn { height: 40px; min-width: 40px; } /* comfortable tap target */
+    /* Images in the redesign grid read better tall than cropped square on phones. */
+    .img-frame { aspect-ratio: 4 / 3; }
+    .img-frame img { object-fit: contain; }
+    /* Report action buttons go full width so they're easy to tap. */
+    .panel-actions .btn, .report-actions .btn { flex: 1 1 auto; justify-content: center; }
+  }
+
+  @media (max-width: 380px) {
+    h1 { font-size: 1.9rem; }
+    .hero-ctas .btn { width: 100%; justify-content: center; }
+    .chat-fab { right: .9rem; }
+    body:not(.mb-on) .chat-fab { bottom: .9rem; }
+  }
 </style>
 </head>
 <body>
