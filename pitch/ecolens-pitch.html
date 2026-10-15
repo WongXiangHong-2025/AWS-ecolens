@@ -131,6 +131,32 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
 .two-col-list ul { margin: 12px 0 0; padding-left: 22px; font-size: 18px; line-height: 1.5; color: var(--muted); }
 .two-col-list li b { color: var(--text); }
 
+/* Environmental Impact */
+.impact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; margin-top: 36px; align-items: start; }
+.impact-hero { background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 24px; padding: 34px 36px; }
+.impact-hero .persona { font-size: 18px; font-weight: 800; color: var(--accent-2); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; }
+.impact-hero .kg-num { font-size: 80px; font-weight: 800; letter-spacing: -.04em; color: var(--accent); line-height: 1; }
+.impact-hero .kg-label { font-size: 22px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
+.impact-hero .kg-label b { color: var(--text); }
+.impact-scale { display: flex; flex-direction: column; gap: 22px; }
+.scale-card { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 24px 28px; position: relative; overflow: hidden; }
+.scale-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(135deg, #c6f05f44, #0b6e4f22); border-radius: 20px 0 0 20px; transition: width 1.2s cubic-bezier(.22,1,.36,1); }
+.scale-card.s1::before { width: 18%; }
+.scale-card.s2::before { width: 58%; }
+.scale-card.s3::before { width: 100%; }
+.scale-card-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 20px; }
+.scale-num { font-size: 40px; font-weight: 800; color: var(--accent); letter-spacing: -.03em; min-width: 90px; }
+.scale-desc { font-size: 19px; line-height: 1.4; color: var(--muted); }
+.scale-desc b { color: var(--text); font-size: 21px; }
+.scale-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--lime); color: var(--on-lime); font-size: 15px; font-weight: 800; padding: 5px 12px; border-radius: 999px; margin-top: 8px; }
+.leaves-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 18px; }
+.leaf-icon { font-size: 18px; opacity: .75; }
+.leaf-icon.green { opacity: 1; filter: hue-rotate(0deg); }
+.impact-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 28px; }
+.impact-stat { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px 22px; text-align: center; }
+.impact-stat .v { font-size: 38px; font-weight: 800; color: var(--accent); letter-spacing: -.03em; }
+.impact-stat .l { font-size: 16px; color: var(--muted); margin-top: 6px; line-height: 1.35; }
+
 /* Closing */
 .closing { background: radial-gradient(900px 600px at 10% 100%, #d7f0e2 0%, transparent 60%), var(--bg); }
 .closing .line { font-size: 58px; font-weight: 800; line-height: 1.12; letter-spacing: -.025em; max-width: 1250px; }
@@ -429,7 +455,70 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
   </div>
 </section>
 
-<!-- 15 · Closing -->
+<!-- 15 · Environmental Impact -->
+<section class="slide" data-seg="4 · Impact · 4:15" data-notes="<b>30 s.</b> Make it concrete — Encik Syaful's 2,000 jars is 32 kg of plastic per season. Now multiply that by 50 sellers in our pilot. That's 1,600 kg diverted from landfill every Raya. This is why the switch matters.">
+  <span class="eyebrow">Environmental impact</span>
+  <h2>One seller, one switch. Multiplied by fifty.</h2>
+  <div class="impact-grid body" style="margin-top:28px">
+    <div>
+      <div class="impact-hero">
+        <div class="persona">🧑‍🍳 Encik Syaful — home baker, Kajang</div>
+        <div class="kg-num" id="kgNum">32</div>
+        <div class="kg-label"><b>kg of plastic packaging</b> used per Raya season<br>(2,000 clear plastic jars × ~16 g each)</div>
+        <div class="leaves-row" id="leavesRow" aria-hidden="true"></div>
+      </div>
+      <div class="impact-stat-row">
+        <div class="impact-stat">
+          <div class="v">2,000</div>
+          <div class="l">plastic jars<br>per season</div>
+        </div>
+        <div class="impact-stat">
+          <div class="v">~16 g</div>
+          <div class="l">packaging weight<br>per unit</div>
+        </div>
+        <div class="impact-stat">
+          <div class="v">32 kg</div>
+          <div class="l">plastic per seller<br>per season</div>
+        </div>
+      </div>
+    </div>
+    <div class="impact-scale">
+      <div class="scale-card s1">
+        <div class="scale-card-inner">
+          <div class="scale-num">1</div>
+          <div class="scale-desc">
+            <b>seller switches</b><br>
+            <span>32 kg of packaging can be recycled or composted</span>
+            <div class="scale-badge">🌿 32 kg saved</div>
+          </div>
+        </div>
+      </div>
+      <div class="scale-card s2">
+        <div class="scale-card-inner">
+          <div class="scale-num">10</div>
+          <div class="scale-desc">
+            <b>sellers switch</b><br>
+            <span>320 kg diverted — the weight of a small car's fuel tank in plastic</span>
+            <div class="scale-badge">🌿 320 kg saved</div>
+          </div>
+        </div>
+      </div>
+      <div class="scale-card s3">
+        <div class="scale-card-inner">
+          <div class="scale-num" id="sellerCount">50</div>
+          <div class="scale-desc">
+            <b>sellers in our pilot switch</b><br>
+            <span>1,600 kg of packaging recycled every Raya — before we've raised a single ringgit</span>
+            <div class="scale-badge">🌿 <span id="totalKg">1,600</span> kg saved per season</div>
+          </div>
+        </div>
+      </div>
+      <p style="font-size:17px;color:var(--muted);margin-top:4px;line-height:1.5">Assumes 1 in 3 sellers fully switches (our pilot success threshold). Aligned with <b style="color:var(--text)">SDG 12</b> (Responsible Consumption) &amp; <b style="color:var(--text)">SDG 13</b> (Climate Action).</p>
+    </div>
+  </div>
+</section>
+
+<!-- 16 · Closing -->
 <section class="slide closing" data-seg="5 · Closing · 4:15" data-notes="<b>45 s.</b> Slow down. Say the line, then the ask, then thank the room. Moat if asked: Malaysian recycling reality, halal and humidity checks, BM, RM costs. Big players won't build for a 2,000-jar baker.">
   <div class="logo-row"><span class="mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 25c0-11 7-18 19-19-.6 12-7.5 19-19 19Z" fill="#0b6e4f"/><path d="M9 23l9-9" stroke="#c6f05f" stroke-width="2" stroke-linecap="round"/></svg></span>EcoLens</div>
   <div style="margin-top:auto">
@@ -464,6 +553,23 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
     const s = Math.min(window.innerWidth / 1640, window.innerHeight / 940);
     stage.style.transform = `scale(${s})`;
   }
+  /* ── Impact slide animation ── */
+  function runImpactAnim() {
+    const leavesRow = document.getElementById('leavesRow');
+    if (!leavesRow) return;
+    leavesRow.innerHTML = '';
+    const TOTAL = 32; // one leaf per kg
+    let shown = 0;
+    const timer = setInterval(() => {
+      if (shown >= TOTAL) { clearInterval(timer); return; }
+      const span = document.createElement('span');
+      span.className = 'leaf-icon green';
+      span.textContent = '🌿';
+      leavesRow.appendChild(span);
+      shown++;
+    }, 60);
+  }
+
   function show(n) {
     i = Math.max(0, Math.min(slides.length - 1, n));
     slides.forEach((s, k) => s.classList.toggle('on', k === i));
@@ -471,6 +577,8 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
     document.getElementById('progress').style.width = ((i + 1) / slides.length * 100) + '%';
     notes.innerHTML = slides[i].dataset.notes || '';
     try { history.replaceState(null, '', '#s' + (i + 1)); } catch (e) {}
+    // trigger impact animation when that slide is active
+    if (slides[i] && slides[i].querySelector('#kgNum')) { setTimeout(runImpactAnim, 200); }
   }
   function toggleNotes() { notes.hidden = !notes.hidden; }
   function fullscreen() { const el = document.documentElement; (document.fullscreenElement ? document.exitFullscreen() : el.requestFullscreen && el.requestFullscreen()).catch?.(() => {}); }
