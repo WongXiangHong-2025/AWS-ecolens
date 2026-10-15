@@ -2352,7 +2352,17 @@ function buildReportPdf(mode) {
     doc.text(wrapped, M + 92, my);
     my += wrapped.length * 13 + 4;
   });
-  y += metaH + 24;
+  y += metaH + 20;
+
+  // ---------- intro line for the supplier brief ----------
+  if (mode === 'brief') {
+    const intro = lang === 'bm'
+      ? 'Kongsi dokumen ini dengan pembekal pembungkusan anda untuk meminta sebut harga, spesifikasi dan sijil.'
+      : 'Share this document with your packaging supplier to request quotes, specifications and certificates.';
+    doc.setFont('helvetica', 'italic'); doc.setFontSize(9.5); setText(PDF.MUTE);
+    const wi = doc.splitTextToSize(intro, CW);
+    doc.text(wi, M, y); y += wi.length * 13 + 14;
+  }
 
   // ---------- helpers ----------
   const PRIORITY = [
@@ -2364,9 +2374,12 @@ function buildReportPdf(mode) {
 
   const drawChip = (label, fg, bg, x, yy) => {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
-    const w = doc.getTextWidth(label) + 14;
+    // Pill with a filled colour dot standing in for the 🔴🟡🟢 emoji.
+    const dotR = 3;
+    const w = doc.getTextWidth(label) + 22;
     setFill(bg); doc.roundedRect(x, yy - 9, w, 14, 7, 7, 'F');
-    setText(fg); doc.text(label, x + 7, yy + 1);
+    setFill(fg); doc.circle(x + 9, yy - 2, dotR, 'F');
+    setText(fg); doc.text(label, x + 16, yy + 1);
     return w;
   };
 
