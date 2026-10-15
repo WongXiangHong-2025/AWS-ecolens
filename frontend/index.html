@@ -2326,7 +2326,11 @@ async function runImage(option) {
         });
         data = await resp.json().catch(() => ({}));
         // Show why it failed (the server lists each image provider's error), not just the status.
-        if (!resp.ok) throw new Error(data.error ? shortError(data.error) : 'HTTP ' + resp.status);
+        if (!resp.ok) {
+          const e = new Error(data.error ? shortError(data.error) : 'HTTP ' + resp.status);
+          e.full = data.error || ''; // the complete message, shown on hover and in the console
+          throw e;
+        }
       } finally {
         clearTimeout(timer);
       }
@@ -2355,7 +2359,13 @@ async function runImage(option) {
   // all attempts failed
   if (spinner) spinner.style.display = 'none';
   outputEl.innerHTML = imagePlaceholder();
-  if (errorEl) { errorEl.classList.remove('retry'); errorEl.textContent = (lastErr ? lastErr.message : 'image failed') + (lang === 'bm' ? ' — tekan Jana semula' : ' — press Regenerate'); errorEl.classList.add('show'); }
+  if (errorEl) {
+    errorEl.classList.remove('retry');
+    errorEl.textContent = (lastErr ? lastErr.message : 'image failed') + (lang === 'bm' ? ' — tekan Jana semula' : ' — press Regenerate');
+    errorEl.title = (lastErr && lastErr.full) || ''; // hover to read the whole error
+    errorEl.classList.add('show');
+  }
+  if (lastErr && lastErr.full) console.error('Image ' + option + ' failed:', lastErr.full);
   setStatus(key, 'error');
 }
 

@@ -68,6 +68,13 @@ Resources:
                   - "arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/stability.sd3-5-large-v1:0"
+              # Stability models are sold through AWS Marketplace: the first call in an
+              # account subscribes to the model, which needs these two actions.
+              - Effect: Allow
+                Action:
+                  - aws-marketplace:ViewSubscriptions
+                  - aws-marketplace:Subscribe
+                Resource: "*"
 
   # ------------------------------------------------------------------
   # HTTP API for all streaming text/chat widgets.
