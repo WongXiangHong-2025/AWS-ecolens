@@ -146,6 +146,7 @@
     --i-copy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect fill='black' fill-opacity='.22' x='8.5' y='8.5' width='12' height='12.5' rx='2.5'/%3E%3Cpath d='M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5'/%3E%3C/svg%3E");
     --i-spinner: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5a8.5 8.5 0 1 0 8.5 8.5'/%3E%3C/svg%3E");
     --i-leaf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z'/%3E%3Cpath d='M4.5 19.5 13 11'/%3E%3C/svg%3E");
+    --i-chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5.5l6.5 6.5L9 18.5'/%3E%3C/svg%3E");
   }
   .ico { display: inline-block; width: 1.15em; height: 1.15em; flex: none; vertical-align: -.2em;
     background-color: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
@@ -450,24 +451,74 @@
   .report-head h2 { font-size: clamp(1.5rem, 2.8vw, 2rem); font-weight: 800; letter-spacing: -.025em; }
   .report-product { color: var(--muted); margin-top: .25rem; }
   .report-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
-  .progress { display: flex; align-items: center; gap: .9rem; margin-bottom: 1.2rem; }
-  .progress-bar { flex: 1; height: 8px; border-radius: 999px; background: var(--border); overflow: hidden; }
-  .progress-bar span { display: block; height: 100%; width: 0; border-radius: 999px;
-    background: linear-gradient(90deg, var(--accent), var(--lime)); transition: width .4s ease; }
-  .progress-text { font-size: .85rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  /* Step tracker: audit → problems → strategies & visuals → trade-off → recommendation */
+  .flow-wrap { background: var(--panel); border: 1px solid var(--border); border-radius: 18px;
+    padding: 1rem 1.1rem 1.1rem; margin-bottom: 1.2rem; box-shadow: var(--shadow-sm); }
+  .flow-now { font-size: .86rem; font-weight: 700; color: var(--muted); margin-bottom: .9rem; min-height: 1.4em; }
+  .flow-now b { color: var(--text); }
+  .flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .4rem; }
+  .flow-step { position: relative; min-width: 0; }
+  .flow-step:not(:last-child)::after { content: ""; position: absolute; top: 16px; height: 2px; border-radius: 2px;
+    left: calc(50% + 23px); right: calc(-50% + 23px - .4rem); background: var(--border); transition: background .3s ease; }
+  .flow-step[data-status="done"]:not(:last-child)::after { background: var(--accent); }
+  .flow-step button { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; width: 100%;
+    display: flex; flex-direction: column; align-items: center; gap: .45rem; text-align: center; }
+  .flow-mark { position: relative; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none;
+    border: 2px solid var(--border); background: var(--panel); color: var(--muted); font-weight: 800; font-size: .85rem;
+    transition: background .2s ease, border-color .2s ease, color .2s ease; }
+  .flow-label { display: block; font-size: .8rem; font-weight: 700; line-height: 1.25; }
+  .fl-short { display: none; }
+  .flow-state { display: block; font-size: .72rem; font-weight: 600; color: var(--muted); }
+  .flow-step.current .flow-label { color: var(--accent); text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .flow-step button:hover .flow-label { color: var(--accent); }
+  .flow-step[data-status="running"] .flow-mark { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+  .flow-step[data-status="running"] .flow-mark::after { content: ""; position: absolute; inset: -5px; border-radius: 50%;
+    border: 2px solid transparent; border-top-color: var(--accent); border-right-color: var(--accent); animation: spin .9s linear infinite; }
+  .flow-step[data-status="running"] .flow-state { color: var(--accent); }
+  .flow-step[data-status="done"] .flow-mark { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .flow-step[data-status="done"] .flow-num, .flow-step[data-status="error"] .flow-num { display: none; }
+  .flow-step[data-status="done"] .flow-mark::before, .flow-step[data-status="error"] .flow-mark::before { content: ""; width: 16px; height: 16px;
+    background: currentColor; -webkit-mask: var(--fm) center / contain no-repeat; mask: var(--fm) center / contain no-repeat; }
+  .flow-step[data-status="done"] { --fm: var(--i-check); }
+  .flow-step[data-status="error"] { --fm: var(--i-x); }
+  .flow-step[data-status="error"] .flow-mark { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+  .flow-step[data-status="error"] .flow-state { color: var(--danger); }
+  .flow-step[data-status="skipped"] { opacity: .5; }
+  @media (max-width: 640px) {
+    .flow-wrap { padding: .85rem .6rem .95rem; }
+    .flow-now { padding: 0 .3rem; font-size: .8rem; }
+    .fl-long { display: none; } .fl-short { display: inline; }
+    .flow-label { font-size: .7rem; }
+    .flow-state { font-size: .64rem; }
+    .flow-mark { width: 30px; height: 30px; font-size: .78rem; }
+    .flow-step:not(:last-child)::after { top: 14px; left: calc(50% + 20px); right: calc(-50% + 20px - .4rem); }
+  }
+
+  /* Each section: short "Key points" first, the full explanation folded below. */
+  .keypoints { background: linear-gradient(135deg, var(--accent-soft), color-mix(in srgb, var(--lime) 14%, var(--accent-soft)));
+    border-left: 4px solid var(--accent); border-radius: 14px; padding: .9rem 1.1rem .7rem; margin-bottom: 1rem; }
+  .keypoints .md-line h2 { font-size: .74rem; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); margin: 0 0 .3rem; }
+  .keypoints .md-line ul { margin-left: 1rem; }
+  .keypoints .md-line li { margin: .15rem 0; font-weight: 600; }
+  .keypoints > .md-line:has(> br) { display: none; }
+  details.more { border: 1.5px solid var(--border); border-radius: 14px; background: var(--panel); }
+  details.more > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: .55rem;
+    padding: .8rem 1rem; font-weight: 700; font-size: .92rem; color: var(--accent); user-select: none; }
+  details.more > summary::-webkit-details-marker { display: none; }
+  details.more > summary::before { content: ""; width: 1em; height: 1em; flex: none; background: currentColor;
+    -webkit-mask: var(--i-chev) center / contain no-repeat; mask: var(--i-chev) center / contain no-repeat; transition: transform .2s ease; }
+  details.more[open] > summary::before { transform: rotate(90deg); }
+  details.more[open] > summary { border-bottom: 1px solid var(--border); }
+  .more-state { margin-left: auto; font-size: .76rem; font-weight: 600; color: var(--muted); }
+  .more-body { padding: .4rem 1rem 1rem; }
+  .visuals-block { margin-top: 1.6rem; padding-top: 1.3rem; border-top: 1px solid var(--border); }
+  .sub-h { display: flex; align-items: center; gap: .5rem; font-size: 1.02rem; font-weight: 800; }
+  .sub-h .ico { color: var(--accent); }
+  .sub-d { color: var(--muted); font-size: .88rem; margin: .2rem 0 1rem; }
+  .mod-n { color: var(--muted); font-weight: 700; }
   .alert .ico { width: 1.25em; height: 1.25em; margin-top: .1em; }
   .alert { display: flex; gap: .7rem; padding: .9rem 1.1rem; border-radius: 14px; margin-bottom: 1.2rem;
     background: var(--danger-soft); color: var(--danger); font-weight: 600; }
-
-  .tabs { position: relative; display: flex; gap: .3rem; overflow-x: auto; scrollbar-width: none; margin-bottom: 1rem; padding: .3rem;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 999px; width: max-content; max-width: 100%; }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab { flex: none; display: inline-flex; align-items: center; gap: .5rem; font: inherit; font-size: .9rem; font-weight: 700;
-    color: var(--muted); background: transparent; border: none; padding: .6rem 1rem; border-radius: 999px; cursor: pointer; white-space: nowrap; }
-  .tab:hover { color: var(--text); }
-  .tab[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
-  .tab[aria-selected="true"][data-status="done"] .dot { background: var(--lime); }
-  .tab[aria-selected="true"][data-status="idle"] .dot { background: rgba(255,255,255,.4); }
 
   .tab-panels { padding: 1.6rem 1.8rem; }
   .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;
@@ -1026,12 +1077,11 @@
             </ul>
             <div class="sum-label" data-i18n="sum_includes">What's included</div>
             <ul class="mods">
-              <li data-mod="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span><span class="pill"></span></li>
-              <li data-mod="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span><span class="pill"></span></li>
-              <li data-mod="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span><span class="pill"></span></li>
-              <li data-mod="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span><span class="pill"></span></li>
-              <li data-mod="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span><span class="pill"></span></li>
-              <li data-mod="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span><span class="pill"></span></li>
+              <li data-mod="audit"><span class="dot"></span><span><span class="mod-n">1.</span> <span data-i18n="m_aud">Packaging audit</span></span><span class="pill"></span></li>
+              <li data-mod="problems"><span class="dot"></span><span><span class="mod-n">2.</span> <span data-i18n="m_prb">Problems found</span></span><span class="pill"></span></li>
+              <li data-mod="strategies"><span class="dot"></span><span><span class="mod-n">3.</span> <span data-i18n="m_str">Strategies &amp; visuals</span></span><span class="pill"></span></li>
+              <li data-mod="tradeoff"><span class="dot"></span><span><span class="mod-n">4.</span> <span data-i18n="m_trd">Trade-off comparison</span></span><span class="pill"></span></li>
+              <li data-mod="recommendation"><span class="dot"></span><span><span class="mod-n">5.</span> <span data-i18n="m_rec">Recommendation &amp; brief</span></span><span class="pill"></span></li>
             </ul>
             <button type="button" class="btn btn-primary btn-lg btn-block" id="runAllBtn"><span id="runAllLabel" data-i18n="gen">Generate my report</span> <span aria-hidden="true">→</span></button>
             <p class="sum-time" data-i18n="sum_time">Usually ready in 1–2 minutes.</p>
@@ -1060,31 +1110,37 @@
             <button type="button" class="btn btn-ghost btn-sm" id="startOverBtn" data-i18n="startOver">Start over</button>
           </div>
         </div>
-        <div class="progress"><div class="progress-bar"><span id="progressFill"></span></div><span class="progress-text" id="progressText"></span></div>
+        <div class="flow-wrap">
+          <p class="flow-now" id="flowNow" aria-live="polite"></p>
+          <ol class="flow" id="flow" aria-label="Report steps">
+            <li class="flow-step" data-step="audit"><button type="button"><span class="flow-mark"><span class="flow-num">1</span></span><span class="flow-label"><span class="fl-long" data-i18n="m_aud">Packaging audit</span><span class="fl-short" data-i18n="fs_aud">Audit</span></span><span class="flow-state"></span></button></li>
+            <li class="flow-step" data-step="problems"><button type="button"><span class="flow-mark"><span class="flow-num">2</span></span><span class="flow-label"><span class="fl-long" data-i18n="m_prb">Problems found</span><span class="fl-short" data-i18n="fs_prb">Problems</span></span><span class="flow-state"></span></button></li>
+            <li class="flow-step" data-step="strategies"><button type="button"><span class="flow-mark"><span class="flow-num">3</span></span><span class="flow-label"><span class="fl-long" data-i18n="m_str">Strategies &amp; visuals</span><span class="fl-short" data-i18n="fs_str">Options</span></span><span class="flow-state"></span></button></li>
+            <li class="flow-step" data-step="tradeoff"><button type="button"><span class="flow-mark"><span class="flow-num">4</span></span><span class="flow-label"><span class="fl-long" data-i18n="m_trd">Trade-off comparison</span><span class="fl-short" data-i18n="fs_trd">Compare</span></span><span class="flow-state"></span></button></li>
+            <li class="flow-step" data-step="recommendation"><button type="button"><span class="flow-mark"><span class="flow-num">5</span></span><span class="flow-label"><span class="fl-long" data-i18n="m_rec">Recommendation &amp; brief</span><span class="fl-short" data-i18n="fs_rec">Decision</span></span><span class="flow-state"></span></button></li>
+          </ol>
+        </div>
         <div class="alert" id="wrongInputAlert" role="alert" hidden><i class="ico i-alert" aria-hidden="true"></i><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
 
-        <div class="tabs" role="tablist">
-          <button type="button" class="tab" role="tab" data-tab="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span></button>
-          <button type="button" class="tab" role="tab" data-tab="strategies"><span class="dot"></span><span data-i18n="m_str">Redesign strategies</span></button>
-          <button type="button" class="tab" role="tab" data-tab="visuals"><span class="dot"></span><span data-i18n="m_vis">Redesign visuals</span></button>
-          <button type="button" class="tab" role="tab" data-tab="tradeoff"><span class="dot"></span><span data-i18n="m_trd">Trade-off table</span></button>
-          <button type="button" class="tab" role="tab" data-tab="problems"><span class="dot"></span><span data-i18n="m_prb">Problems found</span></button>
-          <button type="button" class="tab" role="tab" data-tab="audit"><span class="dot"></span><span data-i18n="m_aud">Packaging audit</span></button>
-        </div>
-
         <div class="card tab-panels">
-          <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
+          <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
             <div class="panel-head">
-              <div><h3><i class="ico i-brief" aria-hidden="true"></i><span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
-              <div class="panel-actions">
-                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief"><i class="ico i-copy" aria-hidden="true"></i><span data-i18n="copy">Copy brief</span></button>
-                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief"><i class="ico i-download" aria-hidden="true"></i><span data-i18n="download">Download PDF</span></button>
-                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button>
-              </div>
+              <div><h3><i class="ico i-audit" aria-hidden="true"></i><span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
             </div>
-            <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
-            <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
+            <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
+            <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
+          </div>
+
+          <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
+            <div class="panel-head">
+              <div><h3><i class="ico i-search" aria-hidden="true"></i><span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
+            </div>
+            <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="sustainability_problems_identified"></div>
+            <div class="panel-error" data-error="sustainability_problems_identified"></div>
           </div>
 
           <div class="tab-panel" role="tabpanel" data-panel="strategies" hidden>
@@ -1095,36 +1151,34 @@
             <div class="skeleton" data-spinner="three_redesign_strategies"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="output-text" data-output="three_redesign_strategies"></div>
             <div class="panel-error" data-error="three_redesign_strategies"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="visuals" hidden>
-            <div class="panel-head">
-              <div><h3><i class="ico i-image" aria-hidden="true"></i><span data-i18n="w_visuals">Packaging redesign visuals</span></h3><p data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p></div>
-            </div>
-            <div class="img-grid">
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_A"><i></i></div>
-                  <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+            <div class="visuals-block">
+              <h4 class="sub-h"><i class="ico i-image" aria-hidden="true"></i><span data-i18n="w_visuals">Packaging redesign visuals</span></h4>
+              <p class="sub-d" data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p>
+              <div class="img-grid">
+                <div class="img-card">
+                  <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
+                  <div class="img-frame">
+                    <div class="skeleton" data-spinner="image_A"><i></i></div>
+                    <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                  </div>
+                  <div class="panel-error" data-error="image_A"></div>
                 </div>
-                <div class="panel-error" data-error="image_A"></div>
-              </div>
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_B"><i></i></div>
-                  <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                <div class="img-card">
+                  <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
+                  <div class="img-frame">
+                    <div class="skeleton" data-spinner="image_B"><i></i></div>
+                    <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                  </div>
+                  <div class="panel-error" data-error="image_B"></div>
                 </div>
-                <div class="panel-error" data-error="image_B"></div>
-              </div>
-              <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
-                <div class="img-frame">
-                  <div class="skeleton" data-spinner="image_C"><i></i></div>
-                  <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                <div class="img-card">
+                  <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
+                  <div class="img-frame">
+                    <div class="skeleton" data-spinner="image_C"><i></i></div>
+                    <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
+                  </div>
+                  <div class="panel-error" data-error="image_C"></div>
                 </div>
-                <div class="panel-error" data-error="image_C"></div>
               </div>
             </div>
           </div>
@@ -1139,24 +1193,18 @@
             <div class="panel-error" data-error="trade_off_comparison"></div>
           </div>
 
-          <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
+          <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
             <div class="panel-head">
-              <div><h3><i class="ico i-search" aria-hidden="true"></i><span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
+              <div><h3><i class="ico i-brief" aria-hidden="true"></i><span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
+              <div class="panel-actions">
+                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief"><i class="ico i-copy" aria-hidden="true"></i><span data-i18n="copy">Copy brief</span></button>
+                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief"><i class="ico i-download" aria-hidden="true"></i><span data-i18n="download">Download PDF</span></button>
+                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button>
+              </div>
             </div>
-            <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="sustainability_problems_identified"></div>
-            <div class="panel-error" data-error="sustainability_problems_identified"></div>
-          </div>
-
-          <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
-            <div class="panel-head">
-              <div><h3><i class="ico i-audit" aria-hidden="true"></i><span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
-            </div>
-            <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
-            <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
-            <div class="panel-error" data-error="packaging_audit_and_evidence_classification"></div>
+            <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="output-text" data-output="best_fit_recommendation_and_supplier_brief"></div>
+            <div class="panel-error" data-error="best_fit_recommendation_and_supplier_brief"></div>
           </div>
         </div>
       </div>
@@ -1355,10 +1403,16 @@ const I18N = {
     ph_chat: 'Ask about your packaging…',
     sum_title: 'Your report', sum_photo: 'Packaging photo', sum_name: 'Product name', sum_more: 'Extra details',
     sum_includes: "What's included",
-    m_rec: 'Recommendation & brief', m_str: 'Redesign strategies', m_vis: 'Redesign visuals',
-    m_trd: 'Trade-off table', m_prb: 'Problems found', m_aud: 'Packaging audit',
-    st_idle: 'Included', st_waiting: 'Queued', st_running: 'In progress', st_done: 'Ready', st_error: 'Failed',
-    gen: 'Generate my report', generating: 'Generating…', sum_time: 'Usually ready in 1–2 minutes.',
+    m_rec: 'Recommendation & brief', m_str: 'Strategies & visuals',
+    m_trd: 'Trade-off comparison', m_prb: 'Problems found', m_aud: 'Packaging audit',
+    fs_aud: 'Audit', fs_prb: 'Problems', fs_str: 'Options', fs_trd: 'Compare', fs_rec: 'Decision',
+    st_idle: 'Included', st_waiting: 'Waiting', st_running: 'Processing…', st_done: 'Done', st_error: 'Failed', st_skipped: 'Skipped', st_visuals: 'Drawing visuals…',
+    flow_step: 'Step {n} of {total}', flow_working: 'working on {name}…', flow_start: 'Starting…',
+    flow_done: 'All 5 steps done. Your report is ready.',
+    flow_stopped: 'Stopped after the packaging audit. Check your photo and product details, then generate again.',
+    panelSkipped: 'Skipped because the photo did not pass the packaging audit.',
+    keyPoints: 'Key points', moreTitle: 'Read the full explanation', moreWriting: 'Writing…',
+    gen: 'Generate my report', generating: 'Generating…', sum_time: 'Usually ready in about 2 minutes.',
     mb_photo: 'Step 1: add a photo', mb_name: 'Step 2: add your product name', mb_ready: 'Ready to generate',
     example: 'Fill example', reset: 'Reset',
     rep_eyebrow: 'Report', rep_title: 'Your packaging report', rep_progress: '{n} of {total} sections ready',
@@ -1467,10 +1521,16 @@ const I18N = {
     ph_chat: 'Tanya tentang pembungkusan anda…',
     sum_title: 'Laporan anda', sum_photo: 'Gambar pembungkusan', sum_name: 'Nama produk', sum_more: 'Butiran tambahan',
     sum_includes: 'Kandungan laporan',
-    m_rec: 'Cadangan & ringkasan', m_str: 'Strategi reka bentuk semula', m_vis: 'Visual reka bentuk semula',
-    m_trd: 'Jadual perbandingan', m_prb: 'Masalah dikenal pasti', m_aud: 'Audit pembungkusan',
-    st_idle: 'Termasuk', st_waiting: 'Menunggu', st_running: 'Sedang diproses', st_done: 'Siap', st_error: 'Gagal',
-    gen: 'Jana laporan saya', generating: 'Sedang menjana…', sum_time: 'Biasanya siap dalam 1–2 minit.',
+    m_rec: 'Cadangan & ringkasan', m_str: 'Strategi & visual',
+    m_trd: 'Perbandingan pertukaran', m_prb: 'Masalah dikenal pasti', m_aud: 'Audit pembungkusan',
+    fs_aud: 'Audit', fs_prb: 'Masalah', fs_str: 'Pilihan', fs_trd: 'Banding', fs_rec: 'Keputusan',
+    st_idle: 'Termasuk', st_waiting: 'Menunggu', st_running: 'Diproses…', st_done: 'Siap', st_error: 'Gagal', st_skipped: 'Dilangkau', st_visuals: 'Melukis visual…',
+    flow_step: 'Langkah {n} daripada {total}', flow_working: 'sedang menyediakan {name}…', flow_start: 'Bermula…',
+    flow_done: 'Kesemua 5 langkah siap. Laporan anda sudah sedia.',
+    flow_stopped: 'Dihentikan selepas audit pembungkusan. Semak gambar dan butiran produk, kemudian jana semula.',
+    panelSkipped: 'Dilangkau kerana gambar tidak lulus audit pembungkusan.',
+    keyPoints: 'Poin utama', moreTitle: 'Baca penjelasan penuh', moreWriting: 'Sedang ditulis…',
+    gen: 'Jana laporan saya', generating: 'Sedang menjana…', sum_time: 'Biasanya siap dalam kira-kira 2 minit.',
     mb_photo: 'Langkah 1: tambah gambar', mb_name: 'Langkah 2: isi nama produk', mb_ready: 'Sedia untuk dijana',
     example: 'Isi contoh', reset: 'Set semula',
     rep_eyebrow: 'Laporan', rep_title: 'Laporan pembungkusan anda', rep_progress: '{n} daripada {total} bahagian siap',
@@ -1557,13 +1617,15 @@ function collectFields() {
 /* ============================================================
    Report sections + status (idle → waiting → running → done/error)
    ============================================================ */
+// The report is written in five steps, in this order. Each step feeds the next.
+const STEPS = ['audit', 'problems', 'strategies', 'tradeoff', 'recommendation'];
 const MODULES = {
-  three_redesign_strategies: 'strategies',
-  sustainability_problems_identified: 'problems',
   packaging_audit_and_evidence_classification: 'audit',
-  best_fit_recommendation_and_supplier_brief: 'recommendation',
+  sustainability_problems_identified: 'problems',
+  three_redesign_strategies: 'strategies',
+  image_A: 'strategies', image_B: 'strategies', image_C: 'strategies',
   trade_off_comparison: 'tradeoff',
-  image_A: 'visuals', image_B: 'visuals', image_C: 'visuals',
+  best_fit_recommendation_and_supplier_brief: 'recommendation',
 };
 const modStatus = {};
 
@@ -1571,30 +1633,41 @@ function aggregate(list) {
   if (list.includes('running')) return 'running';
   if (list.includes('waiting')) return 'waiting';
   if (list.includes('error')) return 'error';
+  if (list.includes('skipped')) return 'skipped';
   if (list.includes('done')) return 'done';
   return 'idle';
+}
+function groupStatus(group) {
+  return aggregate(Object.keys(MODULES).filter(k => MODULES[k] === group).map(k => modStatus[k] || 'idle'));
 }
 
 function setStatus(key, s) { modStatus[key] = s; renderStatus(); }
 
 function renderStatus() {
-  document.querySelectorAll('[data-mod], [data-tab]').forEach(el => {
-    const group = el.dataset.mod || el.dataset.tab;
-    const keys = Object.keys(MODULES).filter(k => MODULES[k] === group);
-    const s = aggregate(keys.map(k => modStatus[k] || 'idle'));
+  document.querySelectorAll('[data-mod], [data-step]').forEach(el => {
+    const group = el.dataset.mod || el.dataset.step;
+    const s = groupStatus(group);
     el.dataset.status = s;
-    const pill = el.querySelector('.pill');
-    if (pill) pill.textContent = t('st_' + s);
+    const pill = el.querySelector('.pill, .flow-state');
+    // Step 3's text can be finished while its three visuals are still being drawn.
+    const drawing = group === 'strategies' && s === 'running' && modStatus.three_redesign_strategies === 'done';
+    if (pill) pill.textContent = s === 'idle' ? '' : t(drawing ? 'st_visuals' : 'st_' + s);
   });
   document.querySelectorAll('.output-text[data-output]').forEach(el => {
     const s = modStatus[el.dataset.output] || 'idle';
-    el.dataset.empty = s === 'running' ? '' : t(s === 'waiting' ? 'panelWaiting' : 'emptyPanel');
+    el.dataset.empty = s === 'running' ? '' : t({ waiting: 'panelWaiting', skipped: 'panelSkipped' }[s] || 'emptyPanel');
   });
-  const keys = Object.keys(MODULES);
-  const done = keys.filter(k => modStatus[k] === 'done').length;
-  document.getElementById('progressFill').style.width = (done / keys.length * 100) + '%';
-  document.getElementById('progressText').textContent =
-    t('rep_progress').replace('{n}', done).replace('{total}', keys.length);
+  // One-line summary above the tracker: which step is running, or how the run ended.
+  const statuses = STEPS.map(groupStatus);
+  const now = document.getElementById('flowNow');
+  const runningAt = statuses.lastIndexOf('running'); // the newest step being written
+  if (runningAt >= 0) {
+    now.innerHTML = '<b>' + t('flow_step').replace('{n}', runningAt + 1).replace('{total}', STEPS.length) + '</b> · ' +
+      t('flow_working').replace('{name}', t(['m_aud', 'm_prb', 'm_str', 'm_trd', 'm_rec'][runningAt]).toLowerCase());
+  } else if (statuses.includes('skipped')) now.textContent = t('flow_stopped');
+  else if (statuses.every(s => s === 'done')) now.textContent = t('flow_done');
+  else if (statuses.includes('waiting')) now.textContent = t('flow_start');
+  else now.textContent = '';
 }
 
 /* ============================================================
@@ -1693,7 +1766,7 @@ function handleFile(file) {
 }
 
 // Store an image (from file or camera) into state and show the preview.
-function setImage(base64, mime, name, bytes) {
+function setImage(base64, mime, name, bytes, { detect = true } = {}) {
   state.fileData = base64;
   state.fileMime = mime || 'image/jpeg';
   const isImage = state.fileMime.startsWith('image/');
@@ -1708,7 +1781,8 @@ function setImage(base64, mime, name, bytes) {
   updateReadiness();
   // Additive: try to auto-fill product fields from the photo. Non-blocking —
   // the manual form stays fully usable whether or not this succeeds.
-  if (isImage) autoDetectFromPhoto(base64, state.fileMime);
+  if (isImage && detect) autoDetectFromPhoto(base64, state.fileMime);
+  else { const ds = document.getElementById('detectStatus'); if (ds) ds.hidden = true; }
 }
 
 function clearFile() {
@@ -1906,7 +1980,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && camModal.c
    Minimal per-line markdown renderer (incl. table rows)
    ============================================================ */
 function inlineMd(text) {
-  let x = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  let x = text.replace(/\[\[DETAILS\]\]/g, '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   x = x.replace(/`([^`]+)`/g, '<code>$1</code>');
   x = x.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   x = x.replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -1960,6 +2034,23 @@ function makeLineFrag(line) {
   return tmp.firstChild || document.createTextNode('');
 }
 
+// Marker the report prompts put between the short "Key points" and the full explanation.
+const DETAILS_RE = /^\s*\[\[DETAILS\]\]\s*$/;
+function stripMarker(text) {
+  return (text || '').replace(/^\s*\[\[DETAILS\]\]\s*$/m, '');
+}
+function splitKeyPoints(text) {
+  const parts = (text || '').split(/^\s*\[\[DETAILS\]\]\s*$/m);
+  return parts.length > 1 ? { key: parts[0].trim(), detail: parts.slice(1).join('\n').trim() } : { key: '', detail: (text || '').trim() };
+}
+function makeMore() {
+  const d = document.createElement('details');
+  d.className = 'more';
+  d.innerHTML = '<summary><span data-i18n="moreTitle">' + t('moreTitle') + '</span>' +
+    '<span class="more-state" data-i18n="moreWriting">' + t('moreWriting') + '</span></summary><div class="more-body"></div>';
+  return d;
+}
+
 /* ============================================================
    Streaming fetch with typing effect
    ============================================================ */
@@ -1987,6 +2078,12 @@ async function streamInto(widget, url, bodyObj, outputEl) {
   const cursor = document.createElement('span');
   cursor.className = 'cursor'; cursor.innerHTML = '&nbsp;';
 
+  // Sections open with "## Key points", then a [[DETAILS]] marker, then the long explanation.
+  // Key points go in a highlighted card; the explanation is folded away (the PDF keeps it all).
+  const keyBox = document.createElement('div');
+  keyBox.className = 'keypoints';
+  let more = null;
+
   try {
     const resp = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1998,7 +2095,8 @@ async function streamInto(widget, url, bodyObj, outputEl) {
     const decoder = new TextDecoder();
     let raw = '';
     let buffer = '';
-    outputEl.appendChild(cursorLine);
+    outputEl.appendChild(keyBox);
+    keyBox.appendChild(cursorLine);
     cursorLine.appendChild(cursor);
     while (true) {
       const { done, value } = await reader.read();
@@ -2008,14 +2106,22 @@ async function streamInto(widget, url, bodyObj, outputEl) {
       while ((nl = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, nl);
         buffer = buffer.slice(nl + 1);
-        outputEl.insertBefore(makeLineFrag(line), cursorLine);
+        if (!more && DETAILS_RE.test(line)) {
+          more = makeMore();
+          outputEl.appendChild(more);
+          more.querySelector('.more-body').appendChild(cursorLine);
+          continue;
+        }
+        cursorLine.parentNode.insertBefore(makeLineFrag(line), cursorLine);
       }
       if (done) break;
       cursorLine.innerHTML = inlineMd(buffer);
       cursorLine.appendChild(cursor);
     }
-    if (buffer.length) outputEl.insertBefore(makeLineFrag(buffer), cursorLine);
+    if (buffer.length && !DETAILS_RE.test(buffer)) cursorLine.parentNode.insertBefore(makeLineFrag(buffer), cursorLine);
     cursor.remove(); cursorLine.remove();
+    if (more) more.querySelector('.more-state').remove();
+    else keyBox.classList.remove('keypoints'); // no marker (e.g. a wrong-input notice): show as plain text
     state.outputs[widget] = raw;
     setStatus(widget, 'done');
   } catch (err) {
@@ -2026,23 +2132,34 @@ async function streamInto(widget, url, bodyObj, outputEl) {
 }
 
 const PROMPT_HINT = {
-  three_redesign_strategies: 'Generate the three redesign strategies.',
-  sustainability_problems_identified: 'Identify the sustainability problems.',
-  packaging_audit_and_evidence_classification: 'Perform the packaging audit and evidence classification.',
-  best_fit_recommendation_and_supplier_brief: 'Produce the best-fit recommendation and supplier brief.',
-  trade_off_comparison: 'Produce the trade-off comparison table.',
+  packaging_audit_and_evidence_classification: 'Write Step 1: the packaging audit.',
+  sustainability_problems_identified: 'Write Step 2: the problems found, based on the Step 1 audit.',
+  three_redesign_strategies: 'Write Step 3: the three redesign strategies, based on Steps 1 and 2.',
+  trade_off_comparison: 'Write Step 4: the trade-off comparison of the Step 3 options.',
+  best_fit_recommendation_and_supplier_brief: 'Write Step 5: the recommendation and supplier brief, based on Steps 1 to 4.',
+};
+
+// Which earlier steps each step builds on (the report is written in order).
+const STEP_TITLES = {
+  packaging_audit_and_evidence_classification: 'Step 1 — Packaging Audit',
+  sustainability_problems_identified: 'Step 2 — Problems Found',
+  three_redesign_strategies: 'Step 3 — Three Redesign Strategies',
+  trade_off_comparison: 'Step 4 — Trade-off Comparison',
+};
+const UPSTREAM = {
+  sustainability_problems_identified: ['packaging_audit_and_evidence_classification'],
+  three_redesign_strategies: ['packaging_audit_and_evidence_classification', 'sustainability_problems_identified'],
+  trade_off_comparison: ['sustainability_problems_identified', 'three_redesign_strategies'],
+  best_fit_recommendation_and_supplier_brief: ['packaging_audit_and_evidence_classification',
+    'sustainability_problems_identified', 'three_redesign_strategies', 'trade_off_comparison'],
 };
 
 function buildTextBody(widget) {
   const body = { fields: collectFields(), prompt: PROMPT_HINT[widget] || '' };
   if (state.fileData && state.fileMime) { body.file_data = state.fileData; body.file_mime = state.fileMime; }
-  const needsUpstream = ['best_fit_recommendation_and_supplier_brief', 'trade_off_comparison'];
-  if (needsUpstream.includes(widget)) {
-    body.upstream = {
-      'Three Redesign Strategies': state.outputs.three_redesign_strategies || '',
-      'Packaging Audit and Evidence Classification': state.outputs.packaging_audit_and_evidence_classification || '',
-      'Sustainability Problems Identified': state.outputs.sustainability_problems_identified || '',
-    };
+  if (UPSTREAM[widget]) {
+    body.upstream = {};
+    UPSTREAM[widget].forEach(k => { body.upstream[STEP_TITLES[k]] = stripMarker(state.outputs[k]).trim(); });
   }
   return body;
 }
@@ -2074,6 +2191,14 @@ async function runWidget(widget) {
 /* ============================================================
    Image generation
    ============================================================ */
+// The part of the Step 3 strategies that describes one option (the image only needs that one).
+function optionStrategy(option) {
+  const { detail } = splitKeyPoints(state.outputs.three_redesign_strategies);
+  const re = new RegExp('(?:OPTION|PILIHAN)\\s+' + option + '\\b[\\s\\S]*?(?=\\n#{1,4}\\s*\\**\\s*(?:OPTION|PILIHAN)\\s+[ABC]\\b|$)', 'i');
+  const m = detail.match(re);
+  return (m ? m[0] : detail).trim();
+}
+
 function imagePlaceholder() {
   return '<div class="img-placeholder" data-i18n="noImage">' + t('noImage') + '</div>';
 }
@@ -2100,7 +2225,7 @@ async function runImage(option) {
   if (spinner) spinner.style.display = 'block';
 
   const body = JSON.stringify({
-    option, fields: collectFields(), strategies: state.outputs.three_redesign_strategies || '',
+    option, fields: collectFields(), strategies: optionStrategy(option),
   });
   const MAX_TRIES = 3;
   let lastErr = null;
@@ -2168,24 +2293,30 @@ function showReport() {
     [f['Product Name and Type'], f['Product Category']].filter(Boolean).join(' · ');
 }
 
+// The step tracker doubles as the section switcher.
 function selectTab(name) {
-  document.querySelectorAll('[data-tab]').forEach(tb => tb.setAttribute('aria-selected', String(tb.dataset.tab === name)));
+  document.querySelectorAll('[data-step]').forEach(st => {
+    st.classList.toggle('current', st.dataset.step === name);
+    st.querySelector('button').setAttribute('aria-current', st.dataset.step === name ? 'step' : 'false');
+  });
   document.querySelectorAll('[data-panel]').forEach(p => { p.hidden = p.dataset.panel !== name; });
-  // Keep the active tab visible when the tab bar scrolls sideways on small screens.
-  const sel = document.querySelector(`[data-tab="${name}"]`);
-  const bar = sel.parentElement;
-  bar.scrollTo({ left: sel.offsetLeft - (bar.clientWidth - sel.offsetWidth) / 2, behavior: 'smooth' });
 }
-document.querySelectorAll('[data-tab]').forEach(tb => tb.addEventListener('click', () => selectTab(tb.dataset.tab)));
+let userPickedTab = false;
+document.querySelectorAll('[data-step] button').forEach(b => b.addEventListener('click', () => {
+  userPickedTab = true;
+  selectTab(b.parentElement.dataset.step);
+}));
 document.querySelectorAll('.mods [data-mod]').forEach(li => li.addEventListener('click', () => {
   if (reportEl.hidden) return;
+  userPickedTab = true;
   selectTab(li.dataset.mod);
   reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }));
 
-// The analysis prompts answer with this exact phrase when the photo/inputs don't match a real product.
+// Step 1 (the audit) is the only step that checks the inputs; it answers with this exact
+// phrase when the photo doesn't show a product or packaging.
 function checkWrongInput() {
-  const bad = Object.values(state.outputs).some(v => /Wrong input detected/i.test(v || ''));
+  const bad = /Wrong input detected/i.test(state.outputs.packaging_audit_and_evidence_classification || '');
   wrongInputAlert.hidden = !bad;
   return bad;
 }
@@ -2214,6 +2345,7 @@ function clearOutputs() {
   document.querySelectorAll('[data-output^="image_"]').forEach(el => { el.innerHTML = imagePlaceholder(); });
   document.querySelectorAll('.panel-error').forEach(el => { el.classList.remove('show'); el.textContent = ''; });
   state.outputs = {};
+  state.images = {};
   wrongInputAlert.hidden = true;
 }
 
@@ -2224,27 +2356,33 @@ async function runAll() {
   Object.keys(MODULES).forEach(k => { modStatus[k] = 'waiting'; });
   renderStatus();
   showReport();
-  selectTab('strategies');
+  userPickedTab = false;
+  selectTab('audit');
   reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Show each step's tab as it starts, unless the reader has picked a tab themselves.
+  const step = async (widget) => {
+    if (!userPickedTab) selectTab(MODULES[widget]);
+    await runWidget(widget);
+  };
 
   try {
-    const strategies = runWidget('three_redesign_strategies');
-    const others = Promise.all(['sustainability_problems_identified', 'packaging_audit_and_evidence_classification'].map(runWidget));
-    await strategies;
-    // Images only need the strategies, so start them while the other analyses finish.
-    let images = Promise.resolve();
-    if (checkWrongInput()) ['A', 'B', 'C'].forEach(o => setStatus('image_' + o, 'idle'));
-    else images = (async () => {
-      // One at a time: the free image fallback rejects parallel requests.
-      for (const o of ['A', 'B', 'C']) await runImage(o);
-    })();
-    await others;
-    await Promise.all([
-      runWidget('best_fit_recommendation_and_supplier_brief'),
-      runWidget('trade_off_comparison'),
-      images,
-    ]);
-    toast(checkWrongInput() ? t('checkInputs') : t('reportReady'));
+    // 1 → 2 → 3 → 4 → 5: each step reads the ones before it.
+    await step('packaging_audit_and_evidence_classification');
+    if (checkWrongInput()) {
+      Object.keys(MODULES).forEach(k => { if (MODULES[k] !== 'audit') modStatus[k] = 'skipped'; });
+      renderStatus();
+      toast(t('checkInputs'));
+      return;
+    }
+    await step('sustainability_problems_identified');
+    await step('three_redesign_strategies');
+    // The visuals only need the strategies, so draw them (one at a time: the free image
+    // fallback rejects parallel requests) while steps 4 and 5 are written.
+    const images = (async () => { for (const o of ['A', 'B', 'C']) await runImage(o); })();
+    await step('trade_off_comparison');
+    await step('best_fit_recommendation_and_supplier_brief');
+    await images;
+    toast(t('reportReady'));
   } finally {
     setRunning(false);
   }
@@ -2371,7 +2509,11 @@ function downloadText(txt, filename) {
   URL.revokeObjectURL(a.href);
 }
 
-function briefText() { return state.outputs.best_fit_recommendation_and_supplier_brief || ''; }
+function briefText() {
+  const { detail } = splitKeyPoints(state.outputs.best_fit_recommendation_and_supplier_brief);
+  const m = detail.match(/^#{2,3}\s*\**\s*(?:Supplier brief|Ringkasan pembekal)[\s\S]*/im);
+  return (m ? m[0] : detail).trim();
+}
 document.getElementById('copyBrief').addEventListener('click', () => {
   const txt = briefText();
   if (!txt.trim()) { toast(t('nothingCopy')); return; }
@@ -2385,11 +2527,11 @@ function downloadBriefBtnEl() { return document.getElementById('downloadBrief');
 
 // Report sections in reading order: output key + title i18n key.
 const REPORT_SECTIONS = [
-  ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
+  ['packaging_audit_and_evidence_classification', 'w_audit'],
+  ['sustainability_problems_identified', 'w_problems'],
   ['three_redesign_strategies', 'w_strategies'],
   ['trade_off_comparison', 'w_tradeoff'],
-  ['sustainability_problems_identified', 'w_problems'],
-  ['packaging_audit_and_evidence_classification', 'w_audit'],
+  ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
 ];
 
 function reportSections() {
@@ -2401,7 +2543,7 @@ function fullReportText() {
   if (!sections.length) return '';
   const product = collectFields()['Product Name and Type'] || '';
   return `EcoLens — ${product}\n${new Date().toLocaleDateString()}\n` +
-    sections.map(([k, title]) => `\n\n==== ${t(title)} ====\n\n${state.outputs[k].trim()}`).join('') + '\n';
+    sections.map(([k, title]) => `\n\n==== ${t(title)} ====\n\n${stripMarker(state.outputs[k]).trim()}`).join('') + '\n';
 }
 
 /* ============================================================
@@ -2638,32 +2780,70 @@ function buildReportPdf(mode) {
     y += 44;
   };
 
+  // Highlighted "Key points" card: the short summary each step opens with.
+  const keyPointsCard = (text, title) => {
+    const items = text.split('\n').map(l => l.trim()).filter(l => /^([-*]|\d+\.)\s+/.test(l))
+      .map(l => stripEmoji(l.replace(/^([-*]|\d+\.)\s+/, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')));
+    if (!items.length) return;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
+    const wrapped = items.map(it => doc.splitTextToSize(it, CW - 46));
+    const h = 32 + wrapped.reduce((a, w) => a + w.length * 14 + 5, 0) + 6;
+    needSpace(Math.min(h, BOTTOM - M));
+    setFill(PDF.GREEN_SOFT); doc.roundedRect(M, y, CW, h, 8, 8, 'F');
+    setFill(PDF.LIME); doc.roundedRect(M, y, 5, h, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); setText(PDF.GREEN);
+    doc.text(title.toUpperCase(), M + 18, y + 20);
+    let iy = y + 38;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); setText(PDF.INK);
+    wrapped.forEach(w => {
+      setFill(PDF.GREEN); doc.circle(M + 22, iy - 3.5, 2.2, 'F');
+      doc.text(w, M + 32, iy);
+      iy += w.length * 14 + 5;
+    });
+    y += h + 14;
+  };
+  // Key points as a card, then the full explanation (the on-screen view folds this part away).
+  const writeSection = (text) => {
+    const { key, detail } = splitKeyPoints(text);
+    if (key) keyPointsCard(key.replace(/^#{1,3}\s.*$/m, ''), t('keyPoints'));
+    writeMarkdown(detail);
+  };
+  // Redesign visuals sit inside step 3, three across.
+  const writeVisuals = () => {
+    const imgs = state.images || {};
+    const have = ['A', 'B', 'C'].filter(o => imgs[o]);
+    if (!have.length) return;
+    const gap = 12, w = (CW - gap * 2) / 3;
+    needSpace(w + 50);
+    y += 6;
+    para(t('w_visuals'), { size: 11, bold: true, color: PDF.GREEN, gap: 8 });
+    const labels = { A: t('optA'), B: t('optB'), C: t('optC') };
+    have.forEach((o, i) => {
+      const x = M + i * (w + gap);
+      try { doc.addImage('data:image/png;base64,' + imgs[o], 'PNG', x, y, w, w); } catch (e) {}
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); setText(PDF.INK);
+      doc.text(doc.splitTextToSize(stripEmoji(labels[o]), w), x, y + w + 12);
+    });
+    y += w + 30;
+  };
+
+  // ---------- at a glance (cover page of the full report) ----------
+  if (mode !== 'brief') {
+    const rec = splitKeyPoints(state.outputs.best_fit_recommendation_and_supplier_brief).key;
+    if (rec) keyPointsCard(rec.replace(/^#{1,3}\s.*$/m, ''), lang === 'bm' ? 'Ringkasan — keputusan disyorkan' : 'At a glance — recommended decision');
+  }
+
   // ---------- body ----------
   sections.forEach(([k, titleKey], i) => {
     if (i > 0) { doc.addPage(); y = M; }
     else { needSpace(60); }
     sectionHeader(t(titleKey), i + 1, sections.length);
-    writeMarkdown(state.outputs[k].trim());
-  });
-
-  // ---------- visuals (full report only) ----------
-  if (mode !== 'brief') {
-    const imgs = state.images || {};
-    const haveImgs = ['A', 'B', 'C'].filter(o => imgs[o]);
-    if (haveImgs.length) {
-      doc.addPage(); y = M;
-      sectionHeader(lang === 'bm' ? 'Visual Reka Bentuk Semula' : 'Redesign Visuals', sections.length + 1, sections.length + 1);
-      const labels = { A: t('optA'), B: t('optB'), C: t('optC') };
-      for (const o of haveImgs) {
-        const drawW = Math.min(CW, 300), drawH = drawW;
-        needSpace(drawH + 30);
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); setText(PDF.INK);
-        doc.text(stripEmoji(labels[o]), M, y + 8); y += 16;
-        try { doc.addImage('data:image/png;base64,' + imgs[o], 'PNG', M, y, drawW, drawH); } catch (e) {}
-        y += drawH + 16;
-      }
+    if (mode === 'brief') writeMarkdown(briefText());
+    else {
+      writeSection(state.outputs[k]);
+      if (k === 'three_redesign_strategies') writeVisuals();
     }
-  }
+  });
 
   // ---------- footer on every page ----------
   const n = doc.internal.getNumberOfPages();
@@ -2742,7 +2922,7 @@ downloadAllBtn.addEventListener('click', () => downloadPdf('full', downloadAllBt
    Example fill — realistic Malaysian SME product
    ============================================================ */
 const EXAMPLE = {
-  f_product_name: 'Crumbs Chocolate Chip Cookies (Classic, Double Chocolate, and Almond variants), approx. 250g net weight',
+  f_product_name: 'Crumbs Classic Chocolate Chip Cookies, approx. 250g net weight (Double Chocolate and Almond variants use the same jar)',
   f_category: 'Food and Beverage',
   f_objective: 'Reduce virgin plastic use by transitioning to highly recyclable or compostable materials while maintaining product visibility and freshness.',
   f_shelf_life: '6 months',
@@ -2759,12 +2939,27 @@ const EXAMPLE = {
   f_market: 'Singapore and Malaysia',
   f_machinery: 'Must be compatible with semi-automated volumetric filling.',
 };
-function fillExample() {
+// The example's packaging photo lives in examples/ and is only fetched when needed.
+// It is a script (not a fetch of the .jpg) so it also works when index.html is opened from disk.
+function loadExamplePhoto() {
+  if (window.ECOLENS_EXAMPLE_PHOTO) return Promise.resolve(window.ECOLENS_EXAMPLE_PHOTO);
+  return new Promise(resolve => {
+    const s = document.createElement('script');
+    s.src = 'examples/crumbs-cookies.js';
+    s.onload = () => resolve(window.ECOLENS_EXAMPLE_PHOTO || null);
+    s.onerror = () => resolve(null);
+    document.head.appendChild(s);
+  });
+}
+async function fillExample() {
   Object.entries(EXAMPLE).forEach(([id, val]) => {
     const el = document.getElementById(id);
     if (el) { el.value = val; el.classList.remove('invalid'); }
   });
   document.querySelector('details.advanced').open = true;
+  // The example is a full set: its photo replaces any photo already added.
+  const photo = await loadExamplePhoto();
+  if (photo) setImage(photo.data, photo.mime, photo.name, photo.bytes, { detect: false });
   updateReadiness();
   toast(state.fileData ? t('exampleFilled') : t('exampleNeedsPhoto'));
 }
