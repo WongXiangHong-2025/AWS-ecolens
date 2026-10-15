@@ -11,11 +11,12 @@ real product's look (brand, label, colours, shape). Providers are tried in
 order until one succeeds, all inside one time budget so the request never
 outlives API Gateway's 30 s limit:
 
-  1. Bedrock Nova Canvas  — IMAGE_VARIATION of the photo (TEXT_IMAGE without one)
-  2. Bedrock Titan v2     — same request format, for accounts where Nova is blocked
-  3. Gemini image model   — edits the photo (if GEMINI_API_KEY is set)
-  4. Hugging Face FLUX    — text only (if HF_TOKEN is set)
-  5. Pollinations         — free, text-only last resort
+  1. Bedrock Stable Diffusion 3.5 Large — image-to-image from the photo
+     (text-to-image without one). Replaces Nova Canvas and Titan Image v2,
+     which AWS retired in 2026.
+  2. Gemini image model   — edits the photo (if GEMINI_API_KEY is set)
+  3. Hugging Face FLUX    — text only (if HF_TOKEN is set)
+  4. Pollinations         — free, text-only last resort
 """
 import base64
 import json
@@ -30,12 +31,9 @@ import urllib.request
 import boto3
 from botocore.config import Config
 
-REGION = os.environ.get("BEDROCK_REGION", os.environ.get("AWS_REGION", "ap-southeast-5"))
-# Bedrock image models tried in order, with each one's prompt length limit.
-IMAGE_MODELS = [
-    ("amazon.nova-canvas-v1:0", 1024),
-    ("amazon.titan-image-generator-v2:0", 512),
-]
+# Stable Diffusion 3.5 Large is served from us-west-2.
+REGION = os.environ.get("BEDROCK_REGION", "us-west-2")
+IMAGE_MODEL = os.environ.get("BEDROCK_IMAGE_MODEL", "stability.sd3-5-large-v1:0")
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
@@ -63,14 +61,14 @@ CORS_HEADERS = {
     "Content-Type": "application/json",
 }
 
-# How far each option may move away from the reference photo (Nova/Titan
-# similarityStrength: 1.0 = almost identical, 0.2 = loosely inspired).
+# How far each option may move away from the reference photo (SD3.5 image-to-image
+# strength: 0 = keep the photo as it is, 1 = ignore it entirely).
 OPTION_STYLE = {
-    "A": ("a subtly improved version", 0.85,
+    "A": ("a subtly improved version", 0.35,
           "Keep the exact same pack shape, size, lid and label layout; only the small changes listed."),
-    "B": ("a moderately redesigned version", 0.65,
+    "B": ("a moderately redesigned version", 0.55,
           "Keep the brand, logo, label design and colours; the pack structure may change as described."),
-    "C": ("a bold next-generation version", 0.4,
+    "C": ("a bold next-generation version", 0.75,
           "Keep the brand name, logo and colour palette recognisable; the pack format may change as described."),
 }
 
@@ -165,31 +163,24 @@ def _is_throttle(exc):
     return any(m in f"{type(exc).__name__} {exc}".lower() for m in _THROTTLE_MARKERS)
 
 
-def generate_image_bedrock(model_id, prompt, option, reference, budget):
-    _, similarity, _ = OPTION_STYLE.get(option, OPTION_STYLE["A"])
-    config = {"numberOfImages": 1, "width": 1024, "height": 1024, "cfgScale": 7.0, "quality": "standard"}
+def generate_image_bedrock(prompt, option, reference, budget):
+    """Stable Diffusion 3.5 Large on Bedrock: image-to-image from the user's photo
+    (how much it may change depends on the option), or text-to-image without one."""
+    _, strength, _ = OPTION_STYLE.get(option, OPTION_STYLE["A"])
+    request_body = {"prompt": prompt, "negative_prompt": NEGATIVE, "output_format": "jpeg"}
     if reference:
-        request_body = {
-            "taskType": "IMAGE_VARIATION",
-            "imageVariationParams": {
-                "images": [reference["data"]],
-                "similarityStrength": similarity,
-                "text": prompt,
-                "negativeText": NEGATIVE,
-            },
-            "imageGenerationConfig": config,
-        }
+        request_body.update({"mode": "image-to-image", "image": reference["data"], "strength": strength})
     else:
-        request_body = {
-            "taskType": "TEXT_IMAGE",
-            "textToImageParams": {"text": prompt, "negativeText": NEGATIVE},
-            "imageGenerationConfig": config,
-        }
+        request_body.update({"mode": "text-to-image", "aspect_ratio": "1:1"})
     for attempt in range(2):
-        budget.need(12)  # a variation takes ~6-12 s; never start one that could outlive the budget
+        budget.need(12)  # a generation takes several seconds; never start one that could outlive the budget
         try:
-            response = bedrock.invoke_model(modelId=model_id, body=json.dumps(request_body))
-            images = json.loads(response["body"].read()).get("images") or []
+            response = bedrock.invoke_model(modelId=IMAGE_MODEL, body=json.dumps(request_body))
+            payload = json.loads(response["body"].read())
+            reason = (payload.get("finish_reasons") or [None])[0]
+            if reason:  # e.g. the content filter stopped it
+                raise RuntimeError(f"finished with: {reason}")
+            images = payload.get("images") or []
             if not images:
                 raise RuntimeError("returned no images")
             return images[0]
@@ -310,13 +301,10 @@ def generate_image(option, fields, strategies, reference):
             errors.append(f"{label}: {exc}")
         return None
 
-    for model_id, max_chars in IMAGE_MODELS:
-        prompt = build_prompt(option, fields, strategies, bool(reference))[:max_chars]
-        label = model_id.split(".")[1].split("-v")[0]
-        image = attempt(label, lambda: generate_image_bedrock(model_id, prompt, option, reference, budget))
-        if image:
-            return image
     full_prompt = build_prompt(option, fields, strategies, bool(reference))
+    image = attempt("sd3.5-large", lambda: generate_image_bedrock(full_prompt, option, reference, budget))
+    if image:
+        return image
     if GEMINI_API_KEY:
         image = attempt("gemini", lambda: generate_image_gemini(full_prompt, reference, budget))
         if image:

@@ -8,8 +8,8 @@ Parameters:
     Default: ""
     NoEcho: true
     Description: >
-      Optional Google Gemini API key for the Nano Banana Pro image model.
-      Leave empty to keep using Bedrock Nova Canvas. Pass at deploy time with
+      Optional Google Gemini API key for the Nano Banana Pro image model, used
+      as a fallback after Bedrock. Leave empty to skip it. Pass at deploy time with
       --parameter-overrides GeminiApiKey=... ; never commit a real key here.
 
   HfToken:
@@ -19,6 +19,15 @@ Parameters:
     Description: >
       Optional Hugging Face access token for free FLUX image generation.
       Pass at deploy time with --parameter-overrides HfToken=... ; never commit it.
+
+  ImageBedrockRegion:
+    Type: String
+    Default: us-west-2
+    AllowedPattern: "^[a-z]{2}(-[a-z]+)+-\\d$"
+    Description: >
+      Region the image Lambda calls Bedrock in for the redesign visuals
+      (Stable Diffusion 3.5 Large). Set from the GitHub Actions variable
+      IMAGE_BEDROCK_REGION; defaults to us-west-2.
 
 Globals:
   Function:
@@ -58,8 +67,7 @@ Resources:
                   - "arn:aws:bedrock:ap-southeast-5::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
                   - "arn:aws:bedrock:*::foundation-model/anthropic.claude-haiku-4-5-20251001-v1:0"
-                  - "arn:aws:bedrock:*::foundation-model/amazon.nova-canvas-v1:0"
-                  - "arn:aws:bedrock:*::foundation-model/amazon.titan-image-generator-v2:0"
+                  - "arn:aws:bedrock:*::foundation-model/stability.sd3-5-large-v1:0"
 
   # ------------------------------------------------------------------
   # HTTP API for all streaming text/chat widgets.
@@ -227,10 +235,10 @@ Resources:
       MemorySize: 512
       Environment:
         Variables:
-          # Nova Canvas is NOT available in ap-southeast-5. Call it in a region
-          # that offers it (us-east-1 / eu-west-1 / ap-northeast-2). Only used
-          # as the fallback when GEMINI_API_KEY is empty.
-          BEDROCK_REGION: us-east-1
+          # Redesign visuals use Stable Diffusion 3.5 Large (Nova Canvas and Titan
+          # Image v2 were retired by AWS in 2026). The region comes from the
+          # ImageBedrockRegion parameter (GitHub variable IMAGE_BEDROCK_REGION).
+          BEDROCK_REGION: !Ref ImageBedrockRegion
           GEMINI_API_KEY: !Ref GeminiApiKey
           HF_TOKEN: !Ref HfToken
       Events:

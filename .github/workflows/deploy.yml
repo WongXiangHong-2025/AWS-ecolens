@@ -59,6 +59,8 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          # Region for the redesign-image model (repo Settings > Variables > IMAGE_BEDROCK_REGION).
+          IMAGE_BEDROCK_REGION: ${{ vars.IMAGE_BEDROCK_REGION }}
         run: |
           sam deploy \
             --stack-name "$STACK_NAME" \
@@ -67,7 +69,8 @@ jobs:
             --region "$AWS_REGION" \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --parameter-overrides "GeminiApiKey=${GEMINI_API_KEY}" "HfToken=${HF_TOKEN}"
+            --parameter-overrides "GeminiApiKey=${GEMINI_API_KEY}" "HfToken=${HF_TOKEN}" \
+              "ImageBedrockRegion=${IMAGE_BEDROCK_REGION:-us-west-2}"
 
       - name: Read stack outputs and inject URLs
         run: |
