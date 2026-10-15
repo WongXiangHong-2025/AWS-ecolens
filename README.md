@@ -1,31 +1,128 @@
-# 🌱 EcoLens — Sustainable Packaging Decision
+# EcoLens — Greener packaging decisions, without the guesswork
 
-A deployable AWS web app that helps Malaysian SMEs make greener packaging
-decisions without guessing on cost, shelf life or product protection. Upload a
-photo of your packaging and a few business details, and EcoLens produces:
+**AWS CendekiAwan 2.0 · Sustainable Environment & Climate**
 
-- **Three redesign strategies** (Quick Win / Balanced / Ambitious)
-- A **packaging audit** with every finding labelled Observed / Inferred / Verified / Unknown
-- A **prioritised list of sustainability problems**
-- A **best-fit recommendation + supplier-ready brief**
-- A **side-by-side trade-off comparison**
+## 📌 Summary
+
+**EcoLens helps Malaysian food SMEs pick greener packaging they can afford, from
+one photo, without hiring a packaging consultant.**
+
+A seller snaps a photo of their current pack and adds a few details (budget,
+product, sales channel). In about a minute EcoLens returns three costed redesign
+options, a packaging audit with every claim labelled by how sure it is, the
+option that best fits their constraints, and a brief they can send straight to
+their supplier. It runs fully serverless on AWS in the Malaysia region
+(`ap-southeast-5`), using Amazon Bedrock (Claude Haiku 4.5 for text, vision and
+chat; Nova Canvas for redesign images).
+
+## 🔗 Links
+
+| What | Link |
+|------|------|
+| 🌐 Live app  | xxx|
+| 📊 Pitch deck| [`pitch/EcoLens-Pitch-Canva.pdf`](pitch/EcoLens-Pitch-Canva.pdf) |
+| Demo video | xxx |
+
+
+## ❗ Problem Statement
+
+### Meet our user
+
+**Encik Syaful, 44 — home baker in Kajang.** He sells *biskut raya* in clear
+plastic jars through WhatsApp, Shopee and corporate hampers. He packs about
+**2,000 jars in the four weeks before Hari Raya**, and that one season pays for
+most of his family's year. *(Representative persona based on reported Malaysian
+sellers.)*
+
+### The problem
+
+A corporate client asks for **plastic-free hampers**. Every option he finds
+fails him:
+
+| Barrier | What it looks like for him |
+|---------|----------------------------|
+| 💸 **Costs more than he can absorb** | Kraft tube RM1.90 vs RM0.85 jar → **+RM2,100** across one Raya season |
+| 📦 **Doesn't protect the product** | Kuih bangkit go soft in our humidity; paper tubes get crushed by couriers |
+| ❓ **He can't tell which claim is real** | "Biodegradable" jars that nobody in Kajang collects — they'd go to landfill anyway |
+| ⏳ **No expert, no time** | A consultant costs more than his margin, minimum orders are 5,000 units, and Ramadan is his busiest month |
+
+**Result:** he keeps the plastic and loses the hamper order.
+
+### It's not just him
+
+- *The Star, 30 Jun 2025* — a kuih chang seller in Ampang stays with plastic
+  because paper wraps don't survive parcel handling.
+- *Bernama, 9 Sep 2025* — food and beverage packaging is "often considered too
+  expensive or too hard to be recycled".
+- **1.09 million MSMEs** make up **96.1%** of Malaysian businesses (DOSM 2024),
+  and **EPR packaging rules become mandatory by 2030**.
+
+### How it's solved today
+
+|                        | Affordable | Knows his product | Malaysian recycling | Same day |
+|------------------------|------------|-------------------|---------------------|----------|
+| Packaging consultant   | ❌ No       | ✅ Yes             | ✅ Yes               | ❌ Weeks  |
+| Supplier's advice      | ✅ Free     | ⚠️ Partly          | ⚠️ Biased to stock   | ✅ Yes    |
+| Online guides          | ✅ Free     | ❌ Generic         | ❌ Western systems   | ✅ Yes    |
+| **EcoLens**            | ✅ **RM29 / month** | ✅ **From his photo** | ✅ **Built in** | ✅ **~1 minute** |
+
+## 💡 Solution
+
+**One photo in. A supplier-ready decision out.**
+
+1. **Snap the pack** — a photo plus a few details, in English or BM.
+2. **Three options** — Quick Win, Balanced and Ambitious, each with cost,
+   difficulty and risk.
+3. **Checked evidence** — every finding labelled **Observed**, **Inferred**,
+   **Verified** or **Unknown**.
+4. **Best fit and brief** — the option that fits his constraints, plus a brief
+   to send his supplier.
+
+### Why it needs AI
+
+A form or a search engine can't do these four things:
+
+| Capability | What it does for the seller |
+|------------|-----------------------------|
+| **Vision** — reads packaging from a photo | Sees a clear jar, a coloured lid, a tray and no resin code, so he doesn't need to know material names |
+| **Reasoning** — weighs trade-offs for *his* product | Balances RM budget, shelf life in Malaysian humidity, courier damage and hand-filling together |
+| **Unstructured input** — turns uncertainty into labels | Separates what it can see from what it is guessing, so he knows what to ask his supplier |
+| **Language** — speaks his language | Understands English, Bahasa Malaysia and Manglish, and answers follow-up questions about his own report |
+
+## ✨ Features
+
+- **Three redesign strategies** (Quick Win / Balanced / Ambitious) with cost,
+  difficulty and risk
+- **Packaging audit** with every finding labelled Observed / Inferred / Verified / Unknown
+- **Prioritised list of sustainability problems**
+- **Best-fit recommendation + supplier-ready brief**
+- **Side-by-side trade-off comparison** — cost, protection, shelf-life risk and
+  recyclability in Malaysia
 - **Three AI-generated redesign visuals** (Option A / B / C)
-- A **knowledge-aware chatbot** that answers in English or Bahasa Malaysia
-- A **downloadable PDF** — a designed full report, plus a one-page supplier brief PDF
+- **Knowledge-aware chatbot** that answers in English or Bahasa Malaysia, with
+  the whole report as context
+- **Photo auto-detect** — reads product name, materials and category from the
+  image to pre-fill the form (everything stays editable)
+- **Wrong-input guard** — a photo that isn't packaging gets "Wrong input
+  detected" instead of an invented answer
+- **Try an example** — one click loads a sample cookie-jar run with ready-made visuals
+- **Downloadable PDFs** — a designed full report and a one-page supplier brief
+- **Live camera capture**, EN/BM toggle and light/dark theme
+- **Localised for Malaysia** — understands English / BM / Manglish, defaults to
+  RM and grams/gsm, and reflects local recycling, halal and climate realities
+- **Privacy by design** — no database; nothing about the user is stored
 
-Upload a photo and EcoLens also **auto-detects** the product name, materials and
-category from the image to pre-fill the form (you can still edit everything).
+### Example result — Encik Syaful's biskut raya jars
 
-Localised for Malaysian SMEs: understands English / BM / Manglish, defaults to
-RM and grams/gsm, and reflects realistic local recycling, halal and climate
-considerations.
+> **Best fit: keep the jar, fix the material.** EcoLens picked **Option B**, a
+> single-material PP jar: cookies stay crisp, it's hand-fillable, it's actually
+> collected and sorted in the Klang Valley, and it stays within his **RM0.30 per
+> jar** limit. ✅ Within budget · ✅ No new machine · ✅ Recyclable in Malaysia
+>
+> Where it can't tell, it says so — the jar material is marked **"Unknown,
+> requires verification"** rather than guessed.
 
-Supports **SDG 9** (Industry & innovation), **SDG 12** (Responsible
-Consumption & Production) and **SDG 13** (Climate Action).
-
----
-
-## Architecture
+## 🏗️ Architecture
 
 ```
 Browser
@@ -37,7 +134,7 @@ Browser
   │                                               (Claude Haiku 4.5, global profile)
   │
   └── POST → API Gateway REST API (prod)      → Image Lambda (standard handler)
-                                                → image provider chain → base64 PNG
+                                              → image provider chain → base64 PNG
 ```
 
 **Image provider chain (first that succeeds wins):**
@@ -47,10 +144,7 @@ Browser
 4. **Hugging Face FLUX** — only if `HfToken` is provided
 5. **Pollinations** (`image.pollinations.ai`, FLUX) — a free, key-less last resort so an image is always returned even if every provider above fails. Note: this calls an external third-party service with no key; remove this tier from `backend/image-generator/app.py` if that is not acceptable for your use.
 
-> Nova Canvas is **not** available in `ap-southeast-5`, so the image Lambda is
-> pinned to `us-east-1` via the `BEDROCK_REGION` environment variable. The text
-> Lambdas use the **global** Claude Haiku 4.5 inference profile, which is
-> invocable from `ap-southeast-5`.
+
 
 | Layer      | Service                                                        |
 |------------|----------------------------------------------------------------|
@@ -81,129 +175,84 @@ pitch/
 .github/workflows/
   deploy.yml                        bucket + build + deploy + URL injection + S3 sync + CDN invalidation
 ```
+## 🌍 Impact
+
+### Who benefits
+
+Home-based and small **food & beverage sellers** who need greener packaging for
+customers, marketplaces and upcoming EPR rules, but can't afford a consultant or
+a wrong choice. One avoided wrong decision can save a seller like Encik Syaful
+around **RM2,100 in a single season**.
+
+Supports **SDG 9** (Industry, Innovation & Infrastructure), **SDG 12**
+(Responsible Consumption & Production) and **SDG 13** (Climate Action).
+
+### Market size
+
+| | Annual value | Businesses | Basis |
+|---|---|---|---|
+| **TAM** | RM67.5M | 193,895 | Manufacturing MSMEs (57,187) + F&B businesses (136,708) × RM348/year |
+| **SAM** | RM50.6M | 145,286 | Food & beverage businesses — the users our halal, shelf-life and humidity checks are built for |
+| **SOM** | RM0.51M | 1,453 | 1% of SAM by year 3, through one pilot partner and SME agencies |
+
+*Sources: DOSM MSME 2024 (via OECD); DOSM Economic Census 2023. Price RM29/month.*
+
+### Business model
+
+| | |
+|---|---|
+| **Price** | RM29 / month, unlimited reports — first 3 reports free |
+| **AWS cost per report** | ≈ RM0.40 (6 Claude Haiku calls + 1 image, estimate) |
+| **Gross margin** | ≈ 94% at 4 reports a month per subscriber |
+
+### Scaling — what breaks first at 100,000 users
+
+- **Bedrock rate limits on Claude Haiku** → request a quota increase and queue bursts
+- **Image service quotas** → move fully to Nova Canvas in `us-east-1`
+- **30-second API Gateway limit** → switch long sections to true streaming
+
+### Who gets left out, and our plan
+
+- **Low digital literacy** → BM by default, photo-first flow, brief sent by WhatsApp
+- **No smartphone or data** → run sessions through SME agencies and co-ops
+- **Not a certification** → EcoLens tells users what to verify with suppliers
+
+## 🚀 Pilot & Roadmap
+
+**Pilot:** SME Corp Malaysia's food entrepreneurs, **February 2027**, ahead of the
+Raya 2027 rush.
+
+- 50 home-based food sellers
+- **Measure:** switches made, cost per pack, supplier briefs sent
+- **Success:** 1 in 3 sellers changes at least one packaging part
+
+**If we had 3 more weeks:**
+
+- **Photo-only flow** — no form, one best-fit answer first (already built on a branch)
+- **Stronger images** — Nova Canvas for every redesign visual
+- **Local supplier directory** — so the brief goes to a real Malaysian supplier
+
+**Our ask:**
+
+- **A pilot partner** — an SME agency or food co-op to put EcoLens in front of
+  50 sellers before Raya 2027
+- **AWS credits** — to run the pilot 
+
+**Why we win:** built for Malaysia — our recycling reality, halal, humidity, BM
+and costs in RM. Big platforms won't build for a 2,000-jar baker.
+
+> *Encik Syaful shouldn't have to choose between his income and the planet.
+> EcoLens shows him the option that protects both.*
 
 ---
 
-## ✅ Pre-deployment checklist
+<div align="center">
+  <strong>Made by Team 3 - Wo dou Bu Zhi Dao</strong>
+  <br>
+  <strong><em>© AWS CendekiAwan 2.0</em></strong>
+</div>
 
-### 1. Enable Bedrock model access (one-time)
 
-In the AWS Console → **Bedrock → Model access**:
 
-- In **`ap-southeast-5` (Malaysia)**: enable **Claude Haiku 4.5**
-  (`global.anthropic.claude-haiku-4-5-20251001-v1:0`, the global cross-region
-  inference profile — this is why the IAM policy uses `*` for region on the
-  foundation-model ARNs).
-- In **`us-east-1`**: enable **Nova Canvas** (`amazon.nova-canvas-v1:0`) and,
-  as a fallback, **Titan Image Generator v2** (`amazon.titan-image-generator-v2:0`).
-  Model access is per-region, and the image Lambda calls `us-east-1`.
 
-First-time accounts must submit the Anthropic use-case form before access is granted.
 
-### 2. Add GitHub repository secrets
-
-| Secret                  | Required | Value                                         |
-|-------------------------|----------|-----------------------------------------------|
-| `AWS_ACCESS_KEY_ID`     | yes      | IAM user/role access key                      |
-| `AWS_SECRET_ACCESS_KEY` | yes      | matching secret key                           |
-| `GEMINI_API_KEY`        | optional | Google Gemini key — only for the Gemini image fallback |
-| `HF_TOKEN`              | optional | Hugging Face token — only for the FLUX image fallback |
-
-The optional keys can be left unset; the image Lambda just uses the Bedrock
-providers in that case.
-
-### 3. IAM permissions for the deploy principal
-
-The deploying IAM user/role needs permissions for CloudFormation, Lambda, IAM
-(named role creation — hence `CAPABILITY_NAMED_IAM`), API Gateway, S3 (including
-creating the deploy bucket), and **CloudFront** (`CreateDistribution`,
-`UpdateDistribution`, `CreateInvalidation`, `GetDistribution`, tagging). Missing
-CloudFront rights is the most common first-deploy failure.
-
----
-
-## 🚀 Deploy
-
-Push to `main` (or run the **Deploy EcoLens** workflow manually). The workflow:
-
-1. Checks out the repo and configures AWS credentials.
-2. `sam build --template infra/template.yaml`.
-3. Ensures a deterministic deploy bucket exists in `ap-southeast-5`
-   (`ecolens-sam-deploy-ap-southeast-5-<account-id>`), creating it in-region if
-   needed — this avoids the S3 "location constraint" region-mismatch error.
-4. `sam deploy` to the `ecolens` stack in `ap-southeast-5`, passing the optional
-   `GeminiApiKey` / `HfToken` parameter overrides.
-5. Reads the CloudFormation outputs and `sed`-injects each endpoint URL into
-   `frontend/index.html` (replacing the `__URL_*__` / `__DIAGRAM_API_URL__`
-   placeholders).
-6. `aws s3 sync` the frontend to the website bucket (`--cache-control no-cache`).
-7. Invalidates the CloudFront cache so the new frontend is served immediately.
-8. Prints both the S3 (HTTP) and the **CloudFront HTTPS** URLs.
-
-> No `samconfig.toml` is committed (it can cause version-key errors in CI). All
-> deploy parameters are passed as flags.
-
-> **First deploy is slow** — creating the CloudFront distribution typically takes
-> 5–15 minutes. Later deploys are fast.
-
-### Which URL to use
-
-Open the **`HttpsWebsiteUrl`** output (`https://<id>.cloudfront.net`). HTTPS is
-required for the in-page **live camera** (`getUserMedia` needs a secure context);
-on the plain HTTP S3 URL the camera button falls back to the device file/camera
-picker.
-
----
-
-## Key behaviours
-
-- **Streaming text UI** — text/chat widgets are fetched with
-  `fetch()` + `response.body.getReader()`, decoded with `TextDecoder`, buffered by
-  line, and rendered as fade-in markdown spans with a blinking cursor (a typing
-  effect; the HTTP API returns the whole answer at once).
-- **File upload** — the dropzone reads the file with `FileReader.readAsDataURL()`,
-  strips the `data:<mime>;base64,` prefix, and sends `file_data` + `file_mime` in
-  the POST body. There is also a live-camera capture modal.
-- **Photo auto-detect** — after an image is uploaded, the frontend asks the chat
-  Lambda for a one-line `product | materials | category` reading and pre-fills any
-  empty fields (never overwriting user input). It warns on a non-packaging photo
-  and fails silently if detection errors, so the manual form always works.
-- **PDF export** — "Full report" and the supplier brief's "Download PDF" generate
-  a designed multi-page PDF with jsPDF (branded cover, section cards, a real
-  comparison table, coloured priority dots, embedded redesign images for the full
-  report). jsPDF is lazy-loaded from a CDN; if it cannot load, both buttons fall
-  back to a plain-text download. "Copy brief" still copies plain text to the clipboard.
-- **Image widgets** POST `{ option, fields, strategies }` to the REST API and
-  render the returned base64 PNG.
-- **Chat** sends the full `history` plus a `context` object with every analysis
-  output, so it answers with knowledge of the whole report. **Reset** clears
-  inputs/outputs but keeps the chat memory.
-- **Language & theme** — EN/BM toggle and light/dark theme, both persisted in
-  `localStorage`.
-- **Resilient errors** — if a text Lambda can't reach the model, it logs the full
-  traceback to CloudWatch and returns a readable `⚠️ ...` message (HTTP 200)
-  instead of a bare 500, so the on-screen panel shows the real reason.
-
----
-
-## Local / operational notes
-
-- Each text Lambda is a standalone Flask app; `run.sh` (`python app.py`) is the
-  entrypoint, started by the Lambda Web Adapter layer. A `GET /` health route
-  returns 200 for the adapter readiness check.
-- **Timeouts**: text functions are 29s (the HTTP API hard-limits requests at 30s);
-  generation stops at ~24s and returns what it has, noting it was shortened. The
-  image function is 30s with 512 MB memory, and retries Bedrock image calls with
-  backoff on throttling before falling through the provider chain.
-- `sam validate` is not run locally during authoring; the GitHub Actions
-  `sam build` step is the first full validation.
-
-### Troubleshooting
-
-| Symptom | Likely cause / fix |
-|---------|--------------------|
-| Text panel shows `⚠️ ... AccessDeniedException` | Claude Haiku 4.5 model access not enabled in `ap-southeast-5` |
-| Image panels fail | Nova Canvas / Titan not enabled in `us-east-1` (or set `GEMINI_API_KEY` / `HF_TOKEN`) |
-| Deploy fails on `FrontendDistribution` | Deploy principal lacks CloudFront permissions |
-| Deploy fails with S3 "location constraint" | Deploy bucket is in the wrong region (the workflow now creates it in-region) |
-| Camera opens a file picker instead of live preview | You are on the HTTP S3 URL — use the CloudFront HTTPS URL |
