@@ -220,6 +220,10 @@
   .sdg b { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
     color: #fff; font-size: .95rem; font-weight: 800; }
   .sdg-9 b { background: #f36d25; } .sdg-12 b { background: #bf8b2e; } .sdg-13 b { background: #3f7e44; }
+  @media (max-width: 600px) {
+    .sdg-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; width: 100%; }
+    .sdg { flex-direction: column; justify-content: flex-start; text-align: center; gap: .4rem; font-size: .82rem; line-height: 1.25; }
+  }
 
   /* ============================================================
      Sections
