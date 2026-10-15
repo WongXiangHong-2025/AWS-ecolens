@@ -265,10 +265,11 @@ def generate_image_bedrock(model_id, prompt):
             "quality": "standard",
         },
     }
-    # Retry with exponential backoff + jitter on throttling. Non-throttle
-    # errors (e.g. access denied, content filter) raise immediately so the
-    # caller can fall through to the next provider without wasting time.
-    attempts = 4
+    # One quick retry on throttling, then fail over to the next provider so the
+    # whole chain stays inside the 30s Lambda budget. Non-throttle errors
+    # (access denied, content filter) raise immediately. The browser also
+    # retries the whole request, so transient blips get a second full pass.
+    attempts = 2
     for attempt in range(attempts):
         try:
             response = bedrock.invoke_model(modelId=model_id, body=json.dumps(request_body))
@@ -279,7 +280,7 @@ def generate_image_bedrock(model_id, prompt):
             return images[0]
         except Exception as exc:
             if _is_throttle(exc) and attempt < attempts - 1:
-                time.sleep(1.5 * (2 ** attempt) + random.uniform(0, 1))
+                time.sleep(1.2 + random.uniform(0, 0.6))
                 continue
             raise
 
