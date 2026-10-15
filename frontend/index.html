@@ -2113,14 +2113,17 @@ function makeMore() {
 /* ============================================================
    Streaming fetch with typing effect
    ============================================================ */
-async function streamInto(widget, url, bodyObj, outputEl) {
+// Writes a report step into its panel, line by line. Normally the text comes from the AI
+// endpoint; `fixedText` (used only by the "Fill example" run) shows prepared text instead,
+// through exactly the same rendering, so the panel, PDF and later steps treat it the same.
+async function streamInto(widget, url, bodyObj, outputEl, { fixedText = null } = {}) {
   const spinner = document.querySelector(`[data-spinner="${widget}"]`);
   const errorEl = document.querySelector(`[data-error="${widget}"]`);
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
   delete state.outputs[widget];
 
-  if (!isConfiguredUrl(url)) {
+  if (fixedText == null && !isConfiguredUrl(url)) {
     if (errorEl) {
       errorEl.textContent = 'API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
@@ -2144,10 +2147,12 @@ async function streamInto(widget, url, bodyObj, outputEl) {
   let more = null;
 
   try {
-    const resp = await fetch(url, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyObj),
-    });
+    const resp = fixedText != null
+      ? new Response(fixedText)
+      : await fetch(url, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj),
+      });
     if (!resp.ok) throw new Error('HTTP ' + resp.status);
     if (spinner) spinner.style.display = 'none';
     const reader = resp.body.getReader();
@@ -2214,22 +2219,8 @@ const UPSTREAM = {
     'sustainability_problems_identified', 'three_redesign_strategies', 'trade_off_comparison'],
 };
 
-// For the "Fill example" Crumbs run the three redesign visuals are ready-made, so Step 3
-// must describe exactly what those pictures show. Every other run lets the model choose.
-const EXAMPLE_DIRECTIONS =
-  '\n\nThe three redesign directions for this product are already chosen. Describe exactly these, ' +
-  'in this order, and keep the same cream Crumbs label (logo, product name, @crumbs_kl, ingredients):\n' +
-  '- Option A (Quick win): keep the same clear cylindrical jar and gold screw lid and the same label; ' +
-  'switch the jar to food-grade recycled PET with a lighter wall and add clear recycling marks.\n' +
-  '- Option B (Balanced): replace the rigid jar and metal lid with a kraft paper stand-up pouch with a clear ' +
-  'front window and a resealable zip, with the same label applied to the front.\n' +
-  '- Option C (Ambitious): replace the jar with a printed paperboard carton (folding box) with full Crumbs ' +
-  'artwork in cream and brown and a printed cookie photo, no plastic window, cookies in a thin inner bag.';
-
 function buildTextBody(widget) {
-  let prompt = PROMPT_HINT[widget] || '';
-  if (widget === 'three_redesign_strategies' && state.exampleMode) prompt += EXAMPLE_DIRECTIONS;
-  const body = { fields: collectFields(), prompt };
+  const body = { fields: collectFields(), prompt: PROMPT_HINT[widget] || '' };
   if (state.fileData && state.fileMime) { body.file_data = state.fileData; body.file_mime = state.fileMime; }
   if (UPSTREAM[widget]) {
     body.upstream = {};
@@ -2292,9 +2283,8 @@ function showImage(option, b64, mime) {
   state.images[option] = { data: b64, mime }; // for the PDF
 }
 
-// `example: true` only for a full run of the "Fill example" Crumbs product: it shows the
-// ready-made visuals. Everything else (other photos, Regenerate) goes to the image model.
-async function runImage(option, { example = false } = {}) {
+// Draws one redesign visual with the AI image model.
+async function runImage(option) {
   const key = 'image_' + option;
   const spinner = document.querySelector(`[data-spinner="${key}"]`);
   const errorEl = document.querySelector(`[data-error="${key}"]`);
@@ -2302,16 +2292,6 @@ async function runImage(option, { example = false } = {}) {
   if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
 
-  const visuals = example ? await loadExampleVisuals() : null;
-  if (visuals && visuals[option]) {
-    setStatus(key, 'running');
-    if (spinner) spinner.style.display = 'block';
-    await new Promise(r => setTimeout(r, 500)); // let the tracker show the step
-    if (spinner) spinner.style.display = 'none';
-    showImage(option, visuals[option].data, visuals[option].mime);
-    setStatus(key, 'done');
-    return;
-  }
 
   if (!isConfiguredUrl(DIAGRAM_API)) {
     outputEl.innerHTML = imagePlaceholder();
@@ -2459,10 +2439,13 @@ async function runAll() {
   userPickedTab = false;
   selectTab('audit');
   reportEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Real input: every step and visual comes from the AI. Fill example: step 3 and the
+  // visuals are prepared (see "Example run" below); steps 1, 2, 4 and 5 still use the AI.
+  const run = state.exampleMode ? EXAMPLE_RUN : REAL_RUN;
   // Show each step's tab as it starts, unless the reader has picked a tab themselves.
-  const step = async (widget) => {
+  const step = async (widget, write = runWidget) => {
     if (!userPickedTab) selectTab(MODULES[widget]);
-    await runWidget(widget);
+    await write(widget);
   };
 
   try {
@@ -2475,11 +2458,10 @@ async function runAll() {
       return;
     }
     await step('sustainability_problems_identified');
-    await step('three_redesign_strategies');
+    await step('three_redesign_strategies', run.strategies);
     // The visuals only need the strategies, so draw them (one at a time: the free image
     // fallback rejects parallel requests) while steps 4 and 5 are written.
-    const example = !!state.exampleMode;
-    const images = (async () => { for (const o of ['A', 'B', 'C']) await runImage(o, { example }); })();
+    const images = (async () => { for (const o of ['A', 'B', 'C']) await run.visual(o); })();
     await step('trade_off_comparison');
     await step('best_fit_recommendation_and_supplier_brief');
     await images;
@@ -2488,6 +2470,9 @@ async function runAll() {
     setRunning(false);
   }
 }
+// Real-world input: the AI writes step 3 and draws the three visuals.
+const REAL_RUN = { strategies: runWidget, visual: runImage };
+
 runAllBtn.addEventListener('click', runAll);
 mobileRunBtn.addEventListener('click', runAll);
 
@@ -3190,6 +3175,127 @@ function loadExampleScript(src, globalName) {
 }
 const loadExamplePhoto = () => loadExampleScript('examples/crumbs-cookies.js', 'ECOLENS_EXAMPLE_PHOTO');
 const loadExampleVisuals = () => loadExampleScript('examples/crumbs-redesigns.js', 'ECOLENS_EXAMPLE_VISUALS');
+/* ------------------------------------------------------------
+   Example run ("Fill example" / "Try an example" only)
+   Step 3 and the three redesign visuals are prepared for the Crumbs jar, so the
+   strategies match the pictures. Steps 1, 2, 4 and 5 are still written by the AI,
+   and steps 4 and 5 build on these three options. Regenerate always uses the AI.
+   ------------------------------------------------------------ */
+const EXAMPLE_STRATEGIES = {
+  en: `## Key points
+- **Option A:** the same clear jar and gold lid, made from recycled plastic (rPET), with recycling marks.
+- **Option B:** a kraft paper stand-up pouch with a clear window and a resealable zip.
+- **Option C:** a printed paperboard box.
+[[DETAILS]]
+### OPTION A — QUICK WIN: Recycled PET jar
+- **Changes:**
+  - Keep the same clear cylindrical jar, gold screw lid and cream Crumbs label.
+  - Make the jar from food-grade recycled PET (rPET) instead of virgin PET.
+  - Print the PET recycling mark and a short "recycle this jar" line on the label.
+- **Fixes problems:** virgin plastic in the jar; no recycling information for customers.
+- **Cost impact:** Low — food-grade rPET usually costs a little more than virgin PET; confirm the RM price with the jar supplier.
+- **Difficulty:** Easy — same jar shape, same filling and capping.
+- **Protection & shelf-life risk:** Low — the same rigid jar and screw seal as today.
+- **Main advantage / main drawback:** the fastest change with no new equipment / the metal lid and paper label still make it a mixed-material pack.
+
+### OPTION B — BALANCED REDESIGN: Kraft window pouch
+- **Changes:**
+  - Replace the rigid jar and metal lid with a kraft paper stand-up pouch.
+  - Add a clear front window so customers still see the cookies.
+  - Add a resealable zip and put the same cream Crumbs label on the front.
+- **Fixes problems:** removes the rigid plastic jar and the metal lid; far less packaging material per pack.
+- **Cost impact:** Medium — depends on pouch size, printing and minimum order; get quotes in RM.
+- **Difficulty:** Medium — the filler needs a pouch holding and heat-sealing step instead of jar capping.
+- **Protection & shelf-life risk:** Medium — less protection against crushing, and the pouch needs a moisture-barrier lining for tropical humidity.
+- **Main advantage / main drawback:** a big cut in packaging weight while the cookies stay visible / kraft with a plastic window and lining is a mixed material that is hard to recycle in Malaysia.
+- **Testing needed:**
+  - Humidity shelf-life trial for the full required shelf life.
+  - Drop and transit test to check for broken cookies.
+
+### OPTION C — AMBITIOUS REDESIGN: Printed paperboard box
+- **Changes:**
+  - Replace the jar with a printed paperboard folding box in Crumbs cream and brown.
+  - Show the cookies with a printed photo instead of a window.
+  - Pack the cookies in a thin inner bag inside the box to keep them fresh.
+- **Fixes problems:** removes the rigid plastic jar and the metal lid; the outer box goes into paper recycling.
+- **Cost impact:** Medium to High — printed boxes need artwork, possibly a cutting die, and a minimum order; get quotes in RM.
+- **Difficulty:** Hard — a new packing method and new artwork.
+- **Protection & shelf-life risk:** Medium — the box protects against crushing, but freshness depends on the inner bag.
+- **Main advantage / main drawback:** strong shelf presence using mostly paper / customers can no longer see the real cookies, and the inner bag is still plastic.
+- **Constraint conflict:** your branding asks that customers can see the cookies; this box has no window.
+- **Assumptions & unknowns:** the inner bag material and whether it can be recycled locally.
+- **Machinery changes:** box folding and closing (by hand or machine) instead of jar filling and capping.`,
+  bm: `## Poin utama
+- **Pilihan A:** balang jernih dan penutup emas yang sama, diperbuat daripada plastik kitar semula (rPET), dengan tanda kitar semula.
+- **Pilihan B:** pek berdiri kertas kraf dengan tingkap jernih dan zip boleh tutup semula.
+- **Pilihan C:** kotak kertas papan bercetak.
+[[DETAILS]]
+### OPTION A — QUICK WIN: Balang PET kitar semula
+- **Perubahan:**
+  - Kekalkan balang silinder jernih, penutup skru emas dan label krim Crumbs yang sama.
+  - Hasilkan balang daripada PET kitar semula gred makanan (rPET) dan bukan PET dara.
+  - Cetak tanda kitar semula PET dan ayat ringkas "kitar semula balang ini" pada label.
+- **Masalah yang diselesaikan:** plastik dara pada balang; tiada maklumat kitar semula untuk pelanggan.
+- **Kesan kos:** Rendah — rPET gred makanan biasanya sedikit lebih mahal daripada PET dara; sahkan harga RM dengan pembekal balang.
+- **Kesukaran:** Mudah — bentuk balang, pengisian dan penutupan yang sama.
+- **Risiko perlindungan & jangka hayat:** Rendah — balang tegar dan penutup skru yang sama seperti sekarang.
+- **Kelebihan utama / kelemahan utama:** perubahan paling cepat tanpa peralatan baharu / penutup logam dan label kertas masih menjadikannya pek pelbagai bahan.
+
+### OPTION B — BALANCED REDESIGN: Pek kraf bertingkap
+- **Perubahan:**
+  - Gantikan balang tegar dan penutup logam dengan pek berdiri kertas kraf.
+  - Tambah tingkap jernih di hadapan supaya pelanggan masih nampak biskut.
+  - Tambah zip boleh tutup semula dan letak label krim Crumbs yang sama di hadapan.
+- **Masalah yang diselesaikan:** membuang balang plastik tegar dan penutup logam; bahan pembungkusan jauh berkurang bagi setiap pek.
+- **Kesan kos:** Sederhana — bergantung pada saiz pek, cetakan dan kuantiti pesanan minimum; dapatkan sebut harga dalam RM.
+- **Kesukaran:** Sederhana — mesin pengisi memerlukan langkah memegang dan mengelim pek, bukan menutup balang.
+- **Risiko perlindungan & jangka hayat:** Sederhana — kurang perlindungan daripada hancur, dan pek perlukan lapisan penghalang lembapan untuk cuaca lembap tropika.
+- **Kelebihan utama / kelemahan utama:** berat pembungkusan berkurang dengan banyak dan biskut masih kelihatan / kraf dengan tingkap plastik dan lapisan dalam ialah bahan campuran yang sukar dikitar semula di Malaysia.
+- **Ujian diperlukan:**
+  - Ujian jangka hayat dalam kelembapan untuk tempoh penuh yang diperlukan.
+  - Ujian jatuh dan penghantaran untuk memeriksa biskut pecah.
+
+### OPTION C — AMBITIOUS REDESIGN: Kotak kertas papan bercetak
+- **Perubahan:**
+  - Gantikan balang dengan kotak lipat kertas papan bercetak berwarna krim dan coklat Crumbs.
+  - Tunjukkan biskut melalui gambar bercetak, bukan tingkap.
+  - Bungkus biskut dalam beg dalaman nipis di dalam kotak supaya kekal segar.
+- **Masalah yang diselesaikan:** membuang balang plastik tegar dan penutup logam; kotak luar boleh dikitar semula bersama kertas.
+- **Kesan kos:** Sederhana hingga Tinggi — kotak bercetak memerlukan reka bentuk, mungkin acuan pemotong, dan kuantiti pesanan minimum; dapatkan sebut harga dalam RM.
+- **Kesukaran:** Sukar — kaedah pembungkusan dan reka bentuk baharu.
+- **Risiko perlindungan & jangka hayat:** Sederhana — kotak melindungi daripada hancur, tetapi kesegaran bergantung pada beg dalaman.
+- **Kelebihan utama / kelemahan utama:** penampilan di rak yang kuat dengan kebanyakannya kertas / pelanggan tidak lagi nampak biskut sebenar, dan beg dalaman masih plastik.
+- **Konflik kekangan:** jenama anda mahu pelanggan nampak biskut; kotak ini tiada tingkap.
+- **Andaian & perkara tidak diketahui:** bahan beg dalaman dan sama ada ia boleh dikitar semula di sini.
+- **Perubahan mesin:** melipat dan menutup kotak (secara manual atau mesin) dan bukan mengisi serta menutup balang.`,
+};
+
+// Step 3 for the example: the prepared options, shown like any other step.
+async function writeExampleStrategies(widget) {
+  const outputEl = document.querySelector(`[data-output="${widget}"]`);
+  const text = EXAMPLE_STRATEGIES[lang] || EXAMPLE_STRATEGIES.en;
+  await streamInto(widget, null, null, outputEl, { fixedText: text });
+}
+
+// One redesign visual for the example: the prepared picture for that option. If the
+// pictures cannot be loaded, fall back to the AI image model.
+async function showExampleVisual(option) {
+  const key = 'image_' + option;
+  const visuals = await loadExampleVisuals();
+  if (!visuals || !visuals[option]) return runImage(option);
+  const spinner = document.querySelector(`[data-spinner="${key}"]`);
+  const errorEl = document.querySelector(`[data-error="${key}"]`);
+  if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
+  setStatus(key, 'running');
+  if (spinner) spinner.style.display = 'block';
+  await new Promise(r => setTimeout(r, 400)); // let the tracker show the step
+  if (spinner) spinner.style.display = 'none';
+  showImage(option, visuals[option].data, visuals[option].mime);
+  setStatus(key, 'done');
+}
+
+const EXAMPLE_RUN = { strategies: writeExampleStrategies, visual: showExampleVisual };
+
 async function fillExample() {
   Object.entries(EXAMPLE).forEach(([id, val]) => {
     const el = document.getElementById(id);
