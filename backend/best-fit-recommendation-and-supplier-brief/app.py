@@ -21,7 +21,6 @@ MODEL_ID = "global.anthropic.claude-haiku-4-5-20251001-v1:0"
 # The response is buffered, so stop generating before then and return what we
 # have instead of letting the function time out with an HTTP 500.
 DEADLINE_SECONDS = float(os.environ.get("GENERATION_DEADLINE_SECONDS", "24"))
-TRUNCATED_NOTE = "\n\n_(Response shortened to fit the time limit. Click Regenerate for a fresh version.)_"
 
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
 
@@ -159,14 +158,11 @@ def generate(body):
         return
     for event in response["body"]:
         if time.monotonic() - started > DEADLINE_SECONDS:
-            yield TRUNCATED_NOTE
-            return
+            return  # out of time: end quietly with what was written
         chunk = event.get("chunk")
         if not chunk:
             continue
         payload = json.loads(chunk["bytes"].decode("utf-8"))
-        if payload.get("delta", {}).get("stop_reason") == "max_tokens":
-            yield TRUNCATED_NOTE
         if payload.get("type") == "content_block_delta":
             text = payload.get("delta", {}).get("text")
             if text:

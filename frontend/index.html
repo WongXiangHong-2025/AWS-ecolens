@@ -523,7 +523,6 @@
   .sub-h { display: flex; align-items: center; gap: .5rem; font-size: 1.02rem; font-weight: 800; }
   .sub-h .ico { color: var(--accent); }
   .sub-d { color: var(--muted); font-size: .88rem; margin: .2rem 0 1rem; }
-  .sub-d.example-note { margin-top: -.6rem; padding: .5rem .75rem; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
   .mod-n { color: var(--muted); font-weight: 700; }
   .alert .ico { width: 1.25em; height: 1.25em; margin-top: .1em; }
   .alert { display: flex; gap: .7rem; padding: .9rem 1.1rem; border-radius: 14px; margin-bottom: 1.2rem;
@@ -1167,7 +1166,6 @@
             <div class="visuals-block">
               <h4 class="sub-h"><i class="ico i-image" aria-hidden="true"></i><span data-i18n="w_visuals">Packaging redesign visuals</span></h4>
               <p class="sub-d" data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p>
-              <p class="sub-d example-note" id="exampleVisualsNote" data-i18n="exampleVisualsNote" hidden>Example visuals prepared for the Crumbs demo. With your own photo, the AI image model draws them. Press Regenerate to try the model on this example.</p>
               <div class="img-grid">
                 <div class="img-card">
                   <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
@@ -1463,7 +1461,6 @@ const I18N = {
     sug1: 'Which option suits a tight budget?', sug2: 'What should I ask my supplier?', sug3: 'Explain the trade-offs simply',
     send: 'Send',
     needPhoto: 'Add a photo of your packaging first.', needName: 'Enter your product name first.',
-    exampleVisualsNote: 'Example visuals prepared for the Crumbs demo. With your own photo, the AI image model draws them. Press Regenerate to try the model on this example.',
     exampleFilled: 'Example filled', exampleNeedsPhoto: 'Example filled. Now add a photo of your packaging.',
     copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet. Generate the brief first.',
     nothingDownload: 'Nothing to download yet. Generate your report first.',
@@ -1582,7 +1579,6 @@ const I18N = {
     sug1: 'Pilihan mana sesuai untuk bajet terhad?', sug2: 'Apa yang patut saya tanya pembekal?', sug3: 'Terangkan perbandingan dengan mudah',
     send: 'Hantar',
     needPhoto: 'Tambah gambar pembungkusan anda dahulu.', needName: 'Masukkan nama produk anda dahulu.',
-    exampleVisualsNote: 'Visual contoh yang disediakan untuk demo Crumbs. Dengan gambar anda sendiri, model imej AI akan melukisnya. Tekan Jana semula untuk mencuba model pada contoh ini.',
     exampleFilled: 'Contoh diisi', exampleNeedsPhoto: 'Contoh diisi. Sekarang tambah gambar pembungkusan anda.',
     copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin. Jana ringkasan dahulu.',
     nothingDownload: 'Tiada apa untuk dimuat turun. Jana laporan dahulu.',
@@ -2094,6 +2090,11 @@ function makeLineFrag(line) {
 
 // Marker the report prompts put between the short "Key points" and the full explanation.
 const DETAILS_RE = /^\s*\[\[DETAILS\]\]\s*$/;
+// Older backends appended a "Response shortened…" note when they hit the time limit; never show it.
+const SHORTENED_RE = /^\s*_?\(?Response shortened to fit the time limit[^\n]*$/i;
+function dropShortenedNote(text) {
+  return (text || '').split('\n').filter(l => !SHORTENED_RE.test(l)).join('\n').replace(/\s+$/, '');
+}
 function stripMarker(text) {
   return (text || '').replace(/^\s*\[\[DETAILS\]\]\s*$/m, '');
 }
@@ -2164,6 +2165,7 @@ async function streamInto(widget, url, bodyObj, outputEl) {
       while ((nl = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, nl);
         buffer = buffer.slice(nl + 1);
+        if (SHORTENED_RE.test(line)) continue;
         if (!more && DETAILS_RE.test(line)) {
           more = makeMore();
           outputEl.appendChild(more);
@@ -2176,11 +2178,11 @@ async function streamInto(widget, url, bodyObj, outputEl) {
       cursorLine.innerHTML = inlineMd(buffer);
       cursorLine.appendChild(cursor);
     }
-    if (buffer.length && !DETAILS_RE.test(buffer)) cursorLine.parentNode.insertBefore(makeLineFrag(buffer), cursorLine);
+    if (buffer.length && !DETAILS_RE.test(buffer) && !SHORTENED_RE.test(buffer)) cursorLine.parentNode.insertBefore(makeLineFrag(buffer), cursorLine);
     cursor.remove(); cursorLine.remove();
     if (more) more.querySelector('.more-state').remove();
     else keyBox.classList.remove('keypoints'); // no marker (e.g. a wrong-input notice): show as plain text
-    state.outputs[widget] = raw;
+    state.outputs[widget] = dropShortenedNote(raw);
     setStatus(widget, 'done');
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
@@ -2212,8 +2214,22 @@ const UPSTREAM = {
     'sustainability_problems_identified', 'three_redesign_strategies', 'trade_off_comparison'],
 };
 
+// For the "Fill example" Crumbs run the three redesign visuals are ready-made, so Step 3
+// must describe exactly what those pictures show. Every other run lets the model choose.
+const EXAMPLE_DIRECTIONS =
+  '\n\nThe three redesign directions for this product are already chosen. Describe exactly these, ' +
+  'in this order, and keep the same cream Crumbs label (logo, product name, @crumbs_kl, ingredients):\n' +
+  '- Option A (Quick win): keep the same clear cylindrical jar and gold screw lid and the same label; ' +
+  'switch the jar to food-grade recycled PET with a lighter wall and add clear recycling marks.\n' +
+  '- Option B (Balanced): replace the rigid jar and metal lid with a kraft paper stand-up pouch with a clear ' +
+  'front window and a resealable zip, with the same label applied to the front.\n' +
+  '- Option C (Ambitious): replace the jar with a printed paperboard carton (folding box) with full Crumbs ' +
+  'artwork in cream and brown and a printed cookie photo, no plastic window, cookies in a thin inner bag.';
+
 function buildTextBody(widget) {
-  const body = { fields: collectFields(), prompt: PROMPT_HINT[widget] || '' };
+  let prompt = PROMPT_HINT[widget] || '';
+  if (widget === 'three_redesign_strategies' && state.exampleMode) prompt += EXAMPLE_DIRECTIONS;
+  const body = { fields: collectFields(), prompt };
   if (state.fileData && state.fileMime) { body.file_data = state.fileData; body.file_mime = state.fileMime; }
   if (UPSTREAM[widget]) {
     body.upstream = {};
@@ -2293,11 +2309,9 @@ async function runImage(option, { example = false } = {}) {
     await new Promise(r => setTimeout(r, 500)); // let the tracker show the step
     if (spinner) spinner.style.display = 'none';
     showImage(option, visuals[option].data, visuals[option].mime);
-    document.getElementById('exampleVisualsNote').hidden = false;
     setStatus(key, 'done');
     return;
   }
-  document.getElementById('exampleVisualsNote').hidden = true;
 
   if (!isConfiguredUrl(DIAGRAM_API)) {
     outputEl.innerHTML = imagePlaceholder();
@@ -2868,7 +2882,7 @@ function buildReportPdf(mode) {
   };
 
   // ---------- markdown section renderer ----------
-  const writeMarkdown = (text) => {
+  const writeMarkdown = (text, { images = null } = {}) => {
     const lines = text.replace(/\r/g, '').split('\n');
     let i = 0;
     let subList = false;   // bullets after a label-only bullet ("Changes:") are sub-points
@@ -2894,12 +2908,7 @@ function buildReportPdf(mode) {
 
       if (!trimmed) { y += 3; continue; }
 
-      // time-limit note from the server: show it quietly
-      if (/^_\(.*\)_$/.test(trimmed)) {
-        doc.setFont('helvetica', 'italic'); doc.setFontSize(9); setText(PDF.MUTE);
-        const w = doc.splitTextToSize(trimmed.replace(/^_\(|\)_$/g, ''), CW);
-        needSpace(w.length * 12 + 6); doc.text(w, M, y); y += w.length * 12 + 6; continue;
-      }
+      if (SHORTENED_RE.test(trimmed)) continue;
 
       // horizontal rule
       if (/^(-{3,}|_{3,}|={3,})$/.test(trimmed)) { subList = false; continue; } // spacing comes from headings
@@ -2925,7 +2934,10 @@ function buildReportPdf(mode) {
       const opt = trimmed.match(/^#{1,4}\s*\**\s*(?:OPTION|PILIHAN)\s+([ABC])\b\s*[—–:-]*\s*(.*)$/i);
       if (opt) {
         subList = false;
-        needSpace(52);
+        const letter = opt[1].toUpperCase();
+        const im = images && images[letter];
+        const IMG = 190;
+        needSpace(52 + (im ? IMG + 14 : 0)); // keep the heading with its picture
         if (!firstBlock) { y += 4; setDraw(PDF.LINE); doc.setLineWidth(0.8); doc.line(M, y, PW - M, y); y += 18; }
         firstBlock = false;
         setFill(PDF.GREEN); doc.circle(M + 11, y - 4, 11, 'F');
@@ -2935,6 +2947,14 @@ function buildReportPdf(mode) {
         const tw = doc.splitTextToSize(plain(opt[2]).replace(/\*+$/, ''), CW - 32);
         doc.text(tw, M + 30, y);
         y += tw.length * 16 + 8;
+        if (im) { // the redesign visual for this option, right under its name
+          try {
+            doc.addImage('data:' + im.mime + ';base64,' + im.data, im.mime === 'image/jpeg' ? 'JPEG' : 'PNG', M + 30, y, IMG, IMG);
+            setDraw(PDF.LINE); doc.setLineWidth(0.6); doc.roundedRect(M + 30, y, IMG, IMG, 4, 4);
+            images.drawn[letter] = true;
+          } catch (e) {}
+          y += IMG + 14;
+        }
         continue;
       }
 
@@ -2956,6 +2976,7 @@ function buildReportPdf(mode) {
         const { label, rest } = leadIn(content);
         const nested = indentSpaces >= 2 || (subList && !label);
         const indent = nested ? 34 : 16;
+        if (label && !rest) needSpace(44); // keep "Changes:" on the same page as its first sub-point
         if (numbered && !nested) {
           // numbered step: number in the gutter
           needSpace(16);
@@ -3012,15 +3033,15 @@ function buildReportPdf(mode) {
     y += 16;
   };
   // Key points as a card, then the full explanation (the on-screen view folds this part away).
-  const writeSection = (text) => {
-    const { key, detail } = splitKeyPoints(text);
+  const writeSection = (text, opts) => {
+    const { key, detail } = splitKeyPoints(dropShortenedNote(text));
     if (key) keyPointsCard(key.replace(/^#{1,3}\s.*$/m, ''), t('keyPoints'));
-    writeMarkdown(detail);
+    writeMarkdown(detail, opts);
   };
-  // Redesign visuals sit inside step 3, three across.
-  const writeVisuals = () => {
+  // Any redesign visual not already shown under its option goes in a row at the end of step 3.
+  const writeVisuals = (drawn = {}) => {
     const imgs = state.images || {};
-    const have = ['A', 'B', 'C'].filter(o => imgs[o]);
+    const have = ['A', 'B', 'C'].filter(o => imgs[o] && !drawn[o]);
     if (!have.length) return;
     const gap = 12, w = (CW - gap * 2) / 3;
     needSpace(w + 50);
@@ -3048,10 +3069,13 @@ function buildReportPdf(mode) {
     if (i > 0) { doc.addPage(); y = M; }
     else { needSpace(60); }
     sectionHeader(t(titleKey), i + 1, sections.length);
-    if (mode === 'brief') writeMarkdown(briefText());
+    if (mode === 'brief') writeMarkdown(dropShortenedNote(briefText()));
     else {
-      writeSection(state.outputs[k]);
-      if (k === 'three_redesign_strategies') writeVisuals();
+      if (k === 'three_redesign_strategies') {
+        const images = Object.assign({ drawn: {} }, state.images || {});
+        writeSection(state.outputs[k], { images });
+        writeVisuals(images.drawn);
+      } else writeSection(state.outputs[k]);
     }
   });
 
