@@ -121,6 +121,54 @@
   }
 
   /* ============================================================
+     Icons — EcoLens line icons (replace system emoji). Masks tint with
+     currentColor, so they follow the light/dark theme automatically.
+     Usage: <i class="ico i-check" aria-hidden="true"></i>
+     ============================================================ */
+  :root {
+    --i-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+    --i-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.5 6.5l11 11M17.5 6.5l-11 11'/%3E%3C/svg%3E");
+    --i-moon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M19.5 14.6A8 8 0 0 1 9.4 4.5a8 8 0 1 0 10.1 10.1Z'/%3E%3Cpath d='M16.5 3.5v3M15 5h3'/%3E%3C/svg%3E");
+    --i-sun: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle fill='black' fill-opacity='.22' cx='12' cy='12' r='4'/%3E%3Cpath d='M12 2.8v2M12 19.2v2M5.5 5.5l1.4 1.4M17.1 17.1l1.4 1.4M2.8 12h2M19.2 12h2M5.5 18.5l1.4-1.4M17.1 6.9l1.4-1.4'/%3E%3C/svg%3E");
+    --i-audit: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M6 3.5h8.5l4 4V20a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4.5a1 1 0 0 1 1-1Z'/%3E%3Cpath d='M14 3.5V8h4.5M8.5 13l2.2 2.2 4.3-4.4M8.5 18h7'/%3E%3C/svg%3E");
+    --i-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='4' width='18' height='16' rx='3'/%3E%3Cpath fill='black' fill-opacity='.22' stroke='none' d='M3 16.5l5-5 4 4 3-3 6 6V17a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3Z'/%3E%3Cpath d='M3 16.5l5-5 4 4 3-3 6 6'/%3E%3Ccircle cx='15.5' cy='8.8' r='1.4' fill='black'/%3E%3C/svg%3E");
+    --i-paths: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle fill='black' fill-opacity='.22' cx='12' cy='19' r='2.2'/%3E%3Cpath d='M12 16.8V5M12 12.5c0-2.8-6-2.6-6-6.5V5M12 12.5c0-2.8 6-2.6 6-6.5V5M4 7l2-2 2 2M10 7l2-2 2 2M16 7l2-2 2 2'/%3E%3C/svg%3E");
+    --i-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle fill='black' fill-opacity='.22' cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M15.5 15.5l5 5'/%3E%3C/svg%3E");
+    --i-scale: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5v16.5M8 20.5h8M5 7h14M5 7l-2.8 6M5 7l2.8 6M19 7l-2.8 6M19 7l2.8 6'/%3E%3Cpath fill='black' fill-opacity='.22' d='M2.2 13a2.8 2.8 0 0 0 5.6 0ZM16.2 13a2.8 2.8 0 0 0 5.6 0Z'/%3E%3C/svg%3E");
+    --i-brief: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle fill='black' fill-opacity='.22' cx='12' cy='12' r='9'/%3E%3Cpath d='M8 12.3l2.8 2.8 5.2-5.6'/%3E%3C/svg%3E");
+    --i-chat: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7.5a2.5 2.5 0 0 1-2.5 2.5H10.5L6 20v-3.5A2 2 0 0 1 4 14.5Z'/%3E%3Cpath d='M8.5 9h7M8.5 12.5h4.5'/%3E%3C/svg%3E");
+    --i-folder: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M3 7.5A2.5 2.5 0 0 1 5.5 5h3.4l2.1 2.5h7.5A2.5 2.5 0 0 1 21 10v6.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5Z'/%3E%3C/svg%3E");
+    --i-camera: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M3.5 8.5A2.5 2.5 0 0 1 6 6h1.8l1.7-2.2h5L16.2 6H18a2.5 2.5 0 0 1 2.5 2.5v8.5A2.5 2.5 0 0 1 18 19.5H6A2.5 2.5 0 0 1 3.5 17Z'/%3E%3Ccircle cx='12' cy='12.5' r='3.5'/%3E%3C/svg%3E");
+    --i-flip: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4.5 11a7.5 7.5 0 0 1 13.2-4.3L20 9M20 4.5V9h-4.5M19.5 13a7.5 7.5 0 0 1-13.2 4.3L4 15M4 19.5V15h4.5'/%3E%3C/svg%3E");
+    --i-refresh: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M19.5 12a7.5 7.5 0 1 1-2.3-5.4L20 9.3M20 4.5v4.8h-4.8'/%3E%3C/svg%3E");
+    --i-download: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' stroke='none' d='M4 16h16v2.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z'/%3E%3Cpath d='M12 3.5v11.5M7.5 10.5 12 15l4.5-4.5M4 16v2.5a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V16'/%3E%3C/svg%3E");
+    --i-alert: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M10.3 4.3 2.7 17.6a2 2 0 0 0 1.7 2.9h15.2a2 2 0 0 0 1.7-2.9L13.7 4.3a2 2 0 0 0-3.4 0Z'/%3E%3Cpath d='M12 9.5v4.2'/%3E%3Ccircle cx='12' cy='17' r='1.1' fill='black' stroke='none'/%3E%3C/svg%3E");
+    --i-copy: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect fill='black' fill-opacity='.22' x='8.5' y='8.5' width='12' height='12.5' rx='2.5'/%3E%3Cpath d='M15.5 8.5V6A2.5 2.5 0 0 0 13 3.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5'/%3E%3C/svg%3E");
+    --i-spinner: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 3.5a8.5 8.5 0 1 0 8.5 8.5'/%3E%3C/svg%3E");
+    --i-leaf: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath fill='black' fill-opacity='.22' d='M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z'/%3E%3Cpath d='M4.5 19.5 13 11'/%3E%3C/svg%3E");
+  }
+  .ico { display: inline-block; width: 1.15em; height: 1.15em; flex: none; vertical-align: -.2em;
+    background-color: currentColor; -webkit-mask: var(--i) center / contain no-repeat; mask: var(--i) center / contain no-repeat; }
+  .i-check { --i: var(--i-check); } .i-x { --i: var(--i-x); } .i-moon { --i: var(--i-moon); } .i-sun { --i: var(--i-sun); } .i-audit { --i: var(--i-audit); } .i-image { --i: var(--i-image); } .i-paths { --i: var(--i-paths); } .i-search { --i: var(--i-search); } .i-scale { --i: var(--i-scale); } .i-brief { --i: var(--i-brief); } .i-chat { --i: var(--i-chat); } .i-folder { --i: var(--i-folder); } .i-camera { --i: var(--i-camera); } .i-flip { --i: var(--i-flip); } .i-refresh { --i: var(--i-refresh); } .i-download { --i: var(--i-download); } .i-alert { --i: var(--i-alert); } .i-copy { --i: var(--i-copy); } .i-spinner { --i: var(--i-spinner); } .i-leaf { --i: var(--i-leaf); }
+  .ico-spin { animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  /* Status lines that get their icon from CSS (their text is set by JS). */
+  .fp-detect.detecting::before, .fp-detect.ok::before, .fp-detect.warn::before,
+  .mb-text.ok::before, .panel-error.show::before, .bubble.err::before {
+    content: ""; display: inline-block; width: 1.1em; height: 1.1em; margin-right: .4rem; vertical-align: -.2em;
+    background: currentColor; -webkit-mask: var(--mi) center / contain no-repeat; mask: var(--mi) center / contain no-repeat; }
+  .fp-detect.detecting { --mi: var(--i-search); } .fp-detect.ok, .mb-text.ok { --mi: var(--i-check); }
+  .fp-detect.warn, .panel-error, .bubble.err { --mi: var(--i-alert); }
+  .panel-error.retry { --mi: var(--i-refresh); color: var(--muted); }
+  .panel-error.retry::before { animation: spin 1s linear infinite; }
+  .bubble.err { color: var(--danger); }
+  /* Marks that replace emoji inside AI output. */
+  .pdot { display: inline-block; width: .7em; height: .7em; border-radius: 50%; margin: 0 .2em; vertical-align: .02em;
+    background: var(--pd); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pd) 22%, transparent); }
+  .pdot.hi { --pd: var(--danger); } .pdot.mid { --pd: #e5a50a; } .pdot.lo { --pd: var(--accent); }
+  .md-warn { color: var(--mid-fg); } .md-ok { color: var(--accent); } .md-bad { color: var(--danger); }
+
+  /* ============================================================
      Navigation
      ============================================================ */
   .nav {
@@ -146,6 +194,9 @@
     font: inherit; font-weight: 700; font-size: .82rem;
   }
   .icon-btn:hover { background: rgba(255,255,255,.16); }
+  #themeToggle { display: inline-grid; place-items: center; }
+  #themeToggle .ico { width: 18px; height: 18px; }
+  [data-theme="dark"] #themeToggle { color: var(--lime); }
   @media (max-width: 860px) { .nav-links { display: none; } }
   @media (max-width: 400px) { .nav-cta { display: none; } }
 
@@ -173,7 +224,9 @@
   .hero-ctas { display: flex; gap: .75rem; flex-wrap: wrap; margin: 2.1rem 0 1.7rem; }
   .trust { display: flex; gap: .6rem 1.4rem; flex-wrap: wrap; list-style: none; margin: 0; padding: 0;
     font-size: .9rem; color: rgba(230,244,237,.82); }
-  .trust li::before { content: "✓"; color: var(--lime); font-weight: 800; margin-right: .45rem; }
+  .trust li { display: inline-flex; align-items: center; gap: .45rem; }
+  .trust li::before { content: ""; width: 1.05em; height: 1.05em; flex: none; background: var(--lime);
+    -webkit-mask: var(--i-check) center / contain no-repeat; mask: var(--i-check) center / contain no-repeat; }
 
   .hero-visual { position: relative; padding: 1.8rem 1rem; }
   .mock {
@@ -196,11 +249,14 @@
   .lvl.good { background: var(--good-bg); color: var(--good-fg); }
   .lvl.mid { background: var(--mid-bg); color: var(--mid-fg); }
   .mock-foot { margin-top: 1rem; font-weight: 700; font-size: .88rem; color: var(--accent);
-    background: var(--accent-soft); padding: .7rem .85rem; border-radius: 12px; }
+    background: var(--accent-soft); padding: .7rem .85rem; border-radius: 12px;
+    display: flex; align-items: center; gap: .45rem; }
   .float-chip {
+    display: inline-flex; align-items: center; gap: .45rem;
     position: absolute; background: var(--panel); color: var(--text); border-radius: 14px;
     padding: .6rem .85rem; font-size: .82rem; font-weight: 700; box-shadow: var(--shadow-lg); white-space: nowrap;
   }
+  .float-chip .ico { color: var(--accent); }
   .float-chip.c1 { top: 0; left: -1.2rem; transform: rotate(-3deg); }
   .float-chip.c2 { bottom: 0; right: -.6rem; transform: rotate(2deg); }
   @media (max-width: 960px) {
@@ -215,14 +271,21 @@
   .strip { background: var(--bg-alt); border-bottom: 1px solid var(--border); }
   .strip-inner { display: flex; align-items: center; justify-content: center; gap: 1rem 2rem; flex-wrap: wrap; padding: 1.4rem 1.25rem; }
   .strip-label { font-size: .82rem; font-weight: 700; color: var(--muted); }
-  .sdg-list { display: flex; gap: .7rem 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .sdg-list { display: flex; gap: 1.5rem; flex-wrap: nowrap; justify-content: center; }
   .sdg { display: inline-flex; align-items: center; gap: .55rem; font-weight: 700; font-size: .92rem; }
-  .sdg b { width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+  .sdg b { flex: none; width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
     color: #fff; font-size: .95rem; font-weight: 800; }
   .sdg-9 b { background: #f36d25; } .sdg-12 b { background: #bf8b2e; } .sdg-13 b { background: #3f7e44; }
-  @media (max-width: 600px) {
-    .sdg-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: .8rem; width: 100%; }
-    .sdg { flex-direction: column; justify-content: flex-start; text-align: center; gap: .4rem; font-size: .82rem; line-height: 1.25; }
+  /* Stacked layout: label on top, the three goals always share one evenly-spaced row. */
+  @media (max-width: 760px) {
+    .strip .strip-inner { flex-direction: column; flex-wrap: nowrap; gap: 1.1rem; padding: 1.9rem 1rem 2rem; }
+    .strip-label { text-align: center; font-size: .74rem; line-height: 1.4; }
+    .sdg-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start;
+      gap: .5rem; width: 100%; max-width: 440px; }
+    .sdg { flex-direction: column; text-align: center; gap: .45rem; min-width: 0;
+      font-size: clamp(.66rem, 2.9vw, .78rem); font-weight: 600; line-height: 1.3;
+      overflow-wrap: anywhere; hyphens: auto; }
+    .sdg b { width: 30px; height: 30px; border-radius: 8px; font-size: .84rem; }
   }
 
   /* ============================================================
@@ -244,7 +307,9 @@
   .feature { padding: 1.7rem; transition: transform .2s ease, border-color .2s ease; }
   .feature:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
   .f-icon { width: 50px; height: 50px; border-radius: 15px; display: grid; place-items: center;
-    font-size: 1.45rem; background: var(--accent-soft); margin-bottom: 1.1rem; }
+    color: var(--accent); margin-bottom: 1.1rem;
+    background: linear-gradient(145deg, var(--accent-soft), color-mix(in srgb, var(--lime) 26%, var(--accent-soft))); }
+  .f-icon .ico { width: 26px; height: 26px; }
   .feature h3 { font-size: 1.08rem; font-weight: 800; letter-spacing: -.01em; margin-bottom: .45rem; }
   .feature p { color: var(--muted); font-size: .95rem; }
   @media (max-width: 960px) { .feature-grid { grid-template-columns: repeat(2, 1fr); } }
@@ -273,7 +338,8 @@
   .step-num { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
     background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: .92rem; transition: background .2s ease; }
   .step-num.done { background: var(--lime); color: var(--on-lime); font-size: 0; }
-  .step-num.done::after { content: "✓"; font-size: 1rem; }
+  .step-num.done::after { content: ""; width: 18px; height: 18px; background: currentColor;
+    -webkit-mask: var(--i-check) center / contain no-repeat; mask: var(--i-check) center / contain no-repeat; }
   .step-head h3 { font-size: 1.12rem; font-weight: 800; letter-spacing: -.01em; }
   .step-head p { color: var(--muted); font-size: .9rem; margin-top: .15rem; }
 
@@ -297,7 +363,7 @@
   .file-preview img, .fp-pdf { width: 84px; height: 84px; border-radius: 12px; flex: none; object-fit: cover; background: var(--panel); }
   .fp-pdf { display: grid; place-items: center; font-weight: 800; color: var(--accent); }
   .fp-body { flex: 1; min-width: 0; }
-  .fp-title { font-weight: 800; color: var(--accent); }
+  .fp-title { display: flex; align-items: center; gap: .35rem; font-weight: 800; color: var(--accent); }
   .fp-meta { font-size: .82rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .fp-detect { font-size: .82rem; margin-top: .25rem; line-height: 1.4; }
   .fp-detect.detecting { color: var(--muted); }
@@ -348,7 +414,8 @@
   .ready li { display: flex; align-items: center; gap: .6rem; font-size: .92rem; font-weight: 600; }
   .tick { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); flex: none;
     display: grid; place-items: center; font-size: .72rem; font-weight: 800; color: transparent; }
-  .tick::after { content: "✓"; }
+  .tick::after { content: ""; width: 13px; height: 13px; background: currentColor;
+    -webkit-mask: var(--i-check) center / contain no-repeat; mask: var(--i-check) center / contain no-repeat; }
   .ready li.ok .tick { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
   .ready .aside { margin-left: auto; font-size: .78rem; color: var(--muted); font-weight: 600; }
   .sum-label { font-size: .74rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
@@ -388,6 +455,7 @@
   .progress-bar span { display: block; height: 100%; width: 0; border-radius: 999px;
     background: linear-gradient(90deg, var(--accent), var(--lime)); transition: width .4s ease; }
   .progress-text { font-size: .85rem; font-weight: 700; color: var(--muted); white-space: nowrap; }
+  .alert .ico { width: 1.25em; height: 1.25em; margin-top: .1em; }
   .alert { display: flex; gap: .7rem; padding: .9rem 1.1rem; border-radius: 14px; margin-bottom: 1.2rem;
     background: var(--danger-soft); color: var(--danger); font-weight: 600; }
 
@@ -404,7 +472,8 @@
   .tab-panels { padding: 1.6rem 1.8rem; }
   .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; flex-wrap: wrap;
     padding-bottom: 1.1rem; margin-bottom: 1.1rem; border-bottom: 1px solid var(--border); }
-  .panel-head h3 { font-size: 1.2rem; font-weight: 800; letter-spacing: -.015em; }
+  .panel-head h3 { display: flex; align-items: flex-start; gap: .5rem; font-size: 1.2rem; font-weight: 800; letter-spacing: -.015em; }
+  .panel-head h3 .ico { color: var(--accent); }
   .panel-head p { color: var(--muted); font-size: .92rem; margin-top: .25rem; max-width: 60ch; }
   .panel-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
   @media (max-width: 640px) { .tab-panels { padding: 1.2rem 1.1rem; } }
@@ -516,6 +585,7 @@
     padding: .85rem 1.25rem; border-radius: 999px; box-shadow: 0 14px 30px -10px rgba(4,40,30,.6);
     transition: transform .15s ease, background .15s ease;
   }
+  .chat-fab .ico { width: 1.25em; height: 1.25em; }
   .chat-fab:hover { background: var(--lime-2); transform: translateY(-2px); }
   .chat-fab.hidden { display: none; }
   .chat-float {
@@ -532,7 +602,7 @@
   .chat-title { font-weight: 800; font-size: .98rem; line-height: 1.2; }
   .chat-sub { font-size: .76rem; color: rgba(255,255,255,.75); }
   .chat-float-close { margin-left: auto; width: 32px; height: 32px; border-radius: 10px; border: none; cursor: pointer;
-    background: rgba(255,255,255,.1); color: #fff; font-size: .95rem; }
+    background: rgba(255,255,255,.1); color: #fff; font-size: .95rem; display: grid; place-items: center; }
   .chat-float-close:hover { background: rgba(255,255,255,.22); }
   .chat-log { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: .6rem;
     background: var(--panel-2); scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
@@ -599,6 +669,16 @@
   }
 
   @media (max-width: 640px) {
+    /* Smaller type on phones: scaling the root shrinks every rem-based size together
+       (and still respects the user's own browser font-size setting). */
+    html { font-size: 93.75%; }
+    .hero h1 { font-size: clamp(1.9rem, 8.4vw, 2.5rem); }
+    .hero-sub { font-size: .98rem; }
+    .section-head h2 { font-size: clamp(1.45rem, 6.2vw, 1.8rem); }
+    .section-head p { font-size: .96rem; }
+    .feature p, .step p, .faq details p { font-size: .9rem; }
+    .output-text { font-size: .92rem; line-height: 1.65; }
+    .btn-lg { font-size: .98rem; }
     /* 16px inputs stop iOS/Chrome from auto-zooming on focus. */
     input[type="text"], select, .chat-input-row input { font-size: 16px; }
     /* A touch more breathing room on narrow phones. */
@@ -614,7 +694,8 @@
   }
 
   @media (max-width: 380px) {
-    h1 { font-size: 1.9rem; }
+    html { font-size: 87.5%; }
+    .hero h1 { font-size: 1.95rem; }
     .hero-ctas .btn { width: 100%; justify-content: center; }
     .chat-fab { right: .9rem; }
     body:not(.mb-on) .chat-fab { bottom: .9rem; }
@@ -639,7 +720,7 @@
     </nav>
     <div class="nav-actions">
       <button type="button" class="icon-btn" id="langToggle">BM</button>
-      <button type="button" class="icon-btn" id="themeToggle">🌙</button>
+      <button type="button" class="icon-btn" id="themeToggle"><i class="ico i-moon" aria-hidden="true"></i></button>
       <a href="#analyse" class="btn btn-primary btn-sm nav-cta" data-i18n="nav_cta">Start analysis</a>
     </div>
   </div>
@@ -683,10 +764,10 @@
           <div class="mock-row"><span data-i18n="mock_r1">Plastic reduction</span><span class="lvl good" data-i18n="lvl_high">High</span></div>
           <div class="mock-row"><span data-i18n="mock_r2">Cost impact</span><span class="lvl mid" data-i18n="lvl_med">Medium</span></div>
           <div class="mock-row"><span data-i18n="mock_r3">Shelf-life risk</span><span class="lvl good" data-i18n="lvl_low">Low</span></div>
-          <div class="mock-foot" data-i18n="mock_foot">✓ Supplier brief ready to send</div>
+          <div class="mock-foot"><i class="ico i-check" aria-hidden="true"></i><span data-i18n="mock_foot">Supplier brief ready to send</span></div>
         </div>
-        <div class="float-chip c1" data-i18n="chip1">🧾 Every finding evidence-labelled</div>
-        <div class="float-chip c2" data-i18n="chip2">🖼️ 3 redesign visuals</div>
+        <div class="float-chip c1"><i class="ico i-audit" aria-hidden="true"></i><span data-i18n="chip1">Every finding evidence-labelled</span></div>
+        <div class="float-chip c2"><i class="ico i-image" aria-hidden="true"></i><span data-i18n="chip2">3 redesign visuals</span></div>
       </div>
     </div>
   </section>
@@ -714,12 +795,12 @@
         <p data-i18n="feat_sub">SMEs want greener packaging but worry about cost, shelf life and product protection. EcoLens weighs all of them together, so every recommendation is one you can actually make.</p>
       </div>
       <div class="feature-grid">
-        <article class="card feature"><div class="f-icon">🔀</div><h3 data-i18n="f1_t">Three redesign paths</h3><p data-i18n="f1_d">A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.</p></article>
-        <article class="card feature"><div class="f-icon">🧾</div><h3 data-i18n="f2_t">Evidence-checked audit</h3><p data-i18n="f2_d">Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.</p></article>
-        <article class="card feature"><div class="f-icon">🔍</div><h3 data-i18n="f3_t">Problems, prioritised</h3><p data-i18n="f3_d">See which issues matter most (high, medium or low) and why they matter for your product.</p></article>
-        <article class="card feature"><div class="f-icon">⚖️</div><h3 data-i18n="f4_t">Side-by-side trade-offs</h3><p data-i18n="f4_d">Compare your current packaging with each option on cost, protection, shelf life and more.</p></article>
-        <article class="card feature"><div class="f-icon">✅</div><h3 data-i18n="f5_t">Supplier-ready brief</h3><p data-i18n="f5_d">Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.</p></article>
-        <article class="card feature"><div class="f-icon">💬</div><h3 data-i18n="f6_t">Visuals and an AI advisor</h3><p data-i18n="f6_d">Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-paths" aria-hidden="true"></i></div><h3 data-i18n="f1_t">Three redesign paths</h3><p data-i18n="f1_d">A quick win, a balanced redesign and an ambitious option, each with cost, difficulty and risk.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-audit" aria-hidden="true"></i></div><h3 data-i18n="f2_t">Evidence-checked audit</h3><p data-i18n="f2_d">Every finding is labelled Observed, Inferred, Verified or Unknown, so you know what to double-check.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-search" aria-hidden="true"></i></div><h3 data-i18n="f3_t">Problems, prioritised</h3><p data-i18n="f3_d">See which issues matter most (high, medium or low) and why they matter for your product.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-scale" aria-hidden="true"></i></div><h3 data-i18n="f4_t">Side-by-side trade-offs</h3><p data-i18n="f4_d">Compare your current packaging with each option on cost, protection, shelf life and more.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-brief" aria-hidden="true"></i></div><h3 data-i18n="f5_t">Supplier-ready brief</h3><p data-i18n="f5_d">Copy or download a clear brief listing the specs, tests and evidence to request from your supplier.</p></article>
+        <article class="card feature"><div class="f-icon"><i class="ico i-chat" aria-hidden="true"></i></div><h3 data-i18n="f6_t">Visuals and an AI advisor</h3><p data-i18n="f6_d">Preview each redesign, then ask follow-up questions in English or Bahasa Malaysia.</p></article>
       </div>
     </div>
   </section>
@@ -768,14 +849,14 @@
             <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,application/pdf" />
             <input type="file" id="cameraInput" accept="image/*" capture="environment" />
             <div class="upload-actions" id="uploadActions">
-              <button type="button" class="btn btn-secondary btn-sm" id="browseBtn" data-i18n="browse">📁 Browse files</button>
-              <button type="button" class="btn btn-secondary btn-sm" id="cameraBtn" data-i18n="camera">📷 Take photo</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="browseBtn"><i class="ico i-folder" aria-hidden="true"></i><span data-i18n="browse">Browse files</span></button>
+              <button type="button" class="btn btn-secondary btn-sm" id="cameraBtn"><i class="ico i-camera" aria-hidden="true"></i><span data-i18n="camera">Take photo</span></button>
             </div>
             <div class="file-preview" id="filePreview" hidden>
               <img id="filePreviewImg" alt="Packaging preview" />
               <div class="fp-pdf" id="filePreviewPdf" hidden>PDF</div>
               <div class="fp-body">
-                <div class="fp-title" data-i18n="photoAdded">✓ Packaging added</div>
+                <div class="fp-title"><i class="ico i-check" aria-hidden="true"></i> <span data-i18n="photoAdded">Packaging added</span></div>
                 <div class="fp-meta" id="filePreviewMeta"></div>
                 <div class="fp-detect" id="detectStatus" hidden></div>
                 <div class="fp-actions">
@@ -793,9 +874,9 @@
               <canvas id="camCanvas" style="display:none;"></canvas>
               <div class="cam-error" id="camError"></div>
               <div class="cam-controls">
-                <button type="button" class="btn btn-secondary" id="camSwitch" data-i18n="camSwitch">🔄 Switch</button>
-                <button type="button" class="btn btn-primary" id="camCapture" data-i18n="camCapture">📸 Capture</button>
-                <button type="button" class="btn btn-secondary" id="camCancel" data-i18n="camCancel">✖ Cancel</button>
+                <button type="button" class="btn btn-secondary" id="camSwitch"><i class="ico i-flip" aria-hidden="true"></i><span data-i18n="camSwitch">Switch</span></button>
+                <button type="button" class="btn btn-primary" id="camCapture"><i class="ico i-camera" aria-hidden="true"></i><span data-i18n="camCapture">Capture</span></button>
+                <button type="button" class="btn btn-secondary" id="camCancel"><i class="ico i-x" aria-hidden="true"></i><span data-i18n="camCancel">Cancel</span></button>
               </div>
             </div>
           </div>
@@ -974,13 +1055,13 @@
             <p class="report-product" id="reportProduct"></p>
           </div>
           <div class="report-actions">
-            <button type="button" class="btn btn-secondary btn-sm" id="askAdvisorBtn" data-i18n="askAdvisor">💬 Ask the advisor</button>
-            <button type="button" class="btn btn-secondary btn-sm" id="downloadAllBtn" data-i18n="downloadAll">⬇️ Full report</button>
+            <button type="button" class="btn btn-secondary btn-sm" id="askAdvisorBtn"><i class="ico i-chat" aria-hidden="true"></i><span data-i18n="askAdvisor">Ask the advisor</span></button>
+            <button type="button" class="btn btn-secondary btn-sm" id="downloadAllBtn"><i class="ico i-download" aria-hidden="true"></i><span data-i18n="downloadAll">Full report</span></button>
             <button type="button" class="btn btn-ghost btn-sm" id="startOverBtn" data-i18n="startOver">Start over</button>
           </div>
         </div>
         <div class="progress"><div class="progress-bar"><span id="progressFill"></span></div><span class="progress-text" id="progressText"></span></div>
-        <div class="alert" id="wrongInputAlert" role="alert" hidden><span aria-hidden="true">⚠️</span><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
+        <div class="alert" id="wrongInputAlert" role="alert" hidden><i class="ico i-alert" aria-hidden="true"></i><span data-i18n="wrongInput">EcoLens couldn't match your photo to the product details.</span></div>
 
         <div class="tabs" role="tablist">
           <button type="button" class="tab" role="tab" data-tab="recommendation"><span class="dot"></span><span data-i18n="m_rec">Recommendation &amp; brief</span></button>
@@ -994,11 +1075,11 @@
         <div class="card tab-panels">
           <div class="tab-panel" role="tabpanel" data-panel="recommendation" hidden>
             <div class="panel-head">
-              <div><h3>✅ <span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
+              <div><h3><i class="ico i-brief" aria-hidden="true"></i><span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
               <div class="panel-actions">
-                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">⬇️ Download PDF</button>
-                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief" data-i18n="regen">↻ Regenerate</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="copyBrief"><i class="ico i-copy" aria-hidden="true"></i><span data-i18n="copy">Copy brief</span></button>
+                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief"><i class="ico i-download" aria-hidden="true"></i><span data-i18n="download">Download PDF</span></button>
+                <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button>
               </div>
             </div>
             <div class="skeleton" data-spinner="best_fit_recommendation_and_supplier_brief"><i></i><i></i><i></i><i></i><i></i></div>
@@ -1008,8 +1089,8 @@
 
           <div class="tab-panel" role="tabpanel" data-panel="strategies" hidden>
             <div class="panel-head">
-              <div><h3>🔀 <span data-i18n="w_strategies">Three redesign strategies</span></h3><p data-i18n="d_str">Three improvement paths: a quick win, a balanced redesign and an ambitious option.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="three_redesign_strategies" data-i18n="regen">↻ Regenerate</button></div>
+              <div><h3><i class="ico i-paths" aria-hidden="true"></i><span data-i18n="w_strategies">Three redesign strategies</span></h3><p data-i18n="d_str">Three improvement paths: a quick win, a balanced redesign and an ambitious option.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="three_redesign_strategies"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
             </div>
             <div class="skeleton" data-spinner="three_redesign_strategies"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="output-text" data-output="three_redesign_strategies"></div>
@@ -1018,11 +1099,11 @@
 
           <div class="tab-panel" role="tabpanel" data-panel="visuals" hidden>
             <div class="panel-head">
-              <div><h3>🖼️ <span data-i18n="w_visuals">Packaging redesign visuals</span></h3><p data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p></div>
+              <div><h3><i class="ico i-image" aria-hidden="true"></i><span data-i18n="w_visuals">Packaging redesign visuals</span></h3><p data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p></div>
             </div>
             <div class="img-grid">
               <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
                 <div class="img-frame">
                   <div class="skeleton" data-spinner="image_A"><i></i></div>
                   <div data-output="image_A"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
@@ -1030,7 +1111,7 @@
                 <div class="panel-error" data-error="image_A"></div>
               </div>
               <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-card-head"><strong data-i18n="optB">Option B — Balanced</strong><button type="button" class="btn btn-ghost btn-sm" data-image="B"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
                 <div class="img-frame">
                   <div class="skeleton" data-spinner="image_B"><i></i></div>
                   <div data-output="image_B"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
@@ -1038,7 +1119,7 @@
                 <div class="panel-error" data-error="image_B"></div>
               </div>
               <div class="img-card">
-                <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C" data-i18n="regen">↻ Regenerate</button></div>
+                <div class="img-card-head"><strong data-i18n="optC">Option C — Ambitious</strong><button type="button" class="btn btn-ghost btn-sm" data-image="C"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
                 <div class="img-frame">
                   <div class="skeleton" data-spinner="image_C"><i></i></div>
                   <div data-output="image_C"><div class="img-placeholder" data-i18n="noImage">No image yet</div></div>
@@ -1050,8 +1131,8 @@
 
           <div class="tab-panel" role="tabpanel" data-panel="tradeoff" hidden>
             <div class="panel-head">
-              <div><h3>⚖️ <span data-i18n="w_tradeoff">Trade-off comparison</span></h3><p data-i18n="d_trd">How each option compares with your current packaging.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="trade_off_comparison" data-i18n="regen">↻ Regenerate</button></div>
+              <div><h3><i class="ico i-scale" aria-hidden="true"></i><span data-i18n="w_tradeoff">Trade-off comparison</span></h3><p data-i18n="d_trd">How each option compares with your current packaging.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="trade_off_comparison"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
             </div>
             <div class="skeleton" data-spinner="trade_off_comparison"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="output-text" data-output="trade_off_comparison"></div>
@@ -1060,8 +1141,8 @@
 
           <div class="tab-panel" role="tabpanel" data-panel="problems" hidden>
             <div class="panel-head">
-              <div><h3>🔍 <span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified" data-i18n="regen">↻ Regenerate</button></div>
+              <div><h3><i class="ico i-search" aria-hidden="true"></i><span data-i18n="w_problems">Sustainability problems identified</span></h3><p data-i18n="d_prb">Sustainability issues in your current packaging, by priority.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="sustainability_problems_identified"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
             </div>
             <div class="skeleton" data-spinner="sustainability_problems_identified"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="output-text" data-output="sustainability_problems_identified"></div>
@@ -1070,8 +1151,8 @@
 
           <div class="tab-panel" role="tabpanel" data-panel="audit" hidden>
             <div class="panel-head">
-              <div><h3>🧾 <span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
-              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification" data-i18n="regen">↻ Regenerate</button></div>
+              <div><h3><i class="ico i-audit" aria-hidden="true"></i><span data-i18n="w_audit">Packaging audit &amp; evidence classification</span></h3><p data-i18n="d_aud">What EcoLens can see in your packaging, and how sure it is.</p></div>
+              <div class="panel-actions"><button type="button" class="btn btn-ghost btn-sm" data-run="packaging_audit_and_evidence_classification"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
             </div>
             <div class="skeleton" data-spinner="packaging_audit_and_evidence_classification"><i></i><i></i><i></i><i></i><i></i></div>
             <div class="output-text" data-output="packaging_audit_and_evidence_classification"></div>
@@ -1154,14 +1235,14 @@
      EcoLens advisor (floating chat)
      ============================================================ -->
 <button type="button" class="chat-fab" id="chatFab" aria-label="Open chat">
-  💬 <span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
+  <i class="ico i-chat" aria-hidden="true"></i><span class="chat-fab-label" data-i18n="chatFab">Ask EcoLens</span>
 </button>
 
 <div class="chat-float" id="chatFloat" aria-hidden="true">
   <div class="chat-float-head">
     <span class="chat-avatar"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10 5 20 4c-.5 10-6 15.5-15.5 15.5Z" fill="currentColor"/></svg></span>
     <div><div class="chat-title" data-i18n="chatTitle">EcoLens Advisor</div><div class="chat-sub" data-i18n="chatSub">Knows your report · English &amp; BM</div></div>
-    <button type="button" class="chat-float-close" id="chatClose" aria-label="Close chat">✖</button>
+    <button type="button" class="chat-float-close" id="chatClose" aria-label="Close chat"><i class="ico i-x" aria-hidden="true"></i></button>
   </div>
   <div class="chat-log" id="chatLog">
     <div class="bubble bot" data-i18n="chatOpen">Hi! I'm your EcoLens advisor.</div>
@@ -1221,8 +1302,8 @@ const I18N = {
     mock_a: 'Quick win', mock_b: 'Balanced', mock_c: 'Ambitious',
     mock_r1: 'Plastic reduction', mock_r2: 'Cost impact', mock_r3: 'Shelf-life risk',
     lvl_high: 'High', lvl_med: 'Medium', lvl_low: 'Low',
-    mock_foot: '✓ Supplier brief ready to send',
-    chip1: '🧾 Every finding evidence-labelled', chip2: '🖼️ 3 redesign visuals',
+    mock_foot: 'Supplier brief ready to send',
+    chip1: 'Every finding evidence-labelled', chip2: '3 redesign visuals',
     sdg_label: 'Aligned with the UN Sustainable Development Goals',
     sdg9: 'Industry & innovation', sdg12: 'Responsible production', sdg13: 'Climate action',
     feat_eyebrow: 'Why EcoLens', feat_title: 'Greener packaging without risking cost or quality',
@@ -1241,12 +1322,12 @@ const I18N = {
     an_sub: 'Only a photo and a product name are required. Everything else is optional.',
     w_upload: 'Upload your packaging', step1_d: 'A clear photo of the front works best.',
     dropTitle: 'Drop your photo here', dropHint: 'JPG, PNG, WEBP or PDF · or click to browse',
-    browse: '📁 Browse files', camera: '📷 Take photo',
-    photoAdded: '✓ Packaging added', change: 'Change', remove: 'Remove',
-    detecting: '🔍 Reading your photo…',
-    detectedPrefix: '✓ Detected: ',
-    detectWrong: '⚠️ This doesn\'t look like product packaging. You can still fill the details in manually.',
-    camSwitch: '🔄 Switch', camCapture: '📸 Capture', camCancel: '✖ Cancel',
+    browse: 'Browse files', camera: 'Take photo',
+    photoAdded: 'Packaging added', change: 'Change', remove: 'Remove',
+    detecting: 'Reading your photo…',
+    detectedPrefix: 'Detected: ',
+    detectWrong: 'This doesn\'t look like product packaging. You can still fill the details in manually.',
+    camSwitch: 'Switch', camCapture: 'Capture', camCancel: 'Cancel',
     step2_t: 'About your product', step2_d: 'Three quick questions.',
     w_product: 'Product name and type', w_category: 'Product category', w_objective: 'Main sustainability goal',
     recommended: 'Recommended', required: 'Required',
@@ -1278,10 +1359,10 @@ const I18N = {
     m_trd: 'Trade-off table', m_prb: 'Problems found', m_aud: 'Packaging audit',
     st_idle: 'Included', st_waiting: 'Queued', st_running: 'In progress', st_done: 'Ready', st_error: 'Failed',
     gen: 'Generate my report', generating: 'Generating…', sum_time: 'Usually ready in 1–2 minutes.',
-    mb_photo: 'Step 1: add a photo', mb_name: 'Step 2: add your product name', mb_ready: '✓ Ready to generate',
+    mb_photo: 'Step 1: add a photo', mb_name: 'Step 2: add your product name', mb_ready: 'Ready to generate',
     example: 'Fill example', reset: 'Reset',
     rep_eyebrow: 'Report', rep_title: 'Your packaging report', rep_progress: '{n} of {total} sections ready',
-    askAdvisor: '💬 Ask the advisor', downloadAll: '⬇️ Full report', startOver: 'Start over',
+    askAdvisor: 'Ask the advisor', downloadAll: 'Full report', startOver: 'Start over',
     wrongInput: "EcoLens couldn't match your photo to the product details. Check that the photo shows your packaging and the product name is correct, then generate again.",
     w_brief: 'Best-fit recommendation & supplier brief', w_strategies: 'Three redesign strategies',
     w_visuals: 'Packaging redesign visuals', w_tradeoff: 'Trade-off comparison',
@@ -1292,7 +1373,7 @@ const I18N = {
     d_trd: 'How each option compares with your current packaging.',
     d_prb: 'Sustainability issues in your current packaging, by priority.',
     d_aud: 'What EcoLens can see in your packaging, and how sure it is.',
-    copy: '📋 Copy brief', download: '⬇️ Download PDF', regen: '↻ Regenerate',
+    copy: 'Copy brief', download: 'Download PDF', regen: 'Regenerate',
     optA: 'Option A — Quick win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
     noImage: 'No image yet',
     emptyPanel: 'This section appears here once you generate your report.',
@@ -1333,10 +1414,10 @@ const I18N = {
     mock_a: 'Menang cepat', mock_b: 'Seimbang', mock_c: 'Bercita-cita',
     mock_r1: 'Pengurangan plastik', mock_r2: 'Kesan kos', mock_r3: 'Risiko jangka hayat',
     lvl_high: 'Tinggi', lvl_med: 'Sederhana', lvl_low: 'Rendah',
-    mock_foot: '✓ Ringkasan pembekal sedia dihantar',
-    chip1: '🧾 Setiap dapatan dilabel bukti', chip2: '🖼️ 3 visual reka bentuk semula',
+    mock_foot: 'Ringkasan pembekal sedia dihantar',
+    chip1: 'Setiap dapatan dilabel bukti', chip2: '3 visual reka bentuk semula',
     sdg_label: 'Sejajar dengan Matlamat Pembangunan Mampan PBB',
-    sdg9: 'Industri & inovasi', sdg12: 'Pengeluaran bertanggungjawab', sdg13: 'Tindakan iklim',
+    sdg9: 'Industri & inovasi', sdg12: 'Pengeluaran bertanggung­jawab', sdg13: 'Tindakan iklim',
     feat_eyebrow: 'Kenapa EcoLens', feat_title: 'Pembungkusan lebih hijau tanpa menjejaskan kos atau kualiti',
     feat_sub: 'PKS mahukan pembungkusan lebih hijau tetapi bimbang tentang kos, jangka hayat dan perlindungan produk. EcoLens menimbang kesemuanya serentak, jadi setiap cadangan ialah sesuatu yang benar-benar boleh anda laksanakan.',
     f1_t: 'Tiga laluan reka bentuk semula', f1_d: 'Satu menang cepat, satu reka bentuk seimbang dan satu pilihan bercita-cita tinggi, setiap satu dengan kos, kesukaran dan risiko.',
@@ -1353,12 +1434,12 @@ const I18N = {
     an_sub: 'Hanya gambar dan nama produk diperlukan. Selebihnya adalah pilihan.',
     w_upload: 'Muat naik pembungkusan anda', step1_d: 'Gambar bahagian hadapan yang jelas adalah terbaik.',
     dropTitle: 'Lepaskan gambar anda di sini', dropHint: 'JPG, PNG, WEBP atau PDF · atau klik untuk pilih',
-    browse: '📁 Pilih fail', camera: '📷 Ambil gambar',
-    photoAdded: '✓ Pembungkusan ditambah', change: 'Tukar', remove: 'Buang',
-    detecting: '🔍 Membaca gambar anda…',
-    detectedPrefix: '✓ Dikesan: ',
-    detectWrong: '⚠️ Ini tidak kelihatan seperti pembungkusan produk. Anda masih boleh isi butiran secara manual.',
-    camSwitch: '🔄 Tukar', camCapture: '📸 Tangkap', camCancel: '✖ Batal',
+    browse: 'Pilih fail', camera: 'Ambil gambar',
+    photoAdded: 'Pembungkusan ditambah', change: 'Tukar', remove: 'Buang',
+    detecting: 'Membaca gambar anda…',
+    detectedPrefix: 'Dikesan: ',
+    detectWrong: 'Ini tidak kelihatan seperti pembungkusan produk. Anda masih boleh isi butiran secara manual.',
+    camSwitch: 'Tukar', camCapture: 'Tangkap', camCancel: 'Batal',
     step2_t: 'Tentang produk anda', step2_d: 'Tiga soalan ringkas.',
     w_product: 'Nama dan jenis produk', w_category: 'Kategori produk', w_objective: 'Matlamat kelestarian utama',
     recommended: 'Disyorkan', required: 'Wajib',
@@ -1390,10 +1471,10 @@ const I18N = {
     m_trd: 'Jadual perbandingan', m_prb: 'Masalah dikenal pasti', m_aud: 'Audit pembungkusan',
     st_idle: 'Termasuk', st_waiting: 'Menunggu', st_running: 'Sedang diproses', st_done: 'Siap', st_error: 'Gagal',
     gen: 'Jana laporan saya', generating: 'Sedang menjana…', sum_time: 'Biasanya siap dalam 1–2 minit.',
-    mb_photo: 'Langkah 1: tambah gambar', mb_name: 'Langkah 2: isi nama produk', mb_ready: '✓ Sedia untuk dijana',
+    mb_photo: 'Langkah 1: tambah gambar', mb_name: 'Langkah 2: isi nama produk', mb_ready: 'Sedia untuk dijana',
     example: 'Isi contoh', reset: 'Set semula',
     rep_eyebrow: 'Laporan', rep_title: 'Laporan pembungkusan anda', rep_progress: '{n} daripada {total} bahagian siap',
-    askAdvisor: '💬 Tanya penasihat', downloadAll: '⬇️ Laporan penuh', startOver: 'Mula semula',
+    askAdvisor: 'Tanya penasihat', downloadAll: 'Laporan penuh', startOver: 'Mula semula',
     wrongInput: 'EcoLens tidak dapat memadankan gambar dengan butiran produk. Pastikan gambar menunjukkan pembungkusan anda dan nama produk betul, kemudian jana semula.',
     w_brief: 'Cadangan terbaik & ringkasan pembekal', w_strategies: 'Tiga strategi reka bentuk semula',
     w_visuals: 'Visual reka bentuk semula', w_tradeoff: 'Perbandingan pertukaran',
@@ -1404,7 +1485,7 @@ const I18N = {
     d_trd: 'Perbandingan setiap pilihan dengan pembungkusan semasa anda.',
     d_prb: 'Isu kelestarian dalam pembungkusan semasa anda, mengikut keutamaan.',
     d_aud: 'Apa yang EcoLens nampak pada pembungkusan anda, dan sejauh mana ia pasti.',
-    copy: '📋 Salin ringkasan', download: '⬇️ Muat turun PDF', regen: '↻ Jana semula',
+    copy: 'Salin ringkasan', download: 'Muat turun PDF', regen: 'Jana semula',
     optA: 'Pilihan A — Menang cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
     noImage: 'Tiada imej lagi',
     emptyPanel: 'Bahagian ini akan dipaparkan selepas anda menjana laporan.',
@@ -1829,7 +1910,23 @@ function inlineMd(text) {
   x = x.replace(/`([^`]+)`/g, '<code>$1</code>');
   x = x.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   x = x.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  return x;
+  return themeEmoji(x);
+}
+// The model writes some emoji (🔴🟡🟢 priorities, ⚠️ warnings). Swap the known ones
+// for EcoLens marks and drop any other system emoji, so output matches the UI theme.
+// (The PDF export reads the raw text, so its priority detection is unaffected.)
+const EMOJI_MARKS = [
+  [/🔴/gu, '<span class="pdot hi" aria-label="High"></span>'],
+  [/🟠|🟡/gu, '<span class="pdot mid" aria-label="Medium"></span>'],
+  [/🟢/gu, '<span class="pdot lo" aria-label="Low"></span>'],
+  [/⚠️?/gu, '<i class="ico i-alert md-warn" aria-hidden="true"></i>'],
+  [/✅|✔️?|☑️?/gu, '<i class="ico i-check md-ok" aria-hidden="true"></i>'],
+  [/❌|✖️?/gu, '<i class="ico i-x md-bad" aria-hidden="true"></i>'],
+];
+function themeEmoji(html) {
+  EMOJI_MARKS.forEach(([re, mark]) => { html = html.replace(re, mark); });
+  // Keep typographic symbols that are technically "pictographic": © ® ™ and arrows.
+  return html.replace(/(?![©®™←-⇿])\p{Extended_Pictographic}️?⃣?/gu, '').replace(/️/g, '');
 }
 function renderLine(container, rawLine) {
   const line = rawLine.replace(/\s+$/,'');
@@ -1875,7 +1972,7 @@ async function streamInto(widget, url, bodyObj, outputEl) {
 
   if (!isConfiguredUrl(url)) {
     if (errorEl) {
-      errorEl.textContent = '⚠️ API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.textContent = 'API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
     setStatus(widget, 'error');
@@ -1923,7 +2020,7 @@ async function streamInto(widget, url, bodyObj, outputEl) {
     setStatus(widget, 'done');
   } catch (err) {
     if (spinner) spinner.style.display = 'none';
-    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    if (errorEl) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
     setStatus(widget, 'error');
   }
 }
@@ -1986,13 +2083,13 @@ async function runImage(option) {
   const spinner = document.querySelector(`[data-spinner="${key}"]`);
   const errorEl = document.querySelector(`[data-error="${key}"]`);
   const outputEl = document.querySelector(`[data-output="${key}"]`);
-  if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+  if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
 
   if (!isConfiguredUrl(DIAGRAM_API)) {
     outputEl.innerHTML = imagePlaceholder();
     if (errorEl) {
-      errorEl.textContent = '⚠️ Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+      errorEl.textContent = 'Image API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
       errorEl.classList.add('show');
     }
     setStatus(key, 'error');
@@ -2033,7 +2130,7 @@ async function runImage(option) {
       outputEl.innerHTML = ''; outputEl.appendChild(img);
       state.images = state.images || {};
       state.images[option] = data.image_base64; // kept for the PDF export
-      if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
+      if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
       setStatus(key, 'done');
       return; // success
     } catch (err) {
@@ -2041,7 +2138,8 @@ async function runImage(option) {
       if (attempt < MAX_TRIES) {
         // transient — show a quiet retry hint and back off before trying again
         if (errorEl) {
-          errorEl.textContent = (lang === 'bm' ? '↻ Mencuba semula imej…' : '↻ Retrying image…') + ' (' + (attempt + 1) + '/' + MAX_TRIES + ')';
+          errorEl.classList.add('retry');
+          errorEl.textContent = (lang === 'bm' ? 'Mencuba semula imej…' : 'Retrying image…') + ' (' + (attempt + 1) + '/' + MAX_TRIES + ')';
           errorEl.classList.add('show');
         }
         await new Promise(r => setTimeout(r, 1500 * attempt));
@@ -2052,7 +2150,7 @@ async function runImage(option) {
   // all attempts failed
   if (spinner) spinner.style.display = 'none';
   outputEl.innerHTML = imagePlaceholder();
-  if (errorEl) { errorEl.textContent = '⚠️ ' + (lastErr ? lastErr.message : 'image failed') + (lang === 'bm' ? ' — tekan Jana semula' : ' — press Regenerate'); errorEl.classList.add('show'); }
+  if (errorEl) { errorEl.classList.remove('retry'); errorEl.textContent = (lastErr ? lastErr.message : 'image failed') + (lang === 'bm' ? ' — tekan Jana semula' : ' — press Regenerate'); errorEl.classList.add('show'); }
   setStatus(key, 'error');
 }
 
@@ -2208,7 +2306,8 @@ async function sendChat() {
   if (errorEl) { errorEl.classList.remove('show'); errorEl.textContent = ''; }
 
   if (!isConfiguredUrl(STREAM_URLS.ecolens_chatai)) {
-    botBubble.textContent = '⚠️ Chat API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
+    botBubble.classList.add('err');
+    botBubble.textContent = 'Chat API URL not configured. This endpoint is set at deploy time — run locally against a deployed stack or open the deployed site.';
     return;
   }
 
@@ -2250,8 +2349,9 @@ async function sendChat() {
     state.chatHistory.push({ role: 'user', content: msg });
     state.chatHistory.push({ role: 'assistant', content: reply });
   } catch (err) {
-    botBubble.textContent = '⚠️ ' + err.message;
-    if (errorEl) { errorEl.textContent = '⚠️ ' + err.message; errorEl.classList.add('show'); }
+    botBubble.classList.add('err');
+    botBubble.textContent = err.message;
+    if (errorEl) { errorEl.textContent = err.message; errorEl.classList.add('show'); }
   }
 }
 chatSend.addEventListener('click', sendChat);
@@ -2618,7 +2718,7 @@ async function downloadPdf(mode, btn) {
   if (!hasContent) { toast(t('nothingDownload')); return; }
 
   const original = btn ? btn.innerHTML : null;
-  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ PDF…'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ico i-spinner ico-spin" aria-hidden="true"></i>PDF…'; }
   try {
     const ready = await ensureJsPDF();
     if (ready && buildReportPdf(mode)) return; // PDF produced
@@ -2681,7 +2781,7 @@ const themeToggle = document.getElementById('themeToggle');
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   const label = theme === 'dark' ? t('light') : t('dark');
-  themeToggle.textContent = theme === 'dark' ? '☀️' : '🌙';
+  themeToggle.innerHTML = '<i class="ico ' + (theme === 'dark' ? 'i-sun' : 'i-moon') + '" aria-hidden="true"></i>';
   themeToggle.title = label;
   themeToggle.setAttribute('aria-label', label);
   try { localStorage.setItem('ecolens-theme', theme); } catch(e) {}
