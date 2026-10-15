@@ -993,7 +993,7 @@
               <div><h3>✅ <span data-i18n="w_brief">Best-fit recommendation &amp; supplier brief</span></h3><p data-i18n="d_rec">The option that best fits your constraints, plus a brief to send to your supplier.</p></div>
               <div class="panel-actions">
                 <button type="button" class="btn btn-secondary btn-sm" id="copyBrief" data-i18n="copy">📋 Copy brief</button>
-                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">⬇️ Download</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="downloadBrief" data-i18n="download">⬇️ Download PDF</button>
                 <button type="button" class="btn btn-ghost btn-sm" data-run="best_fit_recommendation_and_supplier_brief" data-i18n="regen">↻ Regenerate</button>
               </div>
             </div>
@@ -1288,7 +1288,7 @@ const I18N = {
     d_trd: 'How each option compares with your current packaging.',
     d_prb: 'Sustainability issues in your current packaging, by priority.',
     d_aud: 'What EcoLens can see in your packaging, and how sure it is.',
-    copy: '📋 Copy brief', download: '⬇️ Download', regen: '↻ Regenerate',
+    copy: '📋 Copy brief', download: '⬇️ Download PDF', regen: '↻ Regenerate',
     optA: 'Option A — Quick win', optB: 'Option B — Balanced', optC: 'Option C — Ambitious',
     noImage: 'No image yet',
     emptyPanel: 'This section appears here once you generate your report.',
@@ -1400,7 +1400,7 @@ const I18N = {
     d_trd: 'Perbandingan setiap pilihan dengan pembungkusan semasa anda.',
     d_prb: 'Isu kelestarian dalam pembungkusan semasa anda, mengikut keutamaan.',
     d_aud: 'Apa yang EcoLens nampak pada pembungkusan anda, dan sejauh mana ia pasti.',
-    copy: '📋 Salin ringkasan', download: '⬇️ Muat turun', regen: '↻ Jana semula',
+    copy: '📋 Salin ringkasan', download: '⬇️ Muat turun PDF', regen: '↻ Jana semula',
     optA: 'Pilihan A — Menang cepat', optB: 'Pilihan B — Seimbang', optC: 'Pilihan C — Bercita-cita',
     noImage: 'Tiada imej lagi',
     emptyPanel: 'Bahagian ini akan dipaparkan selepas anda menjana laporan.',
@@ -2244,18 +2244,17 @@ document.getElementById('copyBrief').addEventListener('click', () => {
     () => toast(t('nothingCopy')));
 });
 document.getElementById('downloadBrief').addEventListener('click', () => {
-  const txt = briefText();
-  if (!txt.trim()) { toast(t('nothingCopy')); return; }
-  downloadText(txt, 'ecolens-supplier-brief.txt');
+  downloadPdf('brief', downloadBriefBtnEl());
 });
+function downloadBriefBtnEl() { return document.getElementById('downloadBrief'); }
 
-// Report sections in reading order: title i18n key + emoji for the PDF.
+// Report sections in reading order: output key + title i18n key.
 const REPORT_SECTIONS = [
-  ['best_fit_recommendation_and_supplier_brief', 'w_brief', '✅'],
-  ['three_redesign_strategies', 'w_strategies', '🔀'],
-  ['trade_off_comparison', 'w_tradeoff', '⚖️'],
-  ['sustainability_problems_identified', 'w_problems', '🔍'],
-  ['packaging_audit_and_evidence_classification', 'w_audit', '🧾'],
+  ['best_fit_recommendation_and_supplier_brief', 'w_brief'],
+  ['three_redesign_strategies', 'w_strategies'],
+  ['trade_off_comparison', 'w_tradeoff'],
+  ['sustainability_problems_identified', 'w_problems'],
+  ['packaging_audit_and_evidence_classification', 'w_audit'],
 ];
 
 function reportSections() {
@@ -2271,19 +2270,30 @@ function fullReportText() {
 }
 
 /* ============================================================
-   Designed PDF export of the full report (jsPDF). Falls back to
-   plain text if the library did not load.
+   Designed PDF export (jsPDF). One engine renders either the full
+   report (all sections + visuals) or a single section (brief).
+   Falls back to plain text if the library cannot load.
    ============================================================ */
 function stripEmoji(s) {
-  // jsPDF's core fonts can't render emoji/pictographs; drop them for the PDF.
+  // jsPDF core fonts can't render emoji; drop them (we redraw priority chips).
   return (s || '').replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u2190-\u21FF\u2B00-\u2BFF\uFE0F]/gu, '').replace(/\s{2,}/g, ' ').trim();
 }
 
-function buildReportPdf() {
+// Palette
+const PDF = {
+  GREEN: [11, 110, 79], GREEN_SOFT: [233, 244, 237], LIME: [150, 190, 60],
+  INK: [29, 42, 34], MUTE: [108, 128, 118], LINE: [223, 232, 228],
+  HI: [192, 57, 43], HI_BG: [250, 232, 230], MED: [176, 120, 20], MED_BG: [250, 244, 228],
+  LO: [31, 110, 59], LO_BG: [230, 244, 234], CHIP: [120, 130, 125], CHIP_BG: [240, 243, 241],
+};
+
+function buildReportPdf(mode) {
   const jspdf = window.jspdf && window.jspdf.jsPDF;
   if (!jspdf) return false; // caller falls back to text
 
-  const sections = reportSections();
+  const sections = mode === 'brief'
+    ? REPORT_SECTIONS.filter(([k]) => k === 'best_fit_recommendation_and_supplier_brief' && (state.outputs[k] || '').trim())
+    : reportSections();
   if (!sections.length) { toast(t('nothingDownload')); return true; }
 
   const fields = collectFields();
@@ -2296,137 +2306,232 @@ function buildReportPdf() {
   const doc = new jspdf({ unit: 'pt', format: 'a4' });
   const PW = doc.internal.pageSize.getWidth();
   const PH = doc.internal.pageSize.getHeight();
-  const M = 48;                      // page margin
-  const CW = PW - M * 2;             // content width
-  const GREEN = [11, 110, 79];       // --canopy
-  const LIME = [150, 190, 60];
-  const INK = [29, 42, 34];
-  const MUTE = [110, 130, 120];
+  const M = 50;
+  const CW = PW - M * 2;
+  const BOTTOM = PH - 54;
   let y = 0;
 
-  const footer = () => {
-    const n = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= n; i++) {
-      doc.setPage(i);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(...MUTE);
-      doc.text('Generated by EcoLens · AI guidance — verify specifications with your supplier', M, PH - 24);
-      doc.text(`${i} / ${n}`, PW - M, PH - 24, { align: 'right' });
-    }
+  const setFill = c => doc.setFillColor(c[0], c[1], c[2]);
+  const setText = c => doc.setTextColor(c[0], c[1], c[2]);
+  const setDraw = c => doc.setDrawColor(c[0], c[1], c[2]);
+
+  const needSpace = (h) => { if (y + h > BOTTOM) { doc.addPage(); y = M; return true; } return false; };
+
+  // ---------- Cover ----------
+  setFill(PDF.GREEN); doc.rect(0, 0, PW, 168, 'F');
+  setFill(PDF.LIME); doc.rect(0, 168, PW, 6, 'F');
+  // leaf mark
+  setFill(PDF.LIME); doc.circle(M + 12, 42, 13, 'F');
+  setText(PDF.GREEN); doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
+  doc.text('e', M + 8, 47);
+  doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(15);
+  doc.text('EcoLens', M + 32, 47);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(206, 240, 220);
+  doc.text(
+    (mode === 'brief'
+      ? (lang === 'bm' ? 'Ringkasan Pembekal Pembungkusan' : 'Packaging Supplier Brief')
+      : (lang === 'bm' ? 'Laporan Keputusan Pembungkusan Lestari' : 'Sustainable Packaging Decision Report')),
+    M, 88);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255, 255, 255);
+  doc.text(doc.splitTextToSize(product, CW), M, 118);
+
+  y = 200;
+  // ---------- Meta card ----------
+  const metaLines = [];
+  if (category) metaLines.push([(lang === 'bm' ? 'Kategori' : 'Category'), category]);
+  metaLines.push([(lang === 'bm' ? 'Tarikh' : 'Date'), dateStr]);
+  if (objective) metaLines.push([(lang === 'bm' ? 'Objektif' : 'Objective'), objective]);
+  const metaH = 16 + metaLines.reduce((a, [, v]) => a + doc.splitTextToSize(v, CW - 92).length * 13 + 4, 0);
+  setFill(PDF.GREEN_SOFT); doc.roundedRect(M, y, CW, metaH, 8, 8, 'F');
+  let my = y + 18;
+  metaLines.forEach(([label, val]) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); setText(PDF.GREEN);
+    doc.text(label.toUpperCase(), M + 14, my);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); setText(PDF.INK);
+    const wrapped = doc.splitTextToSize(val, CW - 92);
+    doc.text(wrapped, M + 92, my);
+    my += wrapped.length * 13 + 4;
+  });
+  y += metaH + 24;
+
+  // ---------- helpers ----------
+  const PRIORITY = [
+    { re: /\bHIGH PRIORITY\b|🔴/i, fg: PDF.HI, bg: PDF.HI_BG, label: 'HIGH' },
+    { re: /\bMEDIUM PRIORITY\b|🟡/i, fg: PDF.MED, bg: PDF.MED_BG, label: 'MEDIUM' },
+    { re: /\bLOW PRIORITY\b|🟢/i, fg: PDF.LO, bg: PDF.LO_BG, label: 'LOW' },
+  ];
+  const EVIDENCE = /\b(OBSERVED|INFERRED|VERIFIED|UNKNOWN(?:\s*\/\s*REQUIRES VERIFICATION)?)\b/;
+
+  const drawChip = (label, fg, bg, x, yy) => {
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+    const w = doc.getTextWidth(label) + 14;
+    setFill(bg); doc.roundedRect(x, yy - 9, w, 14, 7, 7, 'F');
+    setText(fg); doc.text(label, x + 7, yy + 1);
+    return w;
   };
 
-  const needSpace = (h) => {
-    if (y + h > PH - M - 20) { doc.addPage(); y = M; return true; }
-    return false;
+  const para = (content, { indent = 0, size = 10.5, bold = false, color = PDF.INK, prefix = '', gap = 4 } = {}) => {
+    content = content.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1');
+    doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); setText(color);
+    const wrapped = doc.splitTextToSize(prefix + content, CW - indent);
+    const lh = size + 3.5;
+    needSpace(wrapped.length * lh + gap);
+    doc.text(wrapped, M + indent, y);
+    y += wrapped.length * lh + gap;
   };
 
-  // ---- Cover banner ----
-  doc.setFillColor(...GREEN); doc.rect(0, 0, PW, 150, 'F');
-  doc.setFillColor(...LIME); doc.rect(0, 150, PW, 5, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
-  doc.text('EcoLens', M, 52);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.setTextColor(206, 240, 220);
-  doc.text(lang === 'bm' ? 'Laporan Keputusan Pembungkusan Lestari' : 'Sustainable Packaging Decision Report', M, 70);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(19); doc.setTextColor(255, 255, 255);
-  doc.text(doc.splitTextToSize(product, CW), M, 104);
+  // ---------- table renderer ----------
+  const renderTable = (rows) => {
+    // rows: array of arrays of cell strings; first row treated as header
+    const cols = Math.max(...rows.map(r => r.length));
+    const colW = CW / cols;
+    const pad = 5;
+    doc.setFontSize(8.5);
+    rows.forEach((r, ri) => {
+      // compute row height from wrapped cells
+      let cellLines = r.map(c => doc.splitTextToSize(stripEmoji(c.replace(/\*\*/g, '')), colW - pad * 2));
+      while (cellLines.length < cols) cellLines.push(['']);
+      const rowH = Math.max(16, Math.max(...cellLines.map(cl => cl.length)) * 10 + 8);
+      needSpace(rowH);
+      // backgrounds
+      if (ri === 0) { setFill(PDF.GREEN); }
+      else if (ri % 2 === 0) { setFill([247, 250, 248]); }
+      else { setFill([255, 255, 255]); }
+      doc.rect(M, y, CW, rowH, 'F');
+      // borders + text
+      setDraw(PDF.LINE); doc.setLineWidth(0.5);
+      for (let c = 0; c < cols; c++) {
+        const x = M + c * colW;
+        doc.rect(x, y, colW, rowH);
+        doc.setFont('helvetica', ri === 0 ? 'bold' : 'normal');
+        setText(ri === 0 ? [255, 255, 255] : PDF.INK);
+        doc.text(cellLines[c], x + pad, y + 12);
+      }
+      y += rowH;
+    });
+    y += 10;
+  };
 
-  y = 182;
-  // ---- Meta line ----
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(...MUTE);
-  const meta = [category, dateStr].filter(Boolean).join('   ·   ');
-  doc.text(meta, M, y); y += 20;
-  if (objective) {
-    doc.setTextColor(...INK); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text(lang === 'bm' ? 'Objektif: ' : 'Objective: ', M, y);
-    const ow = doc.getTextWidth(lang === 'bm' ? 'Objektif: ' : 'Objective: ');
-    doc.setFont('helvetica', 'normal');
-    doc.text(doc.splitTextToSize(objective, CW - ow), M + ow, y);
-    y += 24;
-  }
-  doc.setDrawColor(225, 232, 228); doc.setLineWidth(1); doc.line(M, y, PW - M, y); y += 24;
-
-  // ---- Lightweight markdown renderer for each section ----
+  // ---------- markdown section renderer ----------
   const writeMarkdown = (text) => {
     const lines = text.replace(/\r/g, '').split('\n');
-    for (let raw of lines) {
+    let i = 0;
+    while (i < lines.length) {
+      let raw = lines[i];
       let line = stripEmoji(raw.replace(/\t/g, '  '));
       const trimmed = line.trim();
-      if (!trimmed) { y += 7; continue; }
 
-      // Horizontal rule
+      // ----- collect a contiguous markdown table -----
+      const isTableRow = (s) => s.includes('|') && s.replace(/[^|]/g, '').length >= 2;
+      if (isTableRow(raw.trim())) {
+        const block = [];
+        while (i < lines.length && isTableRow(lines[i].trim())) {
+          const r = lines[i].trim();
+          if (!/^[\s|:\-]+$/.test(r)) { // skip separator rows like |---|---|
+            block.push(r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
+          }
+          i++;
+        }
+        if (block.length) renderTable(block);
+        continue;
+      }
+      i++;
+
+      if (!trimmed) { y += 6; continue; }
+
+      // horizontal rule
       if (/^(-{3,}|_{3,}|={3,})$/.test(trimmed)) {
-        needSpace(16); doc.setDrawColor(230, 236, 232); doc.line(M, y, PW - M, y); y += 12; continue;
-      }
-      // Table row → render pipe-separated cells as a simple spaced line
-      if (trimmed.includes('|') && trimmed.replace(/[^|]/g, '').length >= 2) {
-        if (/^[\s|:-]+$/.test(trimmed)) continue; // skip markdown table separators
-        const cells = trimmed.split('|').map(c => c.trim()).filter((c, i, a) => !(i === 0 && !c) && !(i === a.length - 1 && !c));
-        line = cells.join('   •   ');
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(...INK);
-        const wrapped = doc.splitTextToSize(line, CW);
-        needSpace(wrapped.length * 12 + 2);
-        doc.text(wrapped, M, y); y += wrapped.length * 12 + 2; continue;
+        needSpace(14); setDraw(PDF.LINE); doc.setLineWidth(1); doc.line(M, y, PW - M, y); y += 12; continue;
       }
 
-      let indent = 0, size = 10, bold = false, color = INK, prefix = '';
-      let content = trimmed;
+      // headings
+      if (/^###\s+/.test(trimmed)) { y += 4; para(trimmed.replace(/^###\s+/, ''), { size: 11, bold: true, color: PDF.GREEN, gap: 5 }); continue; }
+      if (/^##\s+/.test(trimmed)) { y += 7; para(trimmed.replace(/^##\s+/, ''), { size: 13, bold: true, color: PDF.GREEN, gap: 6 }); continue; }
+      if (/^#\s+/.test(trimmed)) { y += 7; para(trimmed.replace(/^#\s+/, ''), { size: 15, bold: true, color: PDF.GREEN, gap: 6 }); continue; }
 
-      if (/^###\s+/.test(trimmed)) { content = trimmed.replace(/^###\s+/, ''); size = 11; bold = true; color = GREEN; y += 4; }
-      else if (/^##\s+/.test(trimmed)) { content = trimmed.replace(/^##\s+/, ''); size = 13; bold = true; color = GREEN; y += 6; }
-      else if (/^#\s+/.test(trimmed)) { content = trimmed.replace(/^#\s+/, ''); size = 15; bold = true; color = GREEN; y += 6; }
-      else if (/^[-*]\s+/.test(trimmed)) { content = trimmed.replace(/^[-*]\s+/, ''); indent = 14; prefix = '•  '; }
-      else if (/^\d+\.\s+/.test(trimmed)) { const m = trimmed.match(/^(\d+)\.\s+(.*)/); content = m[2]; indent = 14; prefix = m[1] + '.  '; }
+      // priority line → chip + text
+      const pr = PRIORITY.find(p => p.re.test(raw));
+      if (pr) {
+        needSpace(20);
+        const cw = drawChip(pr.label, pr.fg, pr.bg, M, y + 2);
+        const rest = stripEmoji(trimmed.replace(/^[-*]\s*/, '').replace(/(HIGH|MEDIUM|LOW)\s*PRIORITY[:\s-]*/i, '')).replace(/\*\*/g, '').trim();
+        if (rest) { doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); setText(PDF.INK); doc.text(doc.splitTextToSize(rest, CW - cw - 10), M + cw + 8, y + 3); }
+        y += 20; continue;
+      }
 
-      // strip inline markdown emphasis/code markers
-      content = content.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1');
+      // bullets / numbered
+      if (/^[-*]\s+/.test(trimmed)) {
+        let c = trimmed.replace(/^[-*]\s+/, '');
+        // bold "Label:" lead-ins
+        para(c, { indent: 16, prefix: '•  ', gap: 3 }); continue;
+      }
+      if (/^\d+\.\s+/.test(trimmed)) {
+        const m = trimmed.match(/^(\d+)\.\s+(.*)/);
+        para(m[2], { indent: 16, prefix: m[1] + '.  ', gap: 3 }); continue;
+      }
 
-      doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); doc.setTextColor(...color);
-      const wrapped = doc.splitTextToSize(prefix + content, CW - indent);
-      needSpace(wrapped.length * (size + 3) + 2);
-      doc.text(wrapped, M + indent, y);
-      y += wrapped.length * (size + 3) + 2;
+      // evidence label emphasis (OBSERVED/INFERRED/...)
+      if (EVIDENCE.test(trimmed) && trimmed.length < 120) {
+        para(trimmed, { size: 10.5, bold: true, color: PDF.GREEN, gap: 4 }); continue;
+      }
+
+      // normal paragraph
+      para(trimmed, { gap: 5 });
     }
   };
 
-  const sectionHeader = (title, n) => {
-    needSpace(44);
-    doc.setFillColor(...GREEN); doc.rect(M, y - 2, 4, 20, 'F');       // accent bar
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(...GREEN);
-    doc.text(`${n}. ${stripEmoji(title)}`, M + 14, y + 13);
-    y += 30;
+  const sectionHeader = (title, n, total) => {
+    needSpace(40);
+    setFill(PDF.GREEN_SOFT); doc.roundedRect(M, y, CW, 30, 7, 7, 'F');
+    setFill(PDF.GREEN); doc.roundedRect(M, y, 5, 30, 2, 2, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(13); setText(PDF.GREEN);
+    const label = total > 1 ? `${n}.  ${stripEmoji(title)}` : stripEmoji(title);
+    doc.text(label, M + 16, y + 20);
+    y += 44;
   };
 
+  // ---------- body ----------
   sections.forEach(([k, titleKey], i) => {
     if (i > 0) { doc.addPage(); y = M; }
     else { needSpace(60); }
-    sectionHeader(t(titleKey), i + 1);
+    sectionHeader(t(titleKey), i + 1, sections.length);
     writeMarkdown(state.outputs[k].trim());
   });
 
-  // ---- Redesign visuals page (if any images were generated) ----
-  const imgs = state.images || {};
-  const haveImgs = ['A', 'B', 'C'].filter(o => imgs[o]);
-  if (haveImgs.length) {
-    doc.addPage(); y = M;
-    sectionHeader(lang === 'bm' ? 'Visual Reka Bentuk Semula' : 'Redesign Visuals', sections.length + 1);
-    const labels = { A: t('optA'), B: t('optB'), C: t('optC') };
-    const imgW = CW, imgH = imgW; // square 1:1
-    for (const o of haveImgs) {
-      // Scale down so each image + caption fits; max ~ half page.
-      const drawW = Math.min(CW, 320);
-      const drawH = drawW;
-      needSpace(drawH + 34);
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...INK);
-      doc.text(stripEmoji(labels[o]), M, y + 10); y += 18;
-      try { doc.addImage('data:image/png;base64,' + imgs[o], 'PNG', M, y, drawW, drawH); } catch (e) {}
-      y += drawH + 18;
+  // ---------- visuals (full report only) ----------
+  if (mode !== 'brief') {
+    const imgs = state.images || {};
+    const haveImgs = ['A', 'B', 'C'].filter(o => imgs[o]);
+    if (haveImgs.length) {
+      doc.addPage(); y = M;
+      sectionHeader(lang === 'bm' ? 'Visual Reka Bentuk Semula' : 'Redesign Visuals', sections.length + 1, sections.length + 1);
+      const labels = { A: t('optA'), B: t('optB'), C: t('optC') };
+      for (const o of haveImgs) {
+        const drawW = Math.min(CW, 300), drawH = drawW;
+        needSpace(drawH + 30);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); setText(PDF.INK);
+        doc.text(stripEmoji(labels[o]), M, y + 8); y += 16;
+        try { doc.addImage('data:image/png;base64,' + imgs[o], 'PNG', M, y, drawW, drawH); } catch (e) {}
+        y += drawH + 16;
+      }
     }
   }
 
-  footer();
+  // ---------- footer on every page ----------
+  const n = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= n; p++) {
+    doc.setPage(p);
+    setDraw(PDF.LINE); doc.setLineWidth(0.5); doc.line(M, PH - 38, PW - M, PH - 38);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5); setText(PDF.MUTE);
+    doc.text(lang === 'bm'
+      ? 'Dijana oleh EcoLens · Panduan AI — sahkan spesifikasi dengan pembekal anda'
+      : 'Generated by EcoLens · AI guidance — verify specifications with your supplier', M, PH - 24);
+    doc.text(`${p} / ${n}`, PW - M, PH - 24, { align: 'right' });
+  }
+
   const safe = (product || 'report').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 40).toLowerCase();
-  doc.save(`ecolens-report-${safe || 'report'}.pdf`);
+  const stub = mode === 'brief' ? 'supplier-brief' : 'report';
+  doc.save(`ecolens-${stub}-${safe || 'ecolens'}.pdf`);
   return true;
 }
 
@@ -2457,25 +2562,33 @@ function ensureJsPDF() {
   return _jspdfPromise;
 }
 
-const downloadAllBtn = document.getElementById('downloadAllBtn');
-downloadAllBtn.addEventListener('click', async () => {
-  if (!reportSections().length) { toast(t('nothingDownload')); return; }
-  const original = downloadAllBtn.innerHTML;
-  downloadAllBtn.disabled = true;
-  downloadAllBtn.innerHTML = '⏳ PDF…';
+// Shared handler for both "Full report" and "Download brief".
+async function downloadPdf(mode, btn) {
+  const hasContent = mode === 'brief'
+    ? !!(state.outputs.best_fit_recommendation_and_supplier_brief || '').trim()
+    : !!reportSections().length;
+  if (!hasContent) { toast(t('nothingDownload')); return; }
+
+  const original = btn ? btn.innerHTML : null;
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ PDF…'; }
   try {
     const ready = await ensureJsPDF();
-    if (ready && buildReportPdf()) return; // PDF produced
+    if (ready && buildReportPdf(mode)) return; // PDF produced
     throw new Error('pdf-unavailable');
   } catch (e) {
-    // Only reach here if jsPDF genuinely could not load or failed.
-    const txt = fullReportText();
-    if (txt) { downloadText(txt, 'ecolens-report.txt'); toast(t('pdfFellBack')); }
+    // Fall back to text only if jsPDF genuinely could not load.
+    const txt = mode === 'brief' ? briefText() : fullReportText();
+    if (txt && txt.trim()) {
+      downloadText(txt, mode === 'brief' ? 'ecolens-supplier-brief.txt' : 'ecolens-report.txt');
+      toast(t('pdfFellBack'));
+    }
   } finally {
-    downloadAllBtn.disabled = false;
-    downloadAllBtn.innerHTML = original;
+    if (btn) { btn.disabled = false; btn.innerHTML = original; }
   }
-});
+}
+
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+downloadAllBtn.addEventListener('click', () => downloadPdf('full', downloadAllBtn));
 
 /* ============================================================
    Example fill — realistic Malaysian SME product
