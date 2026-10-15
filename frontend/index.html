@@ -3,6 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<script>
+  // iOS Safari zooms into any form field with text under 16px. On iOS, maximum-scale
+  // stops that auto-zoom while pinch-zoom keeps working; other browsers keep the
+  // default viewport so zooming is never blocked there.
+  if (/iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) {
+    document.querySelector('meta[name="viewport"]').setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1');
+  }
+</script>
 <title>EcoLens — Sustainable packaging decisions for SMEs</title>
 <meta name="description" content="Upload a photo of your packaging and get practical redesign options, an evidence-checked audit and a supplier-ready brief. Built for Malaysian SMEs." />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23c6f05f'/%3E%3Cpath d='M7 25c0-11 7-18 19-19-.6 12-7.5 19-19 19Z' fill='%230b6e4f'/%3E%3C/svg%3E" />
@@ -730,8 +738,12 @@
     .feature p, .step p, .faq details p { font-size: .9rem; }
     .output-text { font-size: .92rem; line-height: 1.65; }
     .btn-lg { font-size: .98rem; }
-    /* 16px inputs stop iOS/Chrome from auto-zooming on focus. */
-    input[type="text"], select, .chat-input-row input { font-size: 16px; }
+    /* Smaller form text on phones. (iOS would zoom into fields under 16px; the
+       viewport script in <head> stops that on iOS only.) */
+    input[type="text"], select, .chat-input-row input { font-size: 14px; padding: .62rem .8rem; }
+    select { padding-right: 2.2rem; background-position: right .8rem center; }
+    .field label { font-size: .86rem; }
+    .cost-wrap input { padding-left: 2.5rem; }
     /* A touch more breathing room on narrow phones. */
     .container { padding: 0 1rem; }
     .nav-inner { gap: .6rem; }
@@ -1770,6 +1782,7 @@ function setImage(base64, mime, name, bytes, { detect = true } = {}) {
   state.fileData = base64;
   state.fileMime = mime || 'image/jpeg';
   const isImage = state.fileMime.startsWith('image/');
+  state.refImage = isImage ? makeReferenceImage(base64, state.fileMime) : Promise.resolve(null);
   if (isImage) filePreviewImg.src = 'data:' + state.fileMime + ';base64,' + base64;
   filePreviewImg.hidden = !isImage;
   filePreviewPdf.hidden = isImage;
@@ -1785,8 +1798,32 @@ function setImage(base64, mime, name, bytes, { detect = true } = {}) {
   else { const ds = document.getElementById('detectStatus'); if (ds) ds.hidden = true; }
 }
 
+// The redesign visuals use the photo as a reference. Phone photos can be several MB,
+// over the Lambda request limit, so send a resized JPEG (max 1024 px) instead.
+function makeReferenceImage(base64, mime) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1024 / Math.max(img.naturalWidth, img.naturalHeight));
+      const w = Math.round(img.naturalWidth * scale), h = Math.round(img.naturalHeight * scale);
+      if (Math.min(w, h) < 320) { resolve(null); return; } // too small for the image models
+      try {
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); // flatten transparent PNGs
+        ctx.drawImage(img, 0, 0, w, h);
+        const url = c.toDataURL('image/jpeg', 0.86);
+        resolve({ data: url.slice(url.indexOf(',') + 1), mime: 'image/jpeg' });
+      } catch (e) { resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = 'data:' + mime + ';base64,' + base64;
+  });
+}
+
 function clearFile() {
-  state.fileData = null; state.fileMime = null;
+  state.fileData = null; state.fileMime = null; state.refImage = null;
   filePreviewImg.removeAttribute('src');
   filePreview.hidden = true;
   dropzone.hidden = false;
@@ -2199,6 +2236,11 @@ function optionStrategy(option) {
   return (m ? m[0] : detail).trim();
 }
 
+function shortError(msg) {
+  msg = String(msg).replace(/\s+/g, ' ').trim();
+  return msg.length > 180 ? msg.slice(0, 177) + '…' : msg;
+}
+
 function imagePlaceholder() {
   return '<div class="img-placeholder" data-i18n="noImage">' + t('noImage') + '</div>';
 }
@@ -2224,8 +2266,10 @@ async function runImage(option) {
   setStatus(key, 'running');
   if (spinner) spinner.style.display = 'block';
 
+  const ref = await (state.refImage || Promise.resolve(null));
   const body = JSON.stringify({
     option, fields: collectFields(), strategies: optionStrategy(option),
+    image_data: ref ? ref.data : undefined, image_mime: ref ? ref.mime : undefined,
   });
   const MAX_TRIES = 3;
   let lastErr = null;
@@ -2240,8 +2284,9 @@ async function runImage(option) {
         const resp = await fetch(DIAGRAM_API, {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body, signal: ctrl.signal,
         });
-        if (!resp.ok) throw new Error('HTTP ' + resp.status);
-        data = await resp.json();
+        data = await resp.json().catch(() => ({}));
+        // Show why it failed (the server lists each image provider's error), not just the status.
+        if (!resp.ok) throw new Error(data.error ? shortError(data.error) : 'HTTP ' + resp.status);
       } finally {
         clearTimeout(timer);
       }
@@ -2250,11 +2295,11 @@ async function runImage(option) {
 
       if (spinner) spinner.style.display = 'none';
       const img = document.createElement('img');
-      img.src = 'data:image/png;base64,' + data.image_base64;
+      img.src = 'data:' + (data.mime || 'image/png') + ';base64,' + data.image_base64;
       img.alt = 'Packaging redesign option ' + option;
       outputEl.innerHTML = ''; outputEl.appendChild(img);
       state.images = state.images || {};
-      state.images[option] = data.image_base64; // kept for the PDF export
+      state.images[option] = { data: data.image_base64, mime: data.mime || 'image/png' }; // for the PDF
       if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
       setStatus(key, 'done');
       return; // success
@@ -2820,7 +2865,8 @@ function buildReportPdf(mode) {
     const labels = { A: t('optA'), B: t('optB'), C: t('optC') };
     have.forEach((o, i) => {
       const x = M + i * (w + gap);
-      try { doc.addImage('data:image/png;base64,' + imgs[o], 'PNG', x, y, w, w); } catch (e) {}
+      const im = imgs[o];
+      try { doc.addImage('data:' + im.mime + ';base64,' + im.data, im.mime === 'image/jpeg' ? 'JPEG' : 'PNG', x, y, w, w); } catch (e) {}
       doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); setText(PDF.INK);
       doc.text(doc.splitTextToSize(stripEmoji(labels[o]), w), x, y + w + 12);
     });
