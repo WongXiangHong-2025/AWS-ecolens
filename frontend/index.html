@@ -523,6 +523,7 @@
   .sub-h { display: flex; align-items: center; gap: .5rem; font-size: 1.02rem; font-weight: 800; }
   .sub-h .ico { color: var(--accent); }
   .sub-d { color: var(--muted); font-size: .88rem; margin: .2rem 0 1rem; }
+  .sub-d.example-note { margin-top: -.6rem; padding: .5rem .75rem; border-radius: 10px; background: var(--accent-soft); color: var(--accent); font-weight: 600; }
   .mod-n { color: var(--muted); font-weight: 700; }
   .alert .ico { width: 1.25em; height: 1.25em; margin-top: .1em; }
   .alert { display: flex; gap: .7rem; padding: .9rem 1.1rem; border-radius: 14px; margin-bottom: 1.2rem;
@@ -1166,6 +1167,7 @@
             <div class="visuals-block">
               <h4 class="sub-h"><i class="ico i-image" aria-hidden="true"></i><span data-i18n="w_visuals">Packaging redesign visuals</span></h4>
               <p class="sub-d" data-i18n="d_vis">AI concepts of each option, generated from the strategies. Treat them as inspiration, not final artwork.</p>
+              <p class="sub-d example-note" id="exampleVisualsNote" data-i18n="exampleVisualsNote" hidden>Example visuals prepared for the Crumbs demo. With your own photo, the AI image model draws them. Press Regenerate to try the model on this example.</p>
               <div class="img-grid">
                 <div class="img-card">
                   <div class="img-card-head"><strong data-i18n="optA">Option A — Quick win</strong><button type="button" class="btn btn-ghost btn-sm" data-image="A"><i class="ico i-refresh" aria-hidden="true"></i><span data-i18n="regen">Regenerate</span></button></div>
@@ -1461,6 +1463,7 @@ const I18N = {
     sug1: 'Which option suits a tight budget?', sug2: 'What should I ask my supplier?', sug3: 'Explain the trade-offs simply',
     send: 'Send',
     needPhoto: 'Add a photo of your packaging first.', needName: 'Enter your product name first.',
+    exampleVisualsNote: 'Example visuals prepared for the Crumbs demo. With your own photo, the AI image model draws them. Press Regenerate to try the model on this example.',
     exampleFilled: 'Example filled', exampleNeedsPhoto: 'Example filled. Now add a photo of your packaging.',
     copied: 'Brief copied to clipboard', nothingCopy: 'Nothing to copy yet. Generate the brief first.',
     nothingDownload: 'Nothing to download yet. Generate your report first.',
@@ -1579,6 +1582,7 @@ const I18N = {
     sug1: 'Pilihan mana sesuai untuk bajet terhad?', sug2: 'Apa yang patut saya tanya pembekal?', sug3: 'Terangkan perbandingan dengan mudah',
     send: 'Hantar',
     needPhoto: 'Tambah gambar pembungkusan anda dahulu.', needName: 'Masukkan nama produk anda dahulu.',
+    exampleVisualsNote: 'Visual contoh yang disediakan untuk demo Crumbs. Dengan gambar anda sendiri, model imej AI akan melukisnya. Tekan Jana semula untuk mencuba model pada contoh ini.',
     exampleFilled: 'Contoh diisi', exampleNeedsPhoto: 'Contoh diisi. Sekarang tambah gambar pembungkusan anda.',
     copied: 'Ringkasan disalin', nothingCopy: 'Tiada apa untuk disalin. Jana ringkasan dahulu.',
     nothingDownload: 'Tiada apa untuk dimuat turun. Jana laporan dahulu.',
@@ -1794,7 +1798,8 @@ function handleFile(file) {
 }
 
 // Store an image (from file or camera) into state and show the preview.
-function setImage(base64, mime, name, bytes, { detect = true } = {}) {
+function setImage(base64, mime, name, bytes, { detect = true, example = false } = {}) {
+  state.exampleMode = example; // the Crumbs example uses ready-made visuals; any other photo uses the image model
   state.fileData = base64;
   state.fileMime = mime || 'image/jpeg';
   const isImage = state.fileMime.startsWith('image/');
@@ -1839,7 +1844,7 @@ function makeReferenceImage(base64, mime) {
 }
 
 function clearFile() {
-  state.fileData = null; state.fileMime = null; state.refImage = null;
+  state.fileData = null; state.fileMime = null; state.refImage = null; state.exampleMode = false;
   filePreviewImg.removeAttribute('src');
   filePreview.hidden = true;
   dropzone.hidden = false;
@@ -2261,13 +2266,38 @@ function imagePlaceholder() {
   return '<div class="img-placeholder" data-i18n="noImage">' + t('noImage') + '</div>';
 }
 
-async function runImage(option) {
+function showImage(option, b64, mime) {
+  const img = document.createElement('img');
+  img.src = 'data:' + mime + ';base64,' + b64;
+  img.alt = 'Packaging redesign option ' + option;
+  const outputEl = document.querySelector(`[data-output="image_${option}"]`);
+  outputEl.innerHTML = ''; outputEl.appendChild(img);
+  state.images = state.images || {};
+  state.images[option] = { data: b64, mime }; // for the PDF
+}
+
+// `example: true` only for a full run of the "Fill example" Crumbs product: it shows the
+// ready-made visuals. Everything else (other photos, Regenerate) goes to the image model.
+async function runImage(option, { example = false } = {}) {
   const key = 'image_' + option;
   const spinner = document.querySelector(`[data-spinner="${key}"]`);
   const errorEl = document.querySelector(`[data-error="${key}"]`);
   const outputEl = document.querySelector(`[data-output="${key}"]`);
   if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
   outputEl.innerHTML = '';
+
+  const visuals = example ? await loadExampleVisuals() : null;
+  if (visuals && visuals[option]) {
+    setStatus(key, 'running');
+    if (spinner) spinner.style.display = 'block';
+    await new Promise(r => setTimeout(r, 500)); // let the tracker show the step
+    if (spinner) spinner.style.display = 'none';
+    showImage(option, visuals[option].data, visuals[option].mime);
+    document.getElementById('exampleVisualsNote').hidden = false;
+    setStatus(key, 'done');
+    return;
+  }
+  document.getElementById('exampleVisualsNote').hidden = true;
 
   if (!isConfiguredUrl(DIAGRAM_API)) {
     outputEl.innerHTML = imagePlaceholder();
@@ -2310,12 +2340,7 @@ async function runImage(option) {
       if (!data.image_base64) throw new Error('empty image');
 
       if (spinner) spinner.style.display = 'none';
-      const img = document.createElement('img');
-      img.src = 'data:' + (data.mime || 'image/png') + ';base64,' + data.image_base64;
-      img.alt = 'Packaging redesign option ' + option;
-      outputEl.innerHTML = ''; outputEl.appendChild(img);
-      state.images = state.images || {};
-      state.images[option] = { data: data.image_base64, mime: data.mime || 'image/png' }; // for the PDF
+      showImage(option, data.image_base64, data.mime || 'image/png');
       if (errorEl) { errorEl.classList.remove('show', 'retry'); errorEl.textContent = ''; }
       setStatus(key, 'done');
       return; // success
@@ -2439,7 +2464,8 @@ async function runAll() {
     await step('three_redesign_strategies');
     // The visuals only need the strategies, so draw them (one at a time: the free image
     // fallback rejects parallel requests) while steps 4 and 5 are written.
-    const images = (async () => { for (const o of ['A', 'B', 'C']) await runImage(o); })();
+    const example = !!state.exampleMode;
+    const images = (async () => { for (const o of ['A', 'B', 'C']) await runImage(o, { example }); })();
     await step('trade_off_comparison');
     await step('best_fit_recommendation_and_supplier_brief');
     await images;
@@ -3123,18 +3149,23 @@ const EXAMPLE = {
   f_market: 'Singapore and Malaysia',
   f_machinery: 'Must be compatible with semi-automated volumetric filling.',
 };
-// The example's packaging photo lives in examples/ and is only fetched when needed.
-// It is a script (not a fetch of the .jpg) so it also works when index.html is opened from disk.
-function loadExamplePhoto() {
-  if (window.ECOLENS_EXAMPLE_PHOTO) return Promise.resolve(window.ECOLENS_EXAMPLE_PHOTO);
-  return new Promise(resolve => {
+// The example's photo and its ready-made redesign visuals live in examples/ and are only
+// fetched when needed. They are scripts (not fetches of the .jpg files) so they also work
+// when index.html is opened straight from disk.
+const exampleScripts = {};
+function loadExampleScript(src, globalName) {
+  if (window[globalName]) return Promise.resolve(window[globalName]);
+  if (!exampleScripts[src]) exampleScripts[src] = new Promise(resolve => {
     const s = document.createElement('script');
-    s.src = 'examples/crumbs-cookies.js';
-    s.onload = () => resolve(window.ECOLENS_EXAMPLE_PHOTO || null);
-    s.onerror = () => resolve(null);
+    s.src = src;
+    s.onload = () => resolve(window[globalName] || null);
+    s.onerror = () => { delete exampleScripts[src]; resolve(null); };
     document.head.appendChild(s);
   });
+  return exampleScripts[src];
 }
+const loadExamplePhoto = () => loadExampleScript('examples/crumbs-cookies.js', 'ECOLENS_EXAMPLE_PHOTO');
+const loadExampleVisuals = () => loadExampleScript('examples/crumbs-redesigns.js', 'ECOLENS_EXAMPLE_VISUALS');
 async function fillExample() {
   Object.entries(EXAMPLE).forEach(([id, val]) => {
     const el = document.getElementById(id);
@@ -3143,7 +3174,10 @@ async function fillExample() {
   document.querySelector('details.advanced').open = true;
   // The example is a full set: its photo replaces any photo already added.
   const photo = await loadExamplePhoto();
-  if (photo) setImage(photo.data, photo.mime, photo.name, photo.bytes, { detect: false });
+  if (photo) {
+    setImage(photo.data, photo.mime, photo.name, photo.bytes, { detect: false, example: true });
+    loadExampleVisuals(); // warm up; used by the redesign visuals step of the example run
+  }
   updateReadiness();
   toast(state.fileData ? t('exampleFilled') : t('exampleNeedsPhoto'));
 }
