@@ -1620,10 +1620,26 @@ function collectFields() {
   document.querySelectorAll('[data-field]').forEach(el => {
     const key = el.getAttribute('data-field');
     let val = (el.value || '').trim();
-    if (el.id === 'f_cost_unit' && val) val = 'RM ' + val; // ensure RM currency context
+    if (el.id === 'f_cost_unit' && val && !/^RM\b/i.test(val)) val = 'RM ' + val; // ensure RM currency context
     if (val) fields[key] = val;
   });
+  const budget = budgetLimit(fields['Packaging Cost Per Unit'], fields['Maximum Packaging Cost Increase']);
+  if (budget) fields['Budget Limit (calculated)'] = budget;
   return fields;
+}
+
+// Work the budget out here so every report step uses the same, correct numbers
+// (the model otherwise does the sums itself and gets them wrong).
+function budgetLimit(costText, increaseText) {
+  const cost = parseFloat(((costText || '').match(/\d+(?:\.\d+)?/) || [])[0]);
+  if (!(cost > 0) || !increaseText) return '';
+  const pct = parseFloat(((increaseText.match(/(\d+(?:\.\d+)?)\s*%/) || [])[1]));
+  const rm = parseFloat(((increaseText.match(/RM\s*(\d+(?:\.\d+)?)/i) || [])[1]));
+  const maxUp = pct >= 0 ? cost * pct / 100 : rm >= 0 ? rm : NaN;
+  if (isNaN(maxUp)) return '';
+  const fmt = n => 'RM ' + (Math.round(n * 1000) / 1000).toFixed(n < 1 ? 3 : 2).replace(/0$/, '');
+  return `current cost ${fmt(cost)} per unit; maximum increase ${fmt(maxUp)} per unit` +
+    (pct >= 0 ? ` (${pct}%)` : '') + `; maximum new cost ${fmt(cost + maxUp)} per unit`;
 }
 
 /* ============================================================
@@ -2625,7 +2641,7 @@ function buildReportPdf(mode) {
   const dateStr = new Date().toLocaleDateString(lang === 'bm' ? 'ms-MY' : 'en-GB',
     { year: 'numeric', month: 'long', day: 'numeric' });
 
-  const doc = new jspdf({ unit: 'pt', format: 'a4' });
+  const doc = new jspdf({ unit: 'pt', format: 'a4', compress: true });
   const PW = doc.internal.pageSize.getWidth();
   const PH = doc.internal.pageSize.getHeight();
   const M = 50;
@@ -2654,16 +2670,22 @@ function buildReportPdf(mode) {
       ? (lang === 'bm' ? 'Ringkasan Pembekal Pembungkusan' : 'Packaging Supplier Brief')
       : (lang === 'bm' ? 'Laporan Keputusan Pembungkusan Lestari' : 'Sustainable Packaging Decision Report')),
     M, 88);
+  // Short product name as the title (the full name goes in the details card below).
+  const shortName = product.split(/\s\(|,\s/)[0];
   doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255, 255, 255);
-  doc.text(doc.splitTextToSize(product, CW), M, 118);
+  doc.text(doc.splitTextToSize(shortName, CW).slice(0, 2), M, 120);
 
   y = 200;
   // ---------- Meta card ----------
   const metaLines = [];
+  if (product !== shortName) metaLines.push([(lang === 'bm' ? 'Produk' : 'Product'), product]);
   if (category) metaLines.push([(lang === 'bm' ? 'Kategori' : 'Category'), category]);
   metaLines.push([(lang === 'bm' ? 'Tarikh' : 'Date'), dateStr]);
   if (objective) metaLines.push([(lang === 'bm' ? 'Objektif' : 'Objective'), objective]);
-  const metaH = 16 + metaLines.reduce((a, [, v]) => a + doc.splitTextToSize(v, CW - 92).length * 13 + 4, 0);
+  const budget = fields['Budget Limit (calculated)'];
+  if (budget) metaLines.push([(lang === 'bm' ? 'Bajet' : 'Budget'), budget.charAt(0).toUpperCase() + budget.slice(1)]);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+  const metaH = 8 + metaLines.reduce((a, [, v]) => a + doc.splitTextToSize(v, CW - 92).length * 13 + 4, 0);
   setFill(PDF.GREEN_SOFT); doc.roundedRect(M, y, CW, metaH, 8, 8, 'F');
   let my = y + 18;
   metaLines.forEach(([label, val]) => {
@@ -2692,7 +2714,6 @@ function buildReportPdf(mode) {
     { re: /\bMEDIUM PRIORITY\b|🟡/i, fg: PDF.MED, bg: PDF.MED_BG, label: 'MEDIUM' },
     { re: /\bLOW PRIORITY\b|🟢/i, fg: PDF.LO, bg: PDF.LO_BG, label: 'LOW' },
   ];
-  const EVIDENCE = /\b(OBSERVED|INFERRED|VERIFIED|UNKNOWN(?:\s*\/\s*REQUIRES VERIFICATION)?)\b/;
 
   const drawChip = (label, fg, bg, x, yy) => {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
@@ -2705,113 +2726,226 @@ function buildReportPdf(mode) {
     return w;
   };
 
-  const para = (content, { indent = 0, size = 10.5, bold = false, color = PDF.INK, prefix = '', gap = 4 } = {}) => {
-    content = content.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1');
-    doc.setFont('helvetica', bold ? 'bold' : 'normal'); doc.setFontSize(size); setText(color);
-    const wrapped = doc.splitTextToSize(prefix + content, CW - indent);
-    const lh = size + 3.5;
-    needSpace(wrapped.length * lh + gap);
-    doc.text(wrapped, M + indent, y);
-    y += wrapped.length * lh + gap;
+  // Clean inline markdown for jsPDF (no rich text): drop *, `, and stray underscores.
+  const plain = t => stripEmoji(String(t || '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1'));
+
+  // Split "**Label:** rest" (or a short "Label: rest") into a bold lead-in and body text.
+  const leadIn = (content) => {
+    let m = content.match(/^\*\*([^*]{1,60}?)\*\*\s*([:—–-]?)\s*/);
+    if (m) {
+      // "**What:** x" / "**Jar** — x" read as labels; a plain bold phrase ("**Option B** is…") stays a phrase.
+      const isLabel = /:$/.test(m[1]) || m[2];
+      return { label: plain(m[1]).replace(/:$/, '') + (isLabel ? ':' : ''), rest: plain(content.slice(m[0].length)) };
+    }
+    m = content.match(/^([A-Z][A-Za-z0-9 &/()'-]{1,38}):\s+/);
+    if (m && !/https?$/i.test(m[1])) return { label: m[1] + ':', rest: plain(content.slice(m[0].length)) };
+    return { label: '', rest: plain(content) };
   };
+
+  // Lay out a bold lead-in followed by normal text, wrapped to `width`.
+  // Returns lines as [{ bold, text }] where only the first line can carry the bold part.
+  const layoutRich = (label, rest, width, size) => {
+    doc.setFontSize(size);
+    doc.setFont('helvetica', 'bold');
+    const lw = label ? doc.getTextWidth(label + ' ') : 0;
+    doc.setFont('helvetica', 'normal');
+    if (!label) return doc.splitTextToSize(rest, width).map(text => ({ bold: '', text }));
+    if (lw > width * 0.6) { // very long label: put it on its own line
+      doc.setFont('helvetica', 'bold');
+      const ls = doc.splitTextToSize(label, width).map(text => ({ bold: text, text: '' }));
+      doc.setFont('helvetica', 'normal');
+      return ls.concat(rest ? doc.splitTextToSize(rest, width).map(text => ({ bold: '', text })) : []);
+    }
+    if (!rest) return [{ bold: label, text: '' }];
+    const first = doc.splitTextToSize(rest, width - lw)[0] || '';
+    const more = rest.slice(first.length).trim();
+    return [{ bold: label, text: first, lw }].concat(more ? doc.splitTextToSize(more, width).map(text => ({ bold: '', text })) : []);
+  };
+
+  const drawRichLines = (lines, x, size, color) => {
+    const lh = size + 4;
+    lines.forEach(l => {
+      needSpace(lh);
+      if (l.bold) { doc.setFont('helvetica', 'bold'); doc.setFontSize(size); setText(color); doc.text(l.bold, x, y); }
+      if (l.text) { doc.setFont('helvetica', 'normal'); doc.setFontSize(size); setText(color); doc.text(l.text, x + (l.bold ? (l.lw || doc.getTextWidth(l.bold + ' ')) : 0), y); }
+      y += lh;
+    });
+  };
+
+  // A paragraph or list item; `marker` is drawn in the left gutter of the first line.
+  const para = (content, { indent = 0, size = 10.5, color = PDF.INK, marker = '', gap = 4, bold = false } = {}) => {
+    const { label, rest } = bold ? { label: plain(content), rest: '' } : leadIn(content);
+    const lines = layoutRich(label, rest, CW - indent, size);
+    needSpace(size + 6);
+    if (marker) {
+      if (marker === '•') { setFill(PDF.GREEN); doc.circle(M + indent - 8, y - size * 0.32, 1.9, 'F'); }
+      else { setDraw(PDF.MUTE); doc.setLineWidth(0.8); doc.line(M + indent - 11, y - size * 0.32, M + indent - 6, y - size * 0.32); }
+    }
+    drawRichLines(lines, M + indent, size, color);
+    y += gap;
+  };
+
+  // Evidence labels get a coloured pill in tables and text.
+  const EVIDENCE_STYLE = {
+    OBSERVED: [PDF.LO, PDF.LO_BG], VERIFIED: [[31, 90, 160], [228, 238, 250]],
+    INFERRED: [PDF.MED, PDF.MED_BG], UNKNOWN: [PDF.HI, PDF.HI_BG],
+  };
+  const evidenceOf = c => { const m = plain(c).trim().match(/^(OBSERVED|VERIFIED|INFERRED|UNKNOWN)\b/i); return m ? m[1].toUpperCase() : ''; };
 
   // ---------- table renderer ----------
   const renderTable = (rows) => {
-    // rows: array of arrays of cell strings; first row treated as header
+    // rows: array of arrays of cell strings; first row is the header
     const cols = Math.max(...rows.map(r => r.length));
-    const colW = CW / cols;
-    const pad = 5;
-    doc.setFontSize(8.5);
-    rows.forEach((r, ri) => {
-      // compute row height from wrapped cells
-      let cellLines = r.map(c => doc.splitTextToSize(stripEmoji(c.replace(/\*\*/g, '')), colW - pad * 2));
-      while (cellLines.length < cols) cellLines.push(['']);
-      const rowH = Math.max(16, Math.max(...cellLines.map(cl => cl.length)) * 10 + 8);
-      needSpace(rowH);
-      // backgrounds
-      if (ri === 0) { setFill(PDF.GREEN); }
-      else if (ri % 2 === 0) { setFill([247, 250, 248]); }
-      else { setFill([255, 255, 255]); }
-      doc.rect(M, y, CW, rowH, 'F');
-      // borders + text
-      setDraw(PDF.LINE); doc.setLineWidth(0.5);
-      for (let c = 0; c < cols; c++) {
-        const x = M + c * colW;
-        doc.rect(x, y, colW, rowH);
-        doc.setFont('helvetica', ri === 0 ? 'bold' : 'normal');
-        setText(ri === 0 ? [255, 255, 255] : PDF.INK);
-        doc.text(cellLines[c], x + pad, y + 12);
-      }
-      y += rowH;
+    // Column widths follow how much text each column holds (label columns stay narrow).
+    const weights = Array.from({ length: cols }, (_, c) => {
+      const lens = rows.slice(1).map(r => plain(r[c] || '').length);
+      const avg = lens.length ? lens.reduce((a, b) => a + b, 0) / lens.length : 10;
+      return Math.min(42, Math.max(c === 0 ? 14 : 9, avg));
     });
-    y += 10;
+    const total = weights.reduce((a, b) => a + b, 0);
+    const widths = weights.map(w => CW * w / total);
+    const pad = 6;
+    const drawRow = (r, ri) => {
+      doc.setFontSize(ri === 0 ? 8.5 : 9);
+      const cells = widths.map((w, c) => {
+        const txt = plain((r[c] || '').replace(/<br\s*\/?>/gi, ' '));
+        doc.setFont('helvetica', ri === 0 || c === 0 ? 'bold' : 'normal');
+        return evidenceOf(txt) && ri > 0 ? [txt] : doc.splitTextToSize(txt, w - pad * 2);
+      });
+      const rowH = Math.max(20, Math.max(...cells.map(cl => cl.length)) * 11 + 10);
+      if (needSpace(rowH) && ri > 0) drawRow(rows[0], 0); // repeat the header on a new page
+      setFill(ri === 0 ? PDF.GREEN : ri % 2 === 0 ? [247, 250, 248] : [255, 255, 255]);
+      doc.rect(M, y, CW, rowH, 'F');
+      setDraw(PDF.LINE); doc.setLineWidth(0.5);
+      let x = M;
+      cells.forEach((cl, c) => {
+        doc.rect(x, y, widths[c], rowH);
+        const ev = ri > 0 && evidenceOf(cl[0] || '');
+        if (ev) {
+          const [fg, bg] = EVIDENCE_STYLE[ev];
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(7.5);
+          const pw = Math.min(widths[c] - pad * 2, doc.getTextWidth(ev) + 12);
+          setFill(bg); doc.roundedRect(x + pad, y + 6, pw, 13, 6.5, 6.5, 'F');
+          setText(fg); doc.text(ev, x + pad + 6, y + 15.2);
+        } else {
+          doc.setFont('helvetica', ri === 0 || c === 0 ? 'bold' : 'normal'); doc.setFontSize(ri === 0 ? 8.5 : 9);
+          setText(ri === 0 ? [255, 255, 255] : PDF.INK);
+          doc.text(cl, x + pad, y + 13.5, { lineHeightFactor: 1.2 });
+        }
+        x += widths[c];
+      });
+      y += rowH;
+    };
+    needSpace(60); // keep the header with at least its first row
+    rows.forEach(drawRow);
+    y += 12;
   };
 
   // ---------- markdown section renderer ----------
   const writeMarkdown = (text) => {
     const lines = text.replace(/\r/g, '').split('\n');
     let i = 0;
+    let subList = false;   // bullets after a label-only bullet ("Changes:") are sub-points
+    let firstBlock = true; // no divider above the first problem / option
     while (i < lines.length) {
-      let raw = lines[i];
-      let line = stripEmoji(raw.replace(/\t/g, '  '));
-      const trimmed = line.trim();
+      const raw = lines[i].replace(/\t/g, '    ');
+      const trimmed = raw.trim();
 
       // ----- collect a contiguous markdown table -----
       const isTableRow = (s) => s.includes('|') && s.replace(/[^|]/g, '').length >= 2;
-      if (isTableRow(raw.trim())) {
+      if (isTableRow(trimmed)) {
         const block = [];
         while (i < lines.length && isTableRow(lines[i].trim())) {
           const r = lines[i].trim();
-          if (!/^[\s|:\-]+$/.test(r)) { // skip separator rows like |---|---|
-            block.push(r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
-          }
+          if (!/^[\s|:\-]+$/.test(r)) block.push(r.replace(/^\||\|$/g, '').split('|').map(c => c.trim()));
           i++;
         }
         if (block.length) renderTable(block);
+        subList = false;
         continue;
       }
       i++;
 
-      if (!trimmed) { y += 6; continue; }
+      if (!trimmed) { y += 3; continue; }
+
+      // time-limit note from the server: show it quietly
+      if (/^_\(.*\)_$/.test(trimmed)) {
+        doc.setFont('helvetica', 'italic'); doc.setFontSize(9); setText(PDF.MUTE);
+        const w = doc.splitTextToSize(trimmed.replace(/^_\(|\)_$/g, ''), CW);
+        needSpace(w.length * 12 + 6); doc.text(w, M, y); y += w.length * 12 + 6; continue;
+      }
 
       // horizontal rule
-      if (/^(-{3,}|_{3,}|={3,})$/.test(trimmed)) {
-        needSpace(14); setDraw(PDF.LINE); doc.setLineWidth(1); doc.line(M, y, PW - M, y); y += 12; continue;
+      if (/^(-{3,}|_{3,}|={3,})$/.test(trimmed)) { subList = false; continue; } // spacing comes from headings
+
+      // priority heading → divider + coloured chip + title
+      const pr = PRIORITY.find(p => p.re.test(raw));
+      if (pr && (/^#{1,4}\s/.test(trimmed) || /PRIORITY/i.test(trimmed))) {
+        subList = false;
+        const title = plain(trimmed.replace(/^#{1,4}\s*/, '').replace(/^[-*]\s*/, '')
+          .replace(/(HIGH|MEDIUM|LOW)\s*PRIORITY\s*[—–:-]*\s*/i, '')).replace(/^[—–:-]\s*/, '');
+        needSpace(48);
+        if (!firstBlock) { y += 4; setDraw(PDF.LINE); doc.setLineWidth(0.8); doc.line(M, y, PW - M, y); y += 16; }
+        firstBlock = false;
+        const cw = drawChip(pr.label, pr.fg, pr.bg, M, y);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11.5); setText(PDF.INK);
+        const tw = doc.splitTextToSize(title, CW - cw - 10);
+        doc.text(tw, M + cw + 8, y + 1);
+        y += Math.max(18, tw.length * 15) + 6;
+        continue;
+      }
+
+      // option heading (step 3) → letter badge + title
+      const opt = trimmed.match(/^#{1,4}\s*\**\s*(?:OPTION|PILIHAN)\s+([ABC])\b\s*[—–:-]*\s*(.*)$/i);
+      if (opt) {
+        subList = false;
+        needSpace(52);
+        if (!firstBlock) { y += 4; setDraw(PDF.LINE); doc.setLineWidth(0.8); doc.line(M, y, PW - M, y); y += 18; }
+        firstBlock = false;
+        setFill(PDF.GREEN); doc.circle(M + 11, y - 4, 11, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(255, 255, 255);
+        doc.text(opt[1].toUpperCase(), M + 11, y, { align: 'center' });
+        doc.setFontSize(12.5); setText(PDF.GREEN);
+        const tw = doc.splitTextToSize(plain(opt[2]).replace(/\*+$/, ''), CW - 32);
+        doc.text(tw, M + 30, y);
+        y += tw.length * 16 + 8;
+        continue;
       }
 
       // headings
-      if (/^###\s+/.test(trimmed)) { y += 4; para(trimmed.replace(/^###\s+/, ''), { size: 11, bold: true, color: PDF.GREEN, gap: 5 }); continue; }
-      if (/^##\s+/.test(trimmed)) { y += 7; para(trimmed.replace(/^##\s+/, ''), { size: 13, bold: true, color: PDF.GREEN, gap: 6 }); continue; }
-      if (/^#\s+/.test(trimmed)) { y += 7; para(trimmed.replace(/^#\s+/, ''), { size: 15, bold: true, color: PDF.GREEN, gap: 6 }); continue; }
-
-      // priority line → chip + text
-      const pr = PRIORITY.find(p => p.re.test(raw));
-      if (pr) {
-        needSpace(20);
-        const cw = drawChip(pr.label, pr.fg, pr.bg, M, y + 2);
-        const rest = stripEmoji(trimmed.replace(/^[-*]\s*/, '').replace(/(HIGH|MEDIUM|LOW)\s*PRIORITY[:\s-]*/i, '')).replace(/\*\*/g, '').trim();
-        if (rest) { doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); setText(PDF.INK); doc.text(doc.splitTextToSize(rest, CW - cw - 10), M + cw + 8, y + 3); }
-        y += 20; continue;
+      if (/^#{1,4}\s+/.test(trimmed)) {
+        subList = false;
+        const level = trimmed.match(/^#+/)[0].length;
+        y += level <= 2 ? 10 : 6;
+        para(trimmed.replace(/^#+\s+/, ''), { size: level <= 2 ? 13 : 11.5, bold: true, color: PDF.GREEN, gap: 5 });
+        continue;
       }
 
-      // bullets / numbered
-      if (/^[-*]\s+/.test(trimmed)) {
-        let c = trimmed.replace(/^[-*]\s+/, '');
-        // bold "Label:" lead-ins
-        para(c, { indent: 16, prefix: '•  ', gap: 3 }); continue;
-      }
-      if (/^\d+\.\s+/.test(trimmed)) {
-        const m = trimmed.match(/^(\d+)\.\s+(.*)/);
-        para(m[2], { indent: 16, prefix: m[1] + '.  ', gap: 3 }); continue;
+      // bullets / numbered — nested by indentation, or after a label-only bullet
+      const indentSpaces = raw.match(/^\s*/)[0].length;
+      const bullet = trimmed.match(/^[-*•]\s+(.*)$/);
+      const numbered = trimmed.match(/^(\d+)\.\s+(.*)$/);
+      if (bullet || numbered) {
+        const content = bullet ? bullet[1] : numbered[2];
+        const { label, rest } = leadIn(content);
+        const nested = indentSpaces >= 2 || (subList && !label);
+        const indent = nested ? 34 : 16;
+        if (numbered && !nested) {
+          // numbered step: number in the gutter
+          needSpace(16);
+          doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); setText(PDF.GREEN);
+          doc.text(numbered[1] + '.', M + 2, y);
+          para(content, { indent: 18, gap: 4 });
+        } else {
+          para(content, { indent, marker: nested ? '–' : '•', size: nested ? 10 : 10.5, gap: nested ? 2.5 : 4 });
+        }
+        if (!nested) subList = !!label && !rest; // "Changes:" with its points below it
+        continue;
       }
 
-      // evidence label emphasis (OBSERVED/INFERRED/...)
-      if (EVIDENCE.test(trimmed) && trimmed.length < 120) {
-        para(trimmed, { size: 10.5, bold: true, color: PDF.GREEN, gap: 4 }); continue;
-      }
-
+      subList = false;
       // normal paragraph
-      para(trimmed, { gap: 5 });
+      para(trimmed, { gap: 6 });
     }
   };
 
@@ -2826,26 +2960,30 @@ function buildReportPdf(mode) {
   };
 
   // Highlighted "Key points" card: the short summary each step opens with.
+  // Bold only the lead-in ("Option B:", "High:") so the bullets stay easy to scan.
   const keyPointsCard = (text, title) => {
-    const items = text.split('\n').map(l => l.trim()).filter(l => /^([-*]|\d+\.)\s+/.test(l))
-      .map(l => stripEmoji(l.replace(/^([-*]|\d+\.)\s+/, '').replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1')));
+    const items = text.split('\n').map(l => l.trim()).filter(l => /^([-*•]|\d+\.)\s+/.test(l))
+      .map(l => l.replace(/^([-*•]|\d+\.)\s+/, ''));
     if (!items.length) return;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5);
-    const wrapped = items.map(it => doc.splitTextToSize(it, CW - 46));
-    const h = 32 + wrapped.reduce((a, w) => a + w.length * 14 + 5, 0) + 6;
+    const size = 10.5, lh = size + 4, width = CW - 50;
+    const laid = items.map(it => {
+      const lead = it.match(/^\*\*(.+?)\*\*\s*:?\s*/) || it.match(/^([^:—]{2,48}?)(?::|\s—)\s+/);
+      if (lead) return layoutRich(plain(lead[1]).replace(/[:—\s]+$/, '') + ':', plain(it.slice(lead[0].length)), width, size);
+      return layoutRich('', plain(it), width, size);
+    });
+    const h = 34 + laid.reduce((a, ls) => a + ls.length * lh + 6, 0) + 4;
     needSpace(Math.min(h, BOTTOM - M));
     setFill(PDF.GREEN_SOFT); doc.roundedRect(M, y, CW, h, 8, 8, 'F');
     setFill(PDF.LIME); doc.roundedRect(M, y, 5, h, 2, 2, 'F');
     doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5); setText(PDF.GREEN);
     doc.text(title.toUpperCase(), M + 18, y + 20);
-    let iy = y + 38;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10.5); setText(PDF.INK);
-    wrapped.forEach(w => {
-      setFill(PDF.GREEN); doc.circle(M + 22, iy - 3.5, 2.2, 'F');
-      doc.text(w, M + 32, iy);
-      iy += w.length * 14 + 5;
+    y += 38;
+    laid.forEach(ls => {
+      setFill(PDF.GREEN); doc.circle(M + 22, y - 3.6, 2.2, 'F');
+      drawRichLines(ls, M + 32, size, PDF.INK);
+      y += 6;
     });
-    y += h + 14;
+    y += 16;
   };
   // Key points as a card, then the full explanation (the on-screen view folds this part away).
   const writeSection = (text) => {

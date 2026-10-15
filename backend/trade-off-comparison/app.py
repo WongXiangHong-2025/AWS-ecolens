@@ -36,10 +36,11 @@ Details:
 ### Comparison table
 A markdown table with columns: Criteria | Current | Option A | Option B | Option C
 Rows (in this order): Plastic reduction · Recyclable in Malaysia · Product protection & shelf life · Cost impact · Production / machinery change · Branding & visibility · Time and effort to implement · Evidence still needed
-Use only the words Low / Medium / High, Yes / Partly / No, or Unknown in each cell — no emoji, no numbers, no scores. Keep cells to one or two words.
+Use only the words Low / Medium / High, Yes / Partly / No, or Unknown in each cell — no emoji, no numbers, no scores, no brackets. Keep cells to one or two words, except the last row (up to 6 words).
+In rows that measure a change (Plastic reduction, Cost impact, Production / machinery change, Time and effort to implement) put "—" in the Current column and rate how BIG the change is for each option (e.g. Plastic reduction: High = removes the most plastic).
 
 ### What the table means
-One short paragraph per option (2–3 sentences) explaining its main strength and main weakness for THIS business and its stated constraints.
+One short paragraph per option (at most 3 sentences) explaining its main strength and main weakness for THIS business and its stated constraints.
 
 Do NOT pick a winner — Step 5 does that."""
 
@@ -66,14 +67,18 @@ The EcoLens report is written in five steps, in this order: 1 Packaging audit �
 - Never mention, repeat or comment on input validation (only Step 1 checks inputs).
 - No greetings, no sign-offs, no offers of further help, and no questions to the reader. This is a report, not a chat.
 - Never recommend or name specific supplier companies, brands or certification bodies.
-- No invented numbers: no carbon or emission percentages, capital costs, test values or market statistics unless the user supplied them. Cost changes may be given only as a rough RM range per unit, only if the user gave a current unit cost, and must be marked "(estimate)".
+- No invented numbers. Never state performance or business figures the user did not give: no carbon or emission %, no % improvements (e.g. "reduces oxygen by 70%"), no supplier discounts, no seconds per unit, no order volumes, no capital costs, no market statistics. Typical material specs for a supplier to confirm (e.g. film thickness) are allowed.
+- Costs: give cost changes only as a rough RM range per unit marked "(estimate)", and only if a current unit cost is given. If a "Budget Limit (calculated)" is given, use exactly those numbers, compare every estimate with it, and say plainly "within budget" or "over budget". Never call an estimate within budget if it is above the limit.
 - Use plain, everyday words for a busy small-business owner. Explain any technical term in a few words the first time.
 
 ## OUTPUT FORMAT (follow exactly)
-1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence (about 20 words or fewer) that can be understood without reading anything else.
+1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence of at most 18 words that can be understood on its own. Start it with the main idea, e.g. "Option B: ...".
 2. Then a line containing exactly: [[DETAILS]]
 3. Then the detailed explanation as described above, using ## / ### headings, short paragraphs and bullets.
-Keep the whole response under about 480 words."""
+- Write labelled lines as "- **Label:** text". Put sub-points in a nested list indented by two spaces.
+- Each bullet at most 25 words; each paragraph at most 3 sentences.
+- HARD LENGTH LIMIT: the response must finish well inside the word limit below. If space is short, cut detail; never stop in the middle of a section.
+Keep the whole response under about 380 words."""
 
 SYSTEM_PROMPT = SYSTEM_PROMPT + MY_SME_CONTEXT + REPORT_RULES
 

@@ -34,7 +34,7 @@ Find the sustainability problems in the CURRENT packaging, such as: unnecessary 
 
 Key points: one bullet per problem, most important first, starting with its priority word (High / Medium / Low).
 
-Details: at most 5 problems, most important first. For each problem:
+Details: at most 4 problems, most important first. Keep each field to one or two sentences. For each problem:
 ### 🔴 HIGH PRIORITY — <short problem name>
 (use 🟡 MEDIUM PRIORITY or 🟢 LOW PRIORITY as appropriate)
 - **What:** the issue in one or two sentences
@@ -67,14 +67,18 @@ The EcoLens report is written in five steps, in this order: 1 Packaging audit �
 - Never mention, repeat or comment on input validation (only Step 1 checks inputs).
 - No greetings, no sign-offs, no offers of further help, and no questions to the reader. This is a report, not a chat.
 - Never recommend or name specific supplier companies, brands or certification bodies.
-- No invented numbers: no carbon or emission percentages, capital costs, test values or market statistics unless the user supplied them. Cost changes may be given only as a rough RM range per unit, only if the user gave a current unit cost, and must be marked "(estimate)".
+- No invented numbers. Never state performance or business figures the user did not give: no carbon or emission %, no % improvements (e.g. "reduces oxygen by 70%"), no supplier discounts, no seconds per unit, no order volumes, no capital costs, no market statistics. Typical material specs for a supplier to confirm (e.g. film thickness) are allowed.
+- Costs: give cost changes only as a rough RM range per unit marked "(estimate)", and only if a current unit cost is given. If a "Budget Limit (calculated)" is given, use exactly those numbers, compare every estimate with it, and say plainly "within budget" or "over budget". Never call an estimate within budget if it is above the limit.
 - Use plain, everyday words for a busy small-business owner. Explain any technical term in a few words the first time.
 
 ## OUTPUT FORMAT (follow exactly)
-1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence (about 20 words or fewer) that can be understood without reading anything else.
+1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence of at most 18 words that can be understood on its own. Start it with the main idea, e.g. "Option B: ...".
 2. Then a line containing exactly: [[DETAILS]]
 3. Then the detailed explanation as described above, using ## / ### headings, short paragraphs and bullets.
-Keep the whole response under about 520 words."""
+- Write labelled lines as "- **Label:** text". Put sub-points in a nested list indented by two spaces.
+- Each bullet at most 25 words; each paragraph at most 3 sentences.
+- HARD LENGTH LIMIT: the response must finish well inside the word limit below. If space is short, cut detail; never stop in the middle of a section.
+Keep the whole response under about 430 words."""
 
 SYSTEM_PROMPT = SYSTEM_PROMPT + MY_SME_CONTEXT + REPORT_RULES
 

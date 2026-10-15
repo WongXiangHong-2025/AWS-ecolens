@@ -38,18 +38,18 @@ Details: use these exact headings.
 
 ### OPTION A — QUICK WIN: <short name>
 Low cost, easy, minimal operational change (remove unnecessary parts, lightweight, resize, clearer recycling info, simple material swaps).
-- **Changes:** 2–4 bullets
+- **Changes:** 2–3 short nested sub-bullets
 - **Fixes problems:** which Step 2 problems this addresses
-- **Cost impact:** Low / Medium / High
+- **Cost impact:** Low / Medium / High; if a unit cost is given, add the estimated RM increase per unit and "within budget" or "over budget" against the Budget Limit
 - **Difficulty:** Easy / Medium / Hard
 - **Protection & shelf-life risk:** Low / Medium / High, with one reason
 - **Main advantage / main drawback:** one line each
 
 ### OPTION B — BALANCED REDESIGN: <short name>
-A meaningful improvement that still fits realistic business constraints. Same fields as Option A, plus **Testing needed:** 1–3 bullets.
+A meaningful improvement that still fits realistic business constraints. Same fields as Option A, plus **Testing needed:** 1–3 short bullets.
 
 ### OPTION C — AMBITIOUS REDESIGN: <short name>
-A bigger change (material substitution, mono-material, refill/reuse, removing packaging, a new structure). Same fields as Option A, plus **Assumptions & unknowns:** and **Machinery changes:**. Do not present Option C as automatically better.
+A bigger change (material substitution, mono-material, refill/reuse, removing packaging, a new structure). Same fields as Option A, plus **Assumptions & unknowns:** and **Machinery changes:** (one line each). Do not present Option C as automatically better.
 
 Describe the options only. Do NOT recommend one option or write next steps — Steps 4 and 5 do that."""
 
@@ -76,14 +76,18 @@ The EcoLens report is written in five steps, in this order: 1 Packaging audit �
 - Never mention, repeat or comment on input validation (only Step 1 checks inputs).
 - No greetings, no sign-offs, no offers of further help, and no questions to the reader. This is a report, not a chat.
 - Never recommend or name specific supplier companies, brands or certification bodies.
-- No invented numbers: no carbon or emission percentages, capital costs, test values or market statistics unless the user supplied them. Cost changes may be given only as a rough RM range per unit, only if the user gave a current unit cost, and must be marked "(estimate)".
+- No invented numbers. Never state performance or business figures the user did not give: no carbon or emission %, no % improvements (e.g. "reduces oxygen by 70%"), no supplier discounts, no seconds per unit, no order volumes, no capital costs, no market statistics. Typical material specs for a supplier to confirm (e.g. film thickness) are allowed.
+- Costs: give cost changes only as a rough RM range per unit marked "(estimate)", and only if a current unit cost is given. If a "Budget Limit (calculated)" is given, use exactly those numbers, compare every estimate with it, and say plainly "within budget" or "over budget". Never call an estimate within budget if it is above the limit.
 - Use plain, everyday words for a busy small-business owner. Explain any technical term in a few words the first time.
 
 ## OUTPUT FORMAT (follow exactly)
-1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence (about 20 words or fewer) that can be understood without reading anything else.
+1. Start with the heading "## Key points" followed by 3–5 bullets. Each bullet is ONE short sentence of at most 18 words that can be understood on its own. Start it with the main idea, e.g. "Option B: ...".
 2. Then a line containing exactly: [[DETAILS]]
 3. Then the detailed explanation as described above, using ## / ### headings, short paragraphs and bullets.
-Keep the whole response under about 680 words."""
+- Write labelled lines as "- **Label:** text". Put sub-points in a nested list indented by two spaces.
+- Each bullet at most 25 words; each paragraph at most 3 sentences.
+- HARD LENGTH LIMIT: the response must finish well inside the word limit below. If space is short, cut detail; never stop in the middle of a section.
+Keep the whole response under about 560 words."""
 
 SYSTEM_PROMPT = SYSTEM_PROMPT + MY_SME_CONTEXT + REPORT_RULES
 
