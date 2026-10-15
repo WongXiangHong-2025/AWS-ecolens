@@ -11,6 +11,10 @@ photo of your packaging and a few business details, and EcoLens produces:
 - A **side-by-side trade-off comparison**
 - **Three AI-generated redesign visuals** (Option A / B / C)
 - A **knowledge-aware chatbot** that answers in English or Bahasa Malaysia
+- A **downloadable PDF** — a designed full report, plus a one-page supplier brief PDF
+
+Upload a photo and EcoLens also **auto-detects** the product name, materials and
+category from the image to pre-fill the form (you can still edit everything).
 
 Localised for Malaysian SMEs: understands English / BM / Manglish, defaults to
 RM and grams/gsm, and reflects realistic local recycling, halal and climate
@@ -160,6 +164,15 @@ picker.
 - **File upload** — the dropzone reads the file with `FileReader.readAsDataURL()`,
   strips the `data:<mime>;base64,` prefix, and sends `file_data` + `file_mime` in
   the POST body. There is also a live-camera capture modal.
+- **Photo auto-detect** — after an image is uploaded, the frontend asks the chat
+  Lambda for a one-line `product | materials | category` reading and pre-fills any
+  empty fields (never overwriting user input). It warns on a non-packaging photo
+  and fails silently if detection errors, so the manual form always works.
+- **PDF export** — "Full report" and the supplier brief's "Download PDF" generate
+  a designed multi-page PDF with jsPDF (branded cover, section cards, a real
+  comparison table, coloured priority dots, embedded redesign images for the full
+  report). jsPDF is lazy-loaded from a CDN; if it cannot load, both buttons fall
+  back to a plain-text download. "Copy brief" still copies plain text to the clipboard.
 - **Image widgets** POST `{ option, fields, strategies }` to the REST API and
   render the returned base64 PNG.
 - **Chat** sends the full `history` plus a `context` object with every analysis
@@ -180,7 +193,8 @@ picker.
   returns 200 for the adapter readiness check.
 - **Timeouts**: text functions are 29s (the HTTP API hard-limits requests at 30s);
   generation stops at ~24s and returns what it has, noting it was shortened. The
-  image function allows longer.
+  image function is 30s with 512 MB memory, and retries Bedrock image calls with
+  backoff on throttling before falling through the provider chain.
 - `sam validate` is not run locally during authoring; the GitHub Actions
   `sam build` step is the first full validation.
 
