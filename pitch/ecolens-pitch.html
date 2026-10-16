@@ -331,9 +331,9 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
 </section>
 
 <!-- 8 · Architecture -->
-<section class="slide" data-seg="2 · Solution · 1:20" data-notes="<b>10 s.</b> Every member must say this without notes: Browser → API Gateway → Lambda → Amazon Bedrock, Claude Haiku 4.5 for text, Nova Canvas for images → back to the browser.">
+<section class="slide" data-seg="2 · Solution · 1:20" data-notes="<b>10 s.</b> Every member must say this without notes: Browser → API Gateway → Lambda → Amazon Bedrock (foundation model for text, Nova Canvas for images) → back to the browser. We follow the AWS serverless reference architecture, and built EcoLens with the Kiro coding agent.">
   <span class="eyebrow">AWS architecture</span>
-  <h2>Serverless on AWS, in the Malaysia region.</h2>
+  <h2>Built on the AWS serverless architecture, in the Malaysia region.</h2>
   <div class="arch">
     <div class="node"><b>Website</b><span>Amazon S3 static site<br>EN / BM, light &amp; dark</span></div>
     <div class="arrow"></div>
@@ -342,7 +342,7 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
     <div class="node"><b>AWS Lambda × 7</b><span>Python 3.12<br>5 analyses · chat · images</span></div>
     <div class="arrow"></div>
     <div class="node ai-node"><b>Amazon Bedrock</b>
-      <div class="model"><b style="font-size:16px;display:inline">Claude Haiku 4.5</b> · text, vision, chat</div>
+      <div class="model"><b style="font-size:16px;display:inline">Bedrock foundation model</b> · text, vision, chat</div>
       <div class="model"><b style="font-size:16px;display:inline">Amazon Nova Canvas</b> · redesign images</div>
     </div>
   </div>
@@ -350,7 +350,8 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
     <span class="pill">Region ap-southeast-5 (Malaysia)</span>
     <span class="pill">Infrastructure as code: AWS SAM</span>
     <span class="pill">CI/CD: GitHub Actions on every push</span>
-    <span class="pill">No database: nothing stored about the user</span>
+    <span class="pill">Follows the AWS serverless reference architecture</span>
+    <span class="pill">Built with the Kiro coding agent</span>
   </div>
 </section>
 
@@ -419,13 +420,13 @@ body { margin: 0; background: #dfe9e3; color: var(--text); font-family: var(--fo
   <h2>Forty sen to run. RM29 a month to use.</h2>
   <div class="kpis">
     <div class="kpi"><div class="v">RM29</div><div class="l">per month, unlimited reports. First 3 reports free.</div></div>
-    <div class="kpi"><div class="v">≈RM0.40</div><div class="l">AWS cost per report: 6 Claude Haiku calls + 1 image (estimate)</div></div>
+    <div class="kpi"><div class="v">≈RM0.40</div><div class="l">AWS cost per report: 6 Bedrock model calls + 1 image (estimate)</div></div>
     <div class="kpi"><div class="v">≈94%</div><div class="l">gross margin at 4 reports a month per subscriber</div></div>
     <div class="kpi"><div class="v">RM2,100</div><div class="l">wrong-choice cost one decision can save Encik Syaful in one season</div></div>
   </div>
   <div class="two-col-list">
     <div class="card"><h3>What breaks first at 100,000 users</h3><ul>
-      <li><b>Bedrock rate limits</b> on Claude Haiku: request a quota increase and queue bursts.</li>
+      <li><b>Bedrock rate limits</b> on the text model: request a quota increase and queue bursts.</li>
       <li><b>Image service quotas</b>: move fully to Nova Canvas in us-east-1.</li>
       <li><b>30-second API limit</b>: switch long sections to true streaming.</li>
     </ul></div>
